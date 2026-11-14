@@ -93,11 +93,11 @@ fun Muted(text: String, modifier: Modifier = Modifier) {
 
 object Links {
     val PRIVACY: String
-        get() = tr("https://relthdrarxash.github.io/lunaison/confidentialite.html", "https://relthdrarxash.github.io/lunaison/en/privacy.html")
-    const val SOURCES = "https://relthdrarxash.github.io/lunaison/references.html"
+        get() = tr("https://pilmil-studio.github.io/lunaison/confidentialite.html", "https://pilmil-studio.github.io/lunaison/en/privacy.html")
+    const val SOURCES = "https://pilmil-studio.github.io/lunaison/references.html"
 
     /** Ancre de la fiche sur la page des sources, au format de documentation/sources.md. */
     fun sourcesOf(articleId: String) = "$SOURCES#fiche-$articleId"
-    const val SOURCE = "https://github.com/Relthdrarxash/lunaison"
+    const val SOURCE = "https://github.com/Pilmil-Studio/lunaison"
     const val CONTACT = "mailto:pilmil.studio@proton.me"
 }

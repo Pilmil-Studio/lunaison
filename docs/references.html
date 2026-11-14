@@ -30,7 +30,7 @@
     <article class="prose prose-wide">
       <h1>Sources et choix de conception</h1>
       <p>L'appli reste au strict nécessaire : ce document explique ce qu'elle ne dit pas elle-même, à savoir d'où viennent ses repères et pourquoi elle est faite ainsi.</p>
-      <p>Chaque affirmation de santé de l'appli renvoie à l'une de ces références. Elles sont aussi déclarées dans <a href="https://github.com/Relthdrarxash/lunaison/blob/HEAD/documentation/../core/content/src/main/kotlin/fr/lunaison/core/content/Sources.kt"><code>Sources.kt</code></a>, et un test vérifie que chaque fiche en cite au moins une.</p>
+      <p>Chaque affirmation de santé de l'appli renvoie à l'une de ces références. Elles sont aussi déclarées dans <a href="https://github.com/Pilmil-Studio/lunaison/blob/HEAD/documentation/../core/content/src/main/kotlin/fr/lunaison/core/content/Sources.kt"><code>Sources.kt</code></a>, et un test vérifie que chaque fiche en cite au moins une.</p>
       <h2>Le cycle et ses repères</h2>
       <div class="table-scroll"><table>
       <thead><tr><th>Référence</th><th>Utilisée pour</th></tr></thead>
@@ -75,7 +75,7 @@
       <h2>Ce qui n'est pas tiré d'une étude</h2>
       <ul>
       <li>La fiche « Pour l'entourage » donne des conseils de bon sens, sans référence.</li>
-      <li>Quelques conseils du jour relèvent du bon sens ou de l'usage de l'appli : prévoir une protection en fin de cycle, alléger les jours chargés, parler à un médecin si le moral s'effondre avant les règles, noter son humeur, ajouter des règles oubliées, faire un test de grossesse en cas de retard. Ils sont marqués <code>withoutStudy</code> dans <a href="https://github.com/Relthdrarxash/lunaison/blob/HEAD/documentation/../core/content/src/main/kotlin/fr/lunaison/core/content/PhaseGuides.kt"><code>PhaseGuides.kt</code></a> ; un test vérifie que tous les autres citent une source.</li>
+      <li>Quelques conseils du jour relèvent du bon sens ou de l'usage de l'appli : prévoir une protection en fin de cycle, alléger les jours chargés, parler à un médecin si le moral s'effondre avant les règles, noter son humeur, ajouter des règles oubliées, faire un test de grossesse en cas de retard. Ils sont marqués <code>withoutStudy</code> dans <a href="https://github.com/Pilmil-Studio/lunaison/blob/HEAD/documentation/../core/content/src/main/kotlin/fr/lunaison/core/content/PhaseGuides.kt"><code>PhaseGuides.kt</code></a> ; un test vérifie que tous les autres citent une source.</li>
       <li>Les seuils des signaux (deux règles sur les trois dernières avec des douleurs fortes, trois jours abondants ou plus) sont des choix prudents de l'appli, pas des critères cliniques. Ils servent à suggérer un avis, jamais à poser un diagnostic.</li>
       </ul>
       <h2>Sources par fiche</h2>
@@ -200,7 +200,7 @@
       <li><strong>Un seul conseil par jour.</strong> L'accueil montre un conseil, tiré de la banque de la phase en cours (5 à 8 conseils sourcés par phase). Il change chaque jour et ne revient qu'après tous les autres : un message répété perd son effet (Nahum-Shani et al., 2018). Quand la personne a noté une douleur, une fatigue ou un symptôme prémenstruel, un conseil qui y répond passe en premier.</li>
       </ul>
       <h2>Statistiques personnelles</h2>
-      <p>Lunaison calcule, sur le téléphone, ce que les journées notées disent du cycle de la personne. Ces statistiques décrivent ; elles ne posent pas de diagnostic. Les règles sont dans <a href="https://github.com/Relthdrarxash/lunaison/blob/HEAD/documentation/../core/cycle/src/main/kotlin/fr/lunaison/core/cycle/CycleInsights.kt"><code>CycleInsights.kt</code></a> et <a href="https://github.com/Relthdrarxash/lunaison/blob/HEAD/documentation/../core/cycle/src/main/kotlin/fr/lunaison/core/cycle/PhasePatterns.kt"><code>PhasePatterns.kt</code></a>, les seuils dans <a href="https://github.com/Relthdrarxash/lunaison/blob/HEAD/documentation/../core/cycle/src/main/kotlin/fr/lunaison/core/cycle/CycleConfig.kt"><code>CycleConfig.kt</code></a>, le tout couvert par des tests.</p>
+      <p>Lunaison calcule, sur le téléphone, ce que les journées notées disent du cycle de la personne. Ces statistiques décrivent ; elles ne posent pas de diagnostic. Les règles sont dans <a href="https://github.com/Pilmil-Studio/lunaison/blob/HEAD/documentation/../core/cycle/src/main/kotlin/fr/lunaison/core/cycle/CycleInsights.kt"><code>CycleInsights.kt</code></a> et <a href="https://github.com/Pilmil-Studio/lunaison/blob/HEAD/documentation/../core/cycle/src/main/kotlin/fr/lunaison/core/cycle/PhasePatterns.kt"><code>PhasePatterns.kt</code></a>, les seuils dans <a href="https://github.com/Pilmil-Studio/lunaison/blob/HEAD/documentation/../core/cycle/src/main/kotlin/fr/lunaison/core/cycle/CycleConfig.kt"><code>CycleConfig.kt</code></a>, le tout couvert par des tests.</p>
       <p><strong>Ce qui est calculé</strong></p>
       <ul>
       <li>Durée habituelle des cycles et des règles, plus court et plus long cycle, sur les six derniers cycles, et comparaison aux repères FIGO (ou ACOG avant 18 ans).</li>
@@ -223,7 +223,7 @@
       <tr><td>Nahum-Shani I. et al. <em>Just-in-Time Adaptive Interventions (JITAIs) in Mobile Health: Key Components and Design Principles for Ongoing Health Behavior Support.</em> Ann Behav Med, 2018;52(6):446-462. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5364076/">PMC5364076</a></td><td>Varier les messages contre l'usure, ne rien afficher quand rien n'est pertinent</td></tr>
       <tr><td>Epstein D.A. et al. <em>Examining Menstrual Tracking to Inform the Design of Personal Informatics Tools.</em> CHI 2017. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5432133/">PMC5432133</a></td><td>Raisons du suivi (se préparer, comprendre son corps, informer son médecin) et attentes envers les prévisions</td></tr>
       </tbody></table></div>
-      <p>Une remarque sur une source, un seuil ou une formulation ? Écrivez à <a href="mailto:pilmil.studio@proton.me">pilmil.studio@proton.me</a> ou ouvrez une demande sur <a href="https://github.com/Relthdrarxash/lunaison/issues">GitHub</a>.</p>
+      <p>Une remarque sur une source, un seuil ou une formulation ? Écrivez à <a href="mailto:pilmil.studio@proton.me">pilmil.studio@proton.me</a> ou ouvrez une demande sur <a href="https://github.com/Pilmil-Studio/lunaison/issues">GitHub</a>.</p>
     </article>
   </main>
   <footer class="site-footer">
@@ -236,7 +236,7 @@
         <a href="references.html">Sources détaillées</a>
         <a href="questions.html">Questions</a>
         <a href="confidentialite.html">Confidentialité</a>
-        <a href="https://github.com/Relthdrarxash/lunaison">Code source</a>
+        <a href="https://github.com/Pilmil-Studio/lunaison">Code source</a>
         <a href="mailto:pilmil.studio@proton.me">Contact</a>
       </div>
     </div>

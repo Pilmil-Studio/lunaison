@@ -1,6 +1,6 @@
 # Sources et choix de conception
 
-L'appli reste au strict nécessaire : ce document explique ce qu'elle ne dit pas elle-même, à savoir d'où viennent ses repères et pourquoi elle est faite ainsi. Il est publié sur le site : [Sources et choix de conception](https://relthdrarxash.github.io/lunaison/references.html).
+L'appli reste au strict nécessaire : ce document explique ce qu'elle ne dit pas elle-même, à savoir d'où viennent ses repères et pourquoi elle est faite ainsi. Il est publié sur le site : [Sources et choix de conception](https://pilmil-studio.github.io/lunaison/references.html).
 
 Chaque affirmation de santé de l'appli renvoie à l'une de ces références. Elles sont aussi déclarées dans [`Sources.kt`](../core/content/src/main/kotlin/fr/lunaison/core/content/Sources.kt), et un test vérifie que chaque fiche en cite au moins une.
 

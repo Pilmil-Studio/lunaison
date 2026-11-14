@@ -16,15 +16,15 @@ Categories:
 License: MPL-2.0
 AuthorName: Pilmil Studio
 AuthorEmail: pilmil.studio@proton.me
-WebSite: https://relthdrarxash.github.io/lunaison/
-SourceCode: https://github.com/Relthdrarxash/lunaison
-IssueTracker: https://github.com/Relthdrarxash/lunaison/issues
-Changelog: https://github.com/Relthdrarxash/lunaison/releases
+WebSite: https://pilmil-studio.github.io/lunaison/
+SourceCode: https://github.com/Pilmil-Studio/lunaison
+IssueTracker: https://github.com/Pilmil-Studio/lunaison/issues
+Changelog: https://github.com/Pilmil-Studio/lunaison/releases
 
 AutoName: Lunaison
 
 RepoType: git
-Repo: https://github.com/Relthdrarxash/lunaison.git
+Repo: https://github.com/Pilmil-Studio/lunaison.git
 
 Builds:
   - versionName: 1.2.0
@@ -49,15 +49,15 @@ Categories:
 License: MPL-2.0
 AuthorName: Pilmil Studio
 AuthorEmail: pilmil.studio@proton.me
-WebSite: https://relthdrarxash.github.io/sommelle/
-SourceCode: https://github.com/Relthdrarxash/sommelle
-IssueTracker: https://github.com/Relthdrarxash/sommelle/issues
-Changelog: https://github.com/Relthdrarxash/sommelle/releases
+WebSite: https://pilmil-studio.github.io/sommelle/
+SourceCode: https://github.com/Pilmil-Studio/sommelle
+IssueTracker: https://github.com/Pilmil-Studio/sommelle/issues
+Changelog: https://github.com/Pilmil-Studio/sommelle/releases
 
 AutoName: Sommelle
 
 RepoType: git
-Repo: https://github.com/Relthdrarxash/sommelle.git
+Repo: https://github.com/Pilmil-Studio/sommelle.git
 
 Builds:
   - versionName: 1.2.0
@@ -82,15 +82,15 @@ Categories:
 License: MPL-2.0
 AuthorName: Pilmil Studio
 AuthorEmail: pilmil.studio@proton.me
-WebSite: https://relthdrarxash.github.io/respire/
-SourceCode: https://github.com/Relthdrarxash/respire
-IssueTracker: https://github.com/Relthdrarxash/respire/issues
-Changelog: https://github.com/Relthdrarxash/respire/releases
+WebSite: https://pilmil-studio.github.io/respire/
+SourceCode: https://github.com/Pilmil-Studio/respire
+IssueTracker: https://github.com/Pilmil-Studio/respire/issues
+Changelog: https://github.com/Pilmil-Studio/respire/releases
 
 AutoName: Respire
 
 RepoType: git
-Repo: https://github.com/Relthdrarxash/respire.git
+Repo: https://github.com/Pilmil-Studio/respire.git
 
 Builds:
   - versionName: 4.3.0
@@ -113,9 +113,9 @@ CurrentVersionCode: 40300
 
 - **IzzyOnDroid** (dépôt F-Droid indexant directement les APK signés des GitHub Releases en 24–48 h) :
   - Ouvrir un ticket sur `https://gitlab.com/IzzyOnDroid/repo/-/issues` avec les 3 URL :
-    - `https://github.com/Relthdrarxash/lunaison`
-    - `https://github.com/Relthdrarxash/sommelle`
-    - `https://github.com/Relthdrarxash/respire`
+    - `https://github.com/Pilmil-Studio/lunaison`
+    - `https://github.com/Pilmil-Studio/sommelle`
+    - `https://github.com/Pilmil-Studio/respire`
   - Points forts vérifiés automatiquement par le scanner IzzyOnDroid : **0 bibliothèque propriétaire, 0 pisteur, 0 permission `INTERNET`, structure Fastlane complète**.
 - **Obtainium** : les utilisateurs peuvent ajouter directement l'URL GitHub de chaque dépôt pour recevoir les mises à jour automatiques depuis les GitHub Releases.
 
@@ -123,5 +123,5 @@ CurrentVersionCode: 40300
 
 ## 3. Fiche de présentation pour les professionnels de santé
 
-- **Lunaison** : page dédiée et imprimable sur `https://relthdrarxash.github.io/lunaison/professionnels.html` (et `/en/professionals.html`).
-- **Sommelle** : page dédiée et imprimable sur `https://relthdrarxash.github.io/sommelle/professionnels.html` (et `/en/professionals.html`).
+- **Lunaison** : page dédiée et imprimable sur `https://pilmil-studio.github.io/lunaison/professionnels.html` (et `/en/professionals.html`).
+- **Sommelle** : page dédiée et imprimable sur `https://pilmil-studio.github.io/sommelle/professionnels.html` (et `/en/professionals.html`).

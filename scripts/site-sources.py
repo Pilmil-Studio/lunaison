@@ -21,7 +21,7 @@ def inline(text: str) -> str:
     def link(m):
         label, url = m.group(1), m.group(2)
         if not url.startswith("http"):
-            url = "https://github.com/Relthdrarxash/lunaison/blob/HEAD/documentation/" + url
+            url = "https://github.com/Pilmil-Studio/lunaison/blob/HEAD/documentation/" + url
         return f'<a href="{html.escape(url)}">{label}</a>'
     # Une adresse peut contenir des parenthèses, comme certains DOI : un niveau est accepté.
     text = re.sub(r"\[([^\]]+)\]\(((?:[^()\s]|\([^()\s]*\))+)\)", link, text)
@@ -106,7 +106,7 @@ TEMPLATE = """<!doctype html>
   <main id="contenu" class="wrap">
     <article class="prose prose-wide">
       {body}
-      <p>Une remarque sur une source, un seuil ou une formulation ? Écrivez à <a href="mailto:pilmil.studio@proton.me">pilmil.studio@proton.me</a> ou ouvrez une demande sur <a href="https://github.com/Relthdrarxash/lunaison/issues">GitHub</a>.</p>
+      <p>Une remarque sur une source, un seuil ou une formulation ? Écrivez à <a href="mailto:pilmil.studio@proton.me">pilmil.studio@proton.me</a> ou ouvrez une demande sur <a href="https://github.com/Pilmil-Studio/lunaison/issues">GitHub</a>.</p>
     </article>
   </main>
   <footer class="site-footer">
@@ -119,7 +119,7 @@ TEMPLATE = """<!doctype html>
         <a href="references.html">Sources détaillées</a>
         <a href="questions.html">Questions</a>
         <a href="confidentialite.html">Confidentialité</a>
-        <a href="https://github.com/Relthdrarxash/lunaison">Code source</a>
+        <a href="https://github.com/Pilmil-Studio/lunaison">Code source</a>
         <a href="mailto:pilmil.studio@proton.me">Contact</a>
       </div>
     </div>

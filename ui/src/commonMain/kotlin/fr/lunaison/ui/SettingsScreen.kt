@@ -366,7 +366,7 @@ fun SettingsScreen(
                     es = "Pausa de respiración y anti-doomscrolling, libre y sin conexión",
                     de = "Atempause & Anti-Doomscrolling, frei und offline",
                 ),
-                onClick = { openLink(context, "https://relthdrarxash.github.io/respire/") },
+                onClick = { openLink(context, "https://pilmil-studio.github.io/respire/") },
             )
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             CompanionAppRow(
@@ -380,7 +380,7 @@ fun SettingsScreen(
                     es = "Acompañamiento del insomnio crónico con TCC-I, libre y sin conexión",
                     de = "KVT-I-Begleitung bei chronischer Schlaflosigkeit, frei und offline",
                 ),
-                onClick = { openLink(context, "https://relthdrarxash.github.io/sommelle/") },
+                onClick = { openLink(context, "https://pilmil-studio.github.io/sommelle/") },
             )
         }
 

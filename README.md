@@ -2,15 +2,15 @@
 
 **Français** · [English](README.en.md)
 
-[![CI](https://github.com/Relthdrarxash/lunaison/actions/workflows/ci.yml/badge.svg)](https://github.com/Relthdrarxash/lunaison/actions/workflows/ci.yml)
+[![CI](https://github.com/Pilmil-Studio/lunaison/actions/workflows/ci.yml/badge.svg)](https://github.com/Pilmil-Studio/lunaison/actions/workflows/ci.yml)
 
 Suivi du cycle menstruel, libre et sans compte. Pour noter ses règles, ses symptômes et son humeur, comprendre ce qui se passe à chaque phase, savoir quand arrivent les prochaines règles, et prévenir son ou sa partenaire si on le souhaite.
 
 Lunaison est une appli Android gratuite, libre (MPL-2.0), sans publicité, sans traceur et **sans accès à Internet**. Tout reste sur le téléphone.
 
-**[Site de Lunaison](https://relthdrarxash.github.io/lunaison/)** · **[Google Play](https://play.google.com/store/apps/details?id=fr.lunaison)** · **[Télécharger l'APK](https://github.com/Relthdrarxash/lunaison/releases/latest)** · [Pour les professionnels de santé](https://relthdrarxash.github.io/lunaison/professionnels.html) · [Sources médicales](https://relthdrarxash.github.io/lunaison/sources.html) · [Confidentialité](https://relthdrarxash.github.io/lunaison/confidentialite.html)
+**[Site de Lunaison](https://pilmil-studio.github.io/lunaison/)** · **[Google Play](https://play.google.com/store/apps/details?id=fr.lunaison)** · **[Télécharger l'APK](https://github.com/Pilmil-Studio/lunaison/releases/latest)** · [Pour les professionnels de santé](https://pilmil-studio.github.io/lunaison/professionnels.html) · [Sources médicales](https://pilmil-studio.github.io/lunaison/sources.html) · [Confidentialité](https://pilmil-studio.github.io/lunaison/confidentialite.html)
 
-**Avant la sortie sur Google Play :** [rejoindre le test interne](https://play.google.com/apps/internaltest/4699280816823618019) (réservé aux personnes déjà ajoutées à la liste de testeurs : [comment devenir testeur ou testeuse](https://relthdrarxash.github.io/lunaison/testeur.html)).
+**Avant la sortie sur Google Play :** [rejoindre le test interne](https://play.google.com/apps/internaltest/4699280816823618019) (réservé aux personnes déjà ajoutées à la liste de testeurs : [comment devenir testeur ou testeuse](https://pilmil-studio.github.io/lunaison/testeur.html)).
 
 ## Ce que fait l'appli
 
@@ -61,7 +61,7 @@ Les captures sont générées automatiquement à partir du code des écrans à c
 
 Lunaison est née d'un besoin de ma compagne : suivre son cycle plus facilement, et me permettre de l'accompagner au quotidien. Les applications existantes réservent souvent leurs fonctions utiles à un abonnement, ou se financent avec les données de leurs utilisatrices, alors que ce sont parmi les plus intimes qui soient. Lunaison fait l'inverse : elle est gratuite, libre, fonctionne sans Internet et garde tout sur le téléphone.
 
-L'appli reste au strict nécessaire. Ce qu'elle ne dit pas elle-même, d'où viennent ses repères et pourquoi elle est faite ainsi, est expliqué dans [Sources et choix de conception](https://relthdrarxash.github.io/lunaison/sources.html).
+L'appli reste au strict nécessaire. Ce qu'elle ne dit pas elle-même, d'où viennent ses repères et pourquoi elle est faite ainsi, est expliqué dans [Sources et choix de conception](https://pilmil-studio.github.io/lunaison/sources.html).
 
 ## Vie privée
 
@@ -86,16 +86,16 @@ L'appli est en français et en anglais, selon la langue du téléphone. Chaque t
 :core:designsystem   Thème, 4 palettes WCAG AA, police Atkinson Hyperlegible, composants accessibles
 ```
 
-Les règles du moteur et leurs références sont dans [`CycleConfig.kt`](core/cycle/src/main/kotlin/fr/lunaison/core/cycle/CycleConfig.kt). Les sources des contenus et les choix de conception sont dans [documentation/sources.md](documentation/sources.md), publié sur le site : [Sources et choix de conception](https://relthdrarxash.github.io/lunaison/sources.html). Après une modification, régénérer la page avec `python3 scripts/site-sources.py`.
+Les règles du moteur et leurs références sont dans [`CycleConfig.kt`](core/cycle/src/main/kotlin/fr/lunaison/core/cycle/CycleConfig.kt). Les sources des contenus et les choix de conception sont dans [documentation/sources.md](documentation/sources.md), publié sur le site : [Sources et choix de conception](https://pilmil-studio.github.io/lunaison/sources.html). Après une modification, régénérer la page avec `python3 scripts/site-sources.py`.
 
 Tests : `./gradlew test`. Construction : `./gradlew :app:assembleDebug`.
 
 ## Du même atelier (Pilmil Studio)
 
-- **[Sommelle](https://github.com/Relthdrarxash/sommelle)** : accompagnement de l'insomnie chronique par la TCC-I en 6 à 8 semaines, gratuit, libre et sans accès à Internet.
-- **[Respire](https://github.com/Relthdrarxash/respire)** : une courte pause de respiration avant les applications que l'on ouvre par réflexe, avec filtre des Reels et Shorts.
-- **[Sauve](https://github.com/Relthdrarxash/sauve)** : premiers secours « anti-panique », gratuit, libre et sans accès à Internet, avec guidage vocal et haptique mains libres.
-- **[Sillon](https://github.com/Relthdrarxash/sillon)** : potager vivant et calendrier agronomique indexé sur la date des dernières gelées, gratuit, libre et sans accès à Internet.
+- **[Sommelle](https://github.com/Pilmil-Studio/sommelle)** : accompagnement de l'insomnie chronique par la TCC-I en 6 à 8 semaines, gratuit, libre et sans accès à Internet.
+- **[Respire](https://github.com/Pilmil-Studio/respire)** : une courte pause de respiration avant les applications que l'on ouvre par réflexe, avec filtre des Reels et Shorts.
+- **[Sauve](https://github.com/Pilmil-Studio/sauve)** : premiers secours « anti-panique », gratuit, libre et sans accès à Internet, avec guidage vocal et haptique mains libres.
+- **[Sillon](https://github.com/Pilmil-Studio/sillon)** : potager vivant et calendrier agronomique indexé sur la date des dernières gelées, gratuit, libre et sans accès à Internet.
 
 ## Pistes envisagées
 

@@ -2,15 +2,15 @@
 
 [Français](README.md) · **English**
 
-[![CI](https://github.com/Relthdrarxash/lunaison/actions/workflows/ci.yml/badge.svg)](https://github.com/Relthdrarxash/lunaison/actions/workflows/ci.yml)
+[![CI](https://github.com/Pilmil-Studio/lunaison/actions/workflows/ci.yml/badge.svg)](https://github.com/Pilmil-Studio/lunaison/actions/workflows/ci.yml)
 
 A free and open source menstrual cycle tracker, with no account. To log your periods, symptoms and mood, understand what is happening in each phase, know when your next period is coming, and let your partner know if you wish.
 
 Lunaison is a free Android app, open source (MPL-2.0), with no ads, no trackers and **no Internet access**. Everything stays on the phone.
 
-**[Lunaison website](https://relthdrarxash.github.io/lunaison/en/)** · **[Google Play](https://play.google.com/store/apps/details?id=fr.lunaison)** · **[Download APK](https://github.com/Relthdrarxash/lunaison/releases/latest)** · [For health professionals](https://relthdrarxash.github.io/lunaison/en/professionals.html) · [Medical evidence](https://relthdrarxash.github.io/lunaison/en/evidence.html) · [Privacy](https://relthdrarxash.github.io/lunaison/en/privacy.html)
+**[Lunaison website](https://pilmil-studio.github.io/lunaison/en/)** · **[Google Play](https://play.google.com/store/apps/details?id=fr.lunaison)** · **[Download APK](https://github.com/Pilmil-Studio/lunaison/releases/latest)** · [For health professionals](https://pilmil-studio.github.io/lunaison/en/professionals.html) · [Medical evidence](https://pilmil-studio.github.io/lunaison/en/evidence.html) · [Privacy](https://pilmil-studio.github.io/lunaison/en/privacy.html)
 
-**Before the Google Play release:** [join the internal test](https://play.google.com/apps/internaltest/4699280816823618019) (only for people already on the tester list: [how to become a tester](https://relthdrarxash.github.io/lunaison/en/tester.html)).
+**Before the Google Play release:** [join the internal test](https://play.google.com/apps/internaltest/4699280816823618019) (only for people already on the tester list: [how to become a tester](https://pilmil-studio.github.io/lunaison/en/tester.html)).
 
 ## What the app does
 
@@ -61,7 +61,7 @@ Screenshots are generated automatically from the screen code on every change.
 
 Lunaison grew out of my partner's need: to track her cycle more easily, and to let me support her day to day. Existing apps often keep their useful features behind a subscription, or fund themselves with their users' data, even though it is some of the most intimate data there is. Lunaison does the opposite: it is free, open source, works without the Internet and keeps everything on the phone.
 
-The app sticks to what is necessary. What it does not say itself, where its reference ranges come from and why it is built this way, is explained in [What the studies say](https://relthdrarxash.github.io/lunaison/en/evidence.html).
+The app sticks to what is necessary. What it does not say itself, where its reference ranges come from and why it is built this way, is explained in [What the studies say](https://pilmil-studio.github.io/lunaison/en/evidence.html).
 
 ## Privacy
 
@@ -86,16 +86,16 @@ The app is in French and English, following the phone's language. Every text is 
 :core:designsystem   Theme, 4 WCAG AA palettes, Atkinson Hyperlegible font, accessible components
 ```
 
-The engine's rules and their references are in [`CycleConfig.kt`](core/cycle/src/main/kotlin/fr/lunaison/core/cycle/CycleConfig.kt). The sources for the content and the design choices are in [documentation/sources.md](documentation/sources.md), published on the website as [What the studies say](https://relthdrarxash.github.io/lunaison/en/evidence.html).
+The engine's rules and their references are in [`CycleConfig.kt`](core/cycle/src/main/kotlin/fr/lunaison/core/cycle/CycleConfig.kt). The sources for the content and the design choices are in [documentation/sources.md](documentation/sources.md), published on the website as [What the studies say](https://pilmil-studio.github.io/lunaison/en/evidence.html).
 
 Tests: `./gradlew test`. Build: `./gradlew :app:assembleDebug`.
 
 ## From the same studio (Pilmil Studio)
 
-- **[Sommelle](https://github.com/Relthdrarxash/sommelle)**: 6-to-8-week CBT-I insomnia support app, free, open source and offline.
-- **[Respire](https://github.com/Relthdrarxash/respire)**: a short breathing pause before the apps you open on autopilot, with a Reels & Shorts filter.
-- **[Sauve](https://github.com/Relthdrarxash/sauve)**: anti-panic first aid guide, free, open source and offline, with hands-free voice and haptic guidance.
-- **[Sillon](https://github.com/Relthdrarxash/sillon)**: living vegetable garden planner and agronomic calendar based on the last frost date, free, open source and offline.
+- **[Sommelle](https://github.com/Pilmil-Studio/sommelle)**: 6-to-8-week CBT-I insomnia support app, free, open source and offline.
+- **[Respire](https://github.com/Pilmil-Studio/respire)**: a short breathing pause before the apps you open on autopilot, with a Reels & Shorts filter.
+- **[Sauve](https://github.com/Pilmil-Studio/sauve)**: anti-panic first aid guide, free, open source and offline, with hands-free voice and haptic guidance.
+- **[Sillon](https://github.com/Pilmil-Studio/sillon)**: living vegetable garden planner and agronomic calendar based on the last frost date, free, open source and offline.
 
 ## Ideas being considered
 
