@@ -1,21 +1,12 @@
 package fr.lunaison.core.data
 
-import fr.pilmil.core.platform.backup.IosBackupVault
-
 private val PILMIL_MAGIC = "PILMIL".encodeToByteArray()
 
 actual suspend fun LunaisonRepository.importAuto(bytes: ByteArray, password: String?): ImportSummary {
-    val isPilmil = bytes.size >= PILMIL_MAGIC.size &&
-        PILMIL_MAGIC.indices.all { bytes[it] == PILMIL_MAGIC[it] }
-
-    val csvText = if (isPilmil) {
-        val pwd = password?.trim()?.takeIf { it.isNotEmpty() }
-            ?: throw IllegalArgumentException("Mot de passe requis pour déchiffrer la sauvegarde.")
-        IosBackupVault().decrypt(bytes, pwd.toCharArray())
-    } else {
-        bytes.decodeToString()
+    // Les sauvegardes chiffrées .pilmil ne sont ni créées ni restaurées sur iOS pour l'instant.
+    require(!(bytes.size >= PILMIL_MAGIC.size && PILMIL_MAGIC.indices.all { bytes[it] == PILMIL_MAGIC[it] })) {
+        "Les sauvegardes .pilmil ne se restaurent pas encore sur iOS."
     }
-    require(!csvText.trimStart().startsWith("{")) { "Les sauvegardes complètes ne se restaurent pas encore sur iOS." }
-    val report = importCsvReport(csvText)
+    val report = importCsvReport(bytes.decodeToString())
     return ImportSummary(daysCount = report.imported, cyclesCount = 0, skippedCount = report.skipped)
 }

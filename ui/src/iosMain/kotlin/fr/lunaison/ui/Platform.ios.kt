@@ -34,7 +34,6 @@ import fr.lunaison.core.model.DayLog
 import fr.lunaison.core.model.PartnerSnapshot
 import fr.lunaison.core.model.minusDays
 import fr.lunaison.core.model.tr
-import fr.pilmil.core.platform.backup.IosBackupVault
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
@@ -436,78 +435,7 @@ actual fun EncryptedBackupButton(
     fileName: String,
     onProducePayload: suspend () -> String,
     onResult: (String) -> Unit,
-) {
-    val scope = rememberCoroutineScope()
-    var showPasswordDialog by remember { mutableStateOf(false) }
-    var password by remember { mutableStateOf("") }
-    var errorMsg by remember { mutableStateOf<String?>(null) }
-
-    LunaButton(
-        text = label,
-        onClick = {
-            password = ""
-            errorMsg = null
-            showPasswordDialog = true
-        },
-        style = LunaButtonStyle.Outlined,
-    )
-
-    if (showPasswordDialog) {
-        AlertDialog(
-            onDismissRequest = { showPasswordDialog = false },
-            title = { Text("Protéger la sauvegarde") },
-            text = {
-                androidx.compose.foundation.layout.Column {
-                    Text("Choisissez un mot de passe pour chiffrer vos données avant de les enregistrer ou transférer :")
-                    OutlinedTextField(
-                        value = password,
-                        onValueChange = {
-                            password = it
-                            errorMsg = null
-                        },
-                        singleLine = true,
-                        visualTransformation = PasswordVisualTransformation(),
-                    )
-                    errorMsg?.let { Text(it) }
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val pwd = password.trim()
-                        if (pwd.length < 4) {
-                            errorMsg = "Choisissez au moins 4 caractères."
-                            return@TextButton
-                        }
-                        showPasswordDialog = false
-                        scope.launch {
-                            runCatching {
-                                val payload = onProducePayload()
-                                val encrypted = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
-                                    IosBackupVault().encrypt(payload, pwd.toCharArray())
-                                }
-                                val path = NSTemporaryDirectory() + fileName
-                                NSFileManager.defaultManager.createFileAtPath(
-                                    path,
-                                    contents = encrypted.toNSData(),
-                                    attributes = null,
-                                )
-                                onMain { presentShareSheet(listOf(NSURL.fileURLWithPath(path))) }
-                            }.onSuccess {
-                                onResult("Sauvegarde prête à être enregistrée ou partagée.")
-                            }.onFailure { err ->
-                                onResult("Erreur lors de la sauvegarde : ${err.message ?: "inconnue"}")
-                            }
-                        }
-                    },
-                ) { Text("Sauvegarder") }
-            },
-            dismissButton = {
-                TextButton(onClick = { showPasswordDialog = false }) { Text("Annuler") }
-            },
-        )
-    }
-}
+) = Unit
 
 private fun NSData.toByteArray(): ByteArray {
     val size = length.toInt()

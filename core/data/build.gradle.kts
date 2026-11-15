@@ -39,7 +39,6 @@ kotlin {
         iosMain.dependencies {
             // Moteur SQLite embarqué : iOS n'a pas d'équivalent de SupportSQLite.
             implementation(libs.androidx.sqlite.bundled)
-            implementation("fr.pilmil.core:core-platform:0.1.0")
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
