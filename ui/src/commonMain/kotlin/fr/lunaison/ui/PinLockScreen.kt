@@ -33,6 +33,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -143,6 +145,8 @@ fun PinUnlockScreen(
             Text(
                 statusMessage,
                 style = MaterialTheme.typography.bodyLarge,
+                // Zone live : « Code incorrect » est annoncé sans avoir à explorer l'écran.
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
                 color = if (isBlocked || error) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(Modifier.height(24.dp))
@@ -187,7 +191,8 @@ fun PinUnlockScreen(
                         enabled = inputEnabled,
                         modifier = Modifier.size(72.dp),
                     ) {
-                        Text("⌫", style = MaterialTheme.typography.titleLarge)
+                        val eraseLabel = tr("Effacer le dernier chiffre", "Delete the last digit", pl = "Usuń ostatnią cyfrę", uk = "Стерти останню цифру", es = "Borrar el último dígito", de = "Letzte Ziffer löschen")
+                        Text("⌫", style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { contentDescription = eraseLabel })
                     }
                 }
             }
