@@ -298,7 +298,7 @@ private fun MainScaffold(
                 )
             }
             composable(Tab.LEARN.route) {
-                LearnScreen(onArticle = { navController.navigate("fiche/$it") })
+                LearnScreen(state = state, onArticle = { navController.navigate("fiche/$it") })
             }
             composable(Tab.SETTINGS.route) {
                 SettingsScreen(

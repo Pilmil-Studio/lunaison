@@ -56,6 +56,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import fr.lunaison.core.content.Articles
 import fr.lunaison.core.content.DailyTip
 import fr.lunaison.core.content.InsightTexts
 import fr.lunaison.core.content.PhaseGuides
@@ -385,6 +386,24 @@ fun HomeScreen(
                 LunaButton(tr("Mes cycles", "My cycles", pl = "Moje cykle", uk = "Мої цикли", es = "Mis ciclos", de = "Meine Zyklen"), onClick = onInsights, style = LunaButtonStyle.Quiet, icon = Icons.Filled.DateRange)
             }
         }
+
+        DiscoverGuideCard(today = state.today, onArticle = onArticle)
+    }
+}
+
+@Composable
+private fun DiscoverGuideCard(today: LocalDate, onArticle: (String) -> Unit) {
+    val featuredIds = listOf("cycle", "protections", "douleurs", "spm", "alimentation", "entourage")
+    val pickedId = featuredIds[((today.toEpochDays() % featuredIds.size) + featuredIds.size).toInt() % featuredIds.size]
+    val article = Articles.byId(pickedId) ?: return
+    LunaCard(modifier = Modifier.clickable { onArticle(article.id) }) {
+        Text(
+            tr("À découvrir", "Good to know", pl = "Warto wiedzieć", uk = "Варто знати", es = "Para descubrir", de = "Gut zu wissen"),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.secondary,
+        )
+        Text(article.title, style = MaterialTheme.typography.titleMedium)
+        Text(article.summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

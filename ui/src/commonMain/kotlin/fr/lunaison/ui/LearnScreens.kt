@@ -63,55 +63,132 @@ import androidx.compose.ui.unit.sp
 import kotlin.math.roundToInt
 import fr.lunaison.core.content.Article
 import fr.lunaison.core.content.Articles
+import fr.lunaison.core.cycle.CycleState
+import fr.lunaison.core.cycle.Phase
 import fr.lunaison.core.designsystem.LunaCard
 import fr.lunaison.core.designsystem.SectionTitle
+import fr.lunaison.core.model.Pain
 import fr.lunaison.core.model.tr
 
+private enum class LearnCategory {
+    ALL,
+    CYCLE,
+    WELLBEING,
+    LIFE,
+    ;
+
+    val label: String
+        get() = when (this) {
+            ALL -> tr("Tout", "All", pl = "Wszystko", uk = "Усе", es = "Todo", de = "Alle")
+            CYCLE -> tr("Cycle & hormones", "Cycle & hormones", pl = "Cykl i hormony", uk = "Цикл і гормони", es = "Ciclo y hormonas", de = "Zyklus & Hormone")
+            WELLBEING -> tr("Douleurs & bien-être", "Pain & well-being", pl = "Ból i ulga", uk = "Біль і полегшення", es = "Dolor y bienestar", de = "Schmerz & Wohl")
+            LIFE -> tr("Santé & quotidien", "Health & daily life", pl = "Zdrowie i codzienność", uk = "Здоров'я та побут", es = "Salud y vida diaria", de = "Gesundheit & Alltag")
+        }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun LearnScreen(onArticle: (String) -> Unit) {
+fun LearnScreen(
+    onArticle: (String) -> Unit,
+    state: AppState? = null,
+) {
+    var selectedCategory by rememberSaveable { mutableStateOf(LearnCategory.ALL) }
+
     Page {
         PageTitle(
             tr("Comprendre", "Learn", pl = "Wiedza", uk = "Довідник", es = "Aprender", de = "Wissen"),
             subtitle = tr("Des fiches courtes, relues et sourcées pour mieux vivre son cycle.", "Short, reviewed and referenced guides to better understand your cycle.", pl = "Krótkie, sprawdzone i opatrzone źródłami artykuły, które pomagają lepiej przeżywać cykl.", uk = "Короткі, перевірені та підкріплені джерелами статті, щоб краще проживати свій цикл.", es = "Fichas breves, revisadas y con fuentes para vivir mejor tu ciclo.", de = "Kurze, geprüfte und mit Quellen belegte Artikel, um den eigenen Zyklus besser zu erleben."),
         )
 
-        // Encart pédagogique mis en avant pour débutantes / ados et pour découvrir son anatomie
-        LunaCard(
-            modifier = Modifier.clickable(role = Role.Button) { onArticle("cycle") },
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        Icons.Filled.Info,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp),
-                    )
+            LearnCategory.entries.forEach { category ->
+                FilterChip(
+                    selected = selectedCategory == category,
+                    onClick = { selectedCategory = category },
+                    label = { Text(category.label) },
+                )
+            }
+        }
+
+        if (selectedCategory == LearnCategory.ALL && state != null) {
+            val contextualIds = buildList {
+                val known = state.cycle as? CycleState.Known
+                when (known?.phase) {
+                    Phase.MENSTRUAL -> {
+                        add("douleurs")
+                        add("protections")
+                    }
+                    Phase.LUTEAL -> add("spm")
+                    Phase.FOLLICULAR, Phase.OVULATION -> add("cycle")
+                    Phase.LATE -> add("previsions")
+                    null -> add("cycle")
                 }
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        tr("Découvrir son anatomie et son cycle", "Discovering anatomy and the cycle", pl = "Poznaj swoją anatomię i cykl", uk = "Дізнайтеся більше про свою анатомію та цикл", es = "Descubre tu anatomía y tu ciclo", de = "Anatomie und Zyklus entdecken"),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    Text(
-                        tr("Repères illustrés, organes et vagues hormonales expliqués simplement.", "Illustrated guide, organs and hormonal waves simply explained.", pl = "Ilustrowane wskazówki, narządy i fale hormonalne wyjaśnione prosto.", uk = "Ілюстровані орієнтири, органи та гормональні хвилі, пояснені просто.", es = "Esquemas ilustrados, órganos y oleadas hormonales explicados con sencillez.", de = "Illustrierte Orientierung, Organe und Hormonwellen einfach erklärt."),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                if (state.settings.irregularCyclesMode) add("perimenopause")
+                val hasStrongPain = state.logs.takeLast(14).any { it.pain == Pain.MODERATE || it.pain == Pain.SEVERE }
+                if (hasStrongPain && "endometriose" !in this) add("endometriose")
+            }.distinct().take(2)
+
+            val contextualArticles = contextualIds.mapNotNull { Articles.byId(it) }
+            if (contextualArticles.isNotEmpty()) {
+                SectionTitle(
+                    tr(
+                        "Pour vous en ce moment",
+                        "For you right now",
+                        pl = "Dla Ciebie teraz",
+                        uk = "Для вас зараз",
+                        es = "Para ti ahora",
+                        de = "Aktuell für dich",
+                    ),
+                )
+                contextualArticles.forEach { article ->
+                    ArticleCard(article, onArticle)
+                }
+            }
+        }
+
+        // Encart pédagogique mis en avant pour découvrir les schémas interactifs
+        if (selectedCategory == LearnCategory.ALL || selectedCategory == LearnCategory.CYCLE) {
+            LunaCard(
+                modifier = Modifier.clickable(role = Role.Button) { onArticle("cycle") },
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(14.dp),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            Icons.Filled.Info,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp),
+                        )
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            tr("Schémas interactifs : anatomie et cycle", "Interactive diagrams: anatomy and cycle", pl = "Interaktywne schematy: anatomia i cykl", uk = "Інтерактивні схеми: анатомія та цикл", es = "Esquemas interactivos: anatomía y ciclo", de = "Interaktive Diagramme: Anatomie und Zyklus"),
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        Text(
+                            tr("Repères illustrés, organes et vagues hormonales expliqués simplement.", "Illustrated guide, organs and hormonal waves simply explained.", pl = "Ilustrowane wskazówki, narządy i fale hormonalne wyjaśnione prosto.", uk = "Ілюстровані орієнтири, органи та гормональні хвилі, пояснені просто.", es = "Esquemas ilustrados, órganos y oleadas hormonales explicados con sencillez.", de = "Illustrierte Orientierung, Organe und Hormonwellen einfach erklärt."),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
         }
 
         // Catégorie 1 : Le cycle et les hormones
-        SectionTitle(tr("Le cycle et les hormones", "The cycle and hormones", pl = "Cykl i hormony", uk = "Цикл і гормони", es = "El ciclo y las hormonas", de = "Der Zyklus und die Hormone"))
+        if (selectedCategory == LearnCategory.ALL || selectedCategory == LearnCategory.CYCLE) {
+            SectionTitle(tr("Le cycle et les hormones", "The cycle and hormones", pl = "Cykl i hormony", uk = "Цикл і гормони", es = "El ciclo y las hormonas", de = "Der Zyklus und die Hormone"))
         LunaCard(modifier = Modifier.clickable(role = Role.Button) { onArticle("contraception") }) {
             Text(tr("Contraception & règles : ce qui change", "Contraception & periods: what changes", pl = "Antykoncepcja a miesiączka: co się zmienia", uk = "Контрацепція та менструація: що змінюється", es = "Anticoncepción y regla: qué cambia", de = "Verhütung und Periode: was sich ändert"), style = MaterialTheme.typography.titleMedium)
             Text(
@@ -155,8 +232,11 @@ fun LearnScreen(onArticle: (String) -> Unit) {
             )
         }
 
+        }
+
         // Catégorie 2 : Soulagement et bien-être
-        SectionTitle(tr("Soulagement et bien-être", "Relief and well-being", pl = "Ulga i dobre samopoczucie", uk = "Полегшення та самопочуття", es = "Alivio y bienestar", de = "Linderung und Wohlbefinden"))
+        if (selectedCategory == LearnCategory.ALL || selectedCategory == LearnCategory.WELLBEING) {
+            SectionTitle(tr("Soulagement et bien-être", "Relief and well-being", pl = "Ulga i dobre samopoczucie", uk = "Полегшення та самопочуття", es = "Alivio y bienestar", de = "Linderung und Wohlbefinden"))
         LunaCard(modifier = Modifier.clickable(role = Role.Button) { onArticle("endometriose") }) {
             Text(tr("Endométriose & douleurs pelviennes", "Endometriosis & pelvic pain", pl = "Endometrioza i ból miednicy", uk = "Ендометріоз і тазовий біль", es = "Endometriosis y dolor pélvico", de = "Endometriose und Beckenschmerzen"), style = MaterialTheme.typography.titleMedium)
             Text(
@@ -192,11 +272,15 @@ fun LearnScreen(onArticle: (String) -> Unit) {
             ArticleCard(article, onArticle)
         }
 
+        }
+
         // Catégorie 3 : Santé, quotidien et entourage
-        SectionTitle(tr("Santé, quotidien et entourage", "Health, daily life and loved ones", pl = "Zdrowie, codzienność i otoczenie", uk = "Здоров'я, повсякденне життя та оточення", es = "Salud, día a día y entorno", de = "Gesundheit, Alltag und Umfeld"))
-        val lifeArticles = Articles.all.filter { it.id in listOf("consulter", "protections", "entourage") }
-        lifeArticles.forEach { article ->
-            ArticleCard(article, onArticle)
+        if (selectedCategory == LearnCategory.ALL || selectedCategory == LearnCategory.LIFE) {
+            SectionTitle(tr("Santé, quotidien et entourage", "Health, daily life and loved ones", pl = "Zdrowie, codzienność i otoczenie", uk = "Здоров'я, повсякденне життя та оточення", es = "Salud, día a día y entorno", de = "Gesundheit, Alltag und Umfeld"))
+            val lifeArticles = Articles.all.filter { it.id in listOf("consulter", "protections", "entourage") }
+            lifeArticles.forEach { article ->
+                ArticleCard(article, onArticle)
+            }
         }
 
         Muted(tr("Ces fiches informent et ne remplacent pas l'avis d'un professionnel de santé.", "These guides inform you and do not replace the advice of a health professional.", pl = "Te artykuły informują i nie zastępują porady osoby z personelu medycznego.", uk = "Ці статті інформують і не замінюють консультацію медичного працівника.", es = "Estas fichas informan y no sustituyen la opinión de un profesional sanitario.", de = "Diese Artikel informieren und ersetzen nicht die Einschätzung von medizinischem Fachpersonal."))
@@ -243,9 +327,12 @@ fun ArticleScreen(id: String, onBack: () -> Unit) {
         PageTitle(article.title, onBack = onBack)
         Text(article.summary, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
-        // Schémas visuels pédagogiques intégrés pour la fiche cycle
-        if (id == "cycle") {
-            CycleVisualGuide()
+        // Schémas visuels pédagogiques intégrés
+        when (id) {
+            "cycle" -> CycleVisualGuide()
+            "protections" -> ProtectionsWearVisual()
+            "douleurs" -> PainMechanismVisual()
+            "spm" -> SpmWindowVisual()
         }
 
         article.sections.forEach { section ->
@@ -261,6 +348,194 @@ fun ArticleScreen(id: String, onBack: () -> Unit) {
                     textDecoration = TextDecoration.Underline,
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun ProtectionsWearVisual() {
+    val primary = MaterialTheme.colorScheme.primary
+    val secondary = MaterialTheme.colorScheme.secondary
+    val tertiary = MaterialTheme.colorScheme.tertiary
+    val track = MaterialTheme.colorScheme.surfaceVariant
+    LunaCard {
+        Text(
+            tr("Repère visuel : durée de port max", "Visual guide: max wear time", pl = "Wskazówka wizualna: maks. czas noszenia", uk = "Візуальний орієнтир: макс. час носіння", es = "Guía visual: tiempo máx. de uso", de = "Visuelle Orientierung: max. Tragedauer"),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        WearBar(
+            label = tr("Tampon", "Tampon", pl = "Tampon", uk = "Тампон", es = "Tampón", de = "Tampon"),
+            duration = "4–6 h",
+            fraction = 6f / 12f,
+            color = primary,
+            trackColor = track,
+        )
+        WearBar(
+            label = tr("Coupe menstruelle", "Menstrual cup", pl = "Kubeczek menstruacyjny", uk = "Менструальна чаша", es = "Copa menstrual", de = "Menstruationstasse"),
+            duration = "6–8 h",
+            fraction = 8f / 12f,
+            color = secondary,
+            trackColor = track,
+        )
+        WearBar(
+            label = tr("Serviette / Culotte", "Pad / Period underwear", pl = "Podpaska / Majtki", uk = "Прокладка / Білизна", es = "Compresa / Bragas", de = "Binde / Periodenunterwäsche"),
+            duration = "4–8 h",
+            fraction = 8f / 12f,
+            color = tertiary,
+            trackColor = track,
+        )
+        Text(
+            tr("Changer régulièrement réduit le risque de syndrome du choc toxique.", "Changing regularly lowers the risk of toxic shock syndrome.", pl = "Regularna zmiana zmniejsza ryzyko zespołu wstrząsu toksycznego.", uk = "Регулярна заміна знижує ризик синдрому токсичного шоку.", es = "Cambiarla con regularidad reduce el riesgo de síndrome de shock tóxico.", de = "Regelmäßiges Wechseln senkt das Risiko für ein toxisches Schocksyndrom."),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun WearBar(
+    label: String,
+    duration: String,
+    fraction: Float,
+    color: Color,
+    trackColor: Color,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(label, style = MaterialTheme.typography.labelLarge)
+            Text(duration, style = MaterialTheme.typography.labelLarge, color = color)
+        }
+        Canvas(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(10.dp),
+        ) {
+            drawRoundRect(
+                color = trackColor,
+                cornerRadius = CornerRadius(5.dp.toPx(), 5.dp.toPx()),
+            )
+            drawRoundRect(
+                color = color,
+                size = Size(size.width * fraction.coerceIn(0f, 1f), size.height),
+                cornerRadius = CornerRadius(5.dp.toPx(), 5.dp.toPx()),
+            )
+        }
+    }
+}
+
+@Composable
+private fun PainMechanismVisual() {
+    val primary = MaterialTheme.colorScheme.primaryContainer
+    val onPrimary = MaterialTheme.colorScheme.onPrimaryContainer
+    val secondary = MaterialTheme.colorScheme.secondaryContainer
+    val onSecondary = MaterialTheme.colorScheme.onSecondaryContainer
+    LunaCard {
+        Text(
+            tr("Mécanisme et leviers d'apaisement", "Mechanism and relief levers", pl = "Mechanizm i sposoby łagodzenia", uk = "Механізм і способи полегшення", es = "Mecanismo y formas de alivio", de = "Mechanismus und Linderung"),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            MechanismStep(
+                modifier = Modifier.weight(1f),
+                title = tr("1. Prostaglandines", "1. Prostaglandins", pl = "1. Prostaglandyny", uk = "1. Простагландини", es = "1. Prostaglandinas", de = "1. Prostaglandine"),
+                subtitle = tr("Pic au début des règles", "Peak as bleeding starts", pl = "Szczyt na początku", uk = "Пік на початку", es = "Pico al inicio", de = "Spitze zu Beginn"),
+                bg = primary,
+                fg = onPrimary,
+            )
+            MechanismStep(
+                modifier = Modifier.weight(1f),
+                title = tr("2. Contractions", "2. Contractions", pl = "2. Skurcze", uk = "2. Скорочення", es = "2. Contracciones", de = "2. Kontraktionen"),
+                subtitle = tr("Moins d'oxygène local", "Less local blood flow", pl = "Mniej tlenu w mięśniu", uk = "Менше кисню", es = "Menor flujo local", de = "Weniger Durchblutung"),
+                bg = primary,
+                fg = onPrimary,
+            )
+            MechanismStep(
+                modifier = Modifier.weight(1f),
+                title = tr("3. Leviers", "3. Relief", pl = "3. Ulga", uk = "3. Полегшення", es = "3. Alivio", de = "3. Linderung"),
+                subtitle = tr("Chaleur · Mouvement · 4-6 s", "Heat · Movement · 4-6 s", pl = "Ciepło · Ruch · 4-6 s", uk = "Тепло · Рух · 4-6 с", es = "Calor · Movimiento · 4-6 s", de = "Wärme · Bewegung · 4-6 s"),
+                bg = secondary,
+                fg = onSecondary,
+            )
+        }
+    }
+}
+
+@Composable
+private fun MechanismStep(
+    modifier: Modifier,
+    title: String,
+    subtitle: String,
+    bg: Color,
+    fg: Color,
+) {
+    Surface(
+        modifier = modifier,
+        color = bg,
+        shape = RoundedCornerShape(12.dp),
+    ) {
+        Column(
+            modifier = Modifier.padding(10.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(title, style = MaterialTheme.typography.labelLarge, color = fg)
+            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = fg)
+        }
+    }
+}
+
+@Composable
+private fun SpmWindowVisual() {
+    val menstrualColor = MaterialTheme.colorScheme.primary
+    val lutealColor = MaterialTheme.colorScheme.secondary
+    val baseColor = MaterialTheme.colorScheme.surfaceVariant
+    LunaCard {
+        Text(
+            tr("Où se situe le SPM dans un cycle (exemple 28 j)", "Where PMS sits in a cycle (28-day example)", pl = "Kiedy pojawia się PMS w cyklu (przykład 28 dni)", uk = "Коли виникає ПМС у циклі (приклад 28 днів)", es = "Dónde se sitúa el SPM (ejemplo 28 días)", de = "Wann PMS im Zyklus auftritt (28-Tage-Beispiel)"),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Canvas(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(16.dp),
+        ) {
+            val corner = CornerRadius(8.dp.toPx(), 8.dp.toPx())
+            drawRoundRect(color = baseColor, cornerRadius = corner)
+            // J1-J5 : règles
+            drawRoundRect(
+                color = menstrualColor,
+                size = Size(size.width * (5f / 28f), size.height),
+                cornerRadius = corner,
+            )
+            // J21-J28 : fenêtre SPM (avant les règles)
+            val spmStart = size.width * (20f / 28f)
+            drawRoundRect(
+                color = lutealColor,
+                topLeft = Offset(spmStart, 0f),
+                size = Size(size.width - spmStart, size.height),
+                cornerRadius = corner,
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                tr("J1–J5 : règles", "D1–D5: period", pl = "D1–D5: okres", uk = "Д1–Д5: менструація", es = "D1–D5: regla", de = "T1–T5: Periode"),
+                style = MaterialTheme.typography.bodySmall,
+                color = menstrualColor,
+            )
+            Text(
+                tr("J21–J28 : fenêtre SPM", "D21–D28: PMS window", pl = "D21–D28: okno PMS", uk = "Д21–Д28: вікно ПМС", es = "D21–D28: ventana SPM", de = "T21–T28: PMS-Fenster"),
+                style = MaterialTheme.typography.bodySmall,
+                color = lutealColor,
+            )
         }
     }
 }
