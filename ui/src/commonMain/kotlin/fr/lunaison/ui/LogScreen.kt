@@ -143,7 +143,7 @@ fun LogScreen(
             Symptom.URINARY_PAIN,
             Symptom.RADIATING_PAIN,
         )
-        val visibleSymptoms = if (state.settings.irregularCyclesMode || showAllSymptoms || draft.symptoms.any { it in extraSymptoms }) {
+        val visibleSymptoms = if (state.settings.irregularCyclesMode || showAllSymptoms || painOpensMoreSymptoms(draft.pain) || draft.symptoms.any { it in extraSymptoms }) {
             Symptom.entries
         } else {
             Symptom.entries.filterNot { it in extraSymptoms }
@@ -159,7 +159,7 @@ fun LogScreen(
             )
             if (visibleSymptoms.size < Symptom.entries.size) {
                 LunaButton(
-                    tr("Plus de symptômes (endométriose, bouffées, sommeil…)", "More symptoms (endometriosis, hot flashes, sleep…)", pl = "Więcej objawów (endometrioza, uderzenia gorąca, sen…)", uk = "Більше симптомів (ендометріоз, припливи, сон…)", es = "Más síntomas (endometriosis, sofocos, sueño…)", de = "Mehr Symptome (Endometriose, Hitzewallungen, Schlaf…)"),
+                    tr("Plus de symptômes", "More symptoms", pl = "Więcej objawów", uk = "Більше симптомів", es = "Más síntomas", de = "Mehr Symptome"),
                     onClick = { showAllSymptoms = true },
                     style = LunaButtonStyle.Quiet,
                 )
@@ -429,3 +429,6 @@ internal fun copyFromYesterday(draft: DayLog, yesterdayLog: DayLog): DayLog = dr
     mucus = yesterdayLog.mucus,
     basalTemperature = yesterdayLog.basalTemperature,
 )
+
+/** Une douleur gênante ou forte ouvre d'office les symptômes moins fréquents (pelvien, rapports, digestif, urinaire, irradiant). */
+internal fun painOpensMoreSymptoms(pain: Pain?): Boolean = pain == Pain.MODERATE || pain == Pain.SEVERE
