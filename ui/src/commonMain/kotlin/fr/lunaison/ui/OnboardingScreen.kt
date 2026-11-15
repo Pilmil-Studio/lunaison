@@ -25,7 +25,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import fr.lunaison.core.designsystem.LunaButton
@@ -317,7 +319,13 @@ fun Stepper(label: String, onMinus: () -> Unit, onPlus: () -> Unit, modifier: Mo
         FilledTonalIconButton(onClick = onMinus, modifier = Modifier.semantics { contentDescription = if (what.isEmpty()) minus else "$minus, $what" }) {
             Text("−", style = MaterialTheme.typography.headlineMedium)
         }
-        Text(label, style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
+        // Zone live : la nouvelle valeur est annoncée à chaque appui sur − ou +.
+        Text(
+            label,
+            style = MaterialTheme.typography.headlineMedium,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.weight(1f).semantics { liveRegion = LiveRegionMode.Polite },
+        )
         FilledTonalIconButton(onClick = onPlus, modifier = Modifier.semantics { contentDescription = if (what.isEmpty()) plus else "$plus, $what" }) {
             Icon(Icons.Filled.Add, contentDescription = null)
         }

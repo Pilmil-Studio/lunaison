@@ -116,6 +116,7 @@ fun SettingsScreen(
                     label = if (days == 0) tr("Le jour même", "On the day", pl = "Tego samego dnia", uk = "Того самого дня", es = "El mismo día", de = "Am selben Tag") else tr("${Format.days(days)} avant", "${Format.days(days)} before", pl = "${Format.days(days)} wcześniej", uk = "За ${Format.days(days)} до", es = "${Format.days(days)} antes", de = "${Format.days(days)} vorher"),
                     onMinus = { actions.updateSettings { it.copy(reminders = it.reminders.copy(periodReminderDaysBefore = (days - 1).coerceAtLeast(0))) } },
                     onPlus = { actions.updateSettings { it.copy(reminders = it.reminders.copy(periodReminderDaysBefore = (days + 1).coerceAtMost(7))) } },
+                    what = tr("le nombre de jours avant les règles", "the number of days before the period", pl = "liczbę dni przed miesiączką", uk = "кількість днів до місячних", es = "los días antes de la regla", de = "die Tage vor der Periode"),
                 )
             }
             Text(tr("Rappel pour noter ma journée", "Reminder to log my day", pl = "Przypomnienie o zapisaniu dnia", uk = "Нагадування записати мій день", es = "Recordatorio para anotar mi día", de = "Erinnerung, meinen Tag einzutragen"), style = MaterialTheme.typography.bodyMedium)
@@ -141,9 +142,10 @@ fun SettingsScreen(
             ) {
                 val time = reminders.logReminderTime
                 Stepper(
-                    label = tr("À ${time.hour} h", "At ${time.hour}:00", pl = "O ${time.hour}:00", uk = "О ${time.hour}:00", es = "${time.hour}:00 h", de = "Um ${time.hour}:00 Uhr"),
-                    onMinus = { actions.updateSettings { it.copy(reminders = it.reminders.copy(logReminderTime = time.minusHours(1))) } },
-                    onPlus = { actions.updateSettings { it.copy(reminders = it.reminders.copy(logReminderTime = time.plusHours(1))) } },
+                    label = clockLabel(time),
+                    onMinus = { actions.updateSettings { it.copy(reminders = it.reminders.copy(logReminderTime = time.shiftMinutes(-REMINDER_STEP_MINUTES))) } },
+                    onPlus = { actions.updateSettings { it.copy(reminders = it.reminders.copy(logReminderTime = time.shiftMinutes(REMINDER_STEP_MINUTES))) } },
+                    what = tr("l'heure du rappel", "the reminder time", pl = "godzinę przypomnienia", uk = "час нагадування", es = "la hora del recordatorio", de = "die Erinnerungszeit"),
                 )
             }
         }
@@ -166,9 +168,10 @@ fun SettingsScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     val medTime = reminders.medicationReminderTime
                     Stepper(
-                        label = tr("À ${medTime.hour} h", "At ${medTime.hour}:00", pl = "O ${medTime.hour}:00", uk = "О ${medTime.hour}:00", es = "${medTime.hour}:00 h", de = "Um ${medTime.hour}:00 Uhr"),
-                        onMinus = { actions.updateSettings { it.copy(reminders = it.reminders.copy(medicationReminderTime = medTime.minusHours(1))) } },
-                        onPlus = { actions.updateSettings { it.copy(reminders = it.reminders.copy(medicationReminderTime = medTime.plusHours(1))) } },
+                        label = clockLabel(medTime),
+                        onMinus = { actions.updateSettings { it.copy(reminders = it.reminders.copy(medicationReminderTime = medTime.shiftMinutes(-REMINDER_STEP_MINUTES))) } },
+                        onPlus = { actions.updateSettings { it.copy(reminders = it.reminders.copy(medicationReminderTime = medTime.shiftMinutes(REMINDER_STEP_MINUTES))) } },
+                        what = tr("l'heure du rappel du traitement", "the medication reminder time", pl = "godzinę przypomnienia o leku", uk = "час нагадування про ліки", es = "la hora del recordatorio del tratamiento", de = "die Erinnerungszeit für die Einnahme"),
                     )
                     OutlinedTextField(
                         value = reminders.medicationLabel,
@@ -563,4 +566,18 @@ private fun CompanionAppRow(
             Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
+}
+
+/** Pas de réglage de l'heure d'un rappel. */
+private const val REMINDER_STEP_MINUTES = 15
+
+private fun kotlinx.datetime.LocalTime.shiftMinutes(delta: Int): kotlinx.datetime.LocalTime {
+    val seconds = (((toSecondOfDay() + delta * 60) % 86_400) + 86_400) % 86_400
+    return kotlinx.datetime.LocalTime(seconds / 3600, (seconds % 3600) / 60)
+}
+
+/** « À 20:15 » : l'heure avec les minutes. */
+private fun clockLabel(time: kotlinx.datetime.LocalTime): String {
+    val hhmm = "${time.hour.toString().padStart(2, '0')}:${time.minute.toString().padStart(2, '0')}"
+    return tr("À $hhmm", "At $hhmm", pl = "O $hhmm", uk = "О $hhmm", es = "A las $hhmm", de = "Um $hhmm Uhr")
 }

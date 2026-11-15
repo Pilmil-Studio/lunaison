@@ -21,6 +21,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -244,7 +247,7 @@ fun LogScreen(
                 if (w == null) {
                     LunaButton(
                         tr("Noter mon poids (kg)", "Log weight (kg)", pl = "Zanotuj wagę (kg)", uk = "Записати вагу (кг)", es = "Anotar el peso (kg)", de = "Gewicht eintragen (kg)"),
-                        onClick = { draft = draft.copy(weight = 60.0f) },
+                        onClick = { draft = draft.copy(weight = state.logs.lastOrNull { it.weight != null }?.weight ?: DEFAULT_WEIGHT) },
                         style = LunaButtonStyle.Outlined,
                     )
                 } else {
@@ -258,6 +261,14 @@ fun LogScreen(
                             val next = ((w * 10).roundToInt() + 5).coerceAtMost(2500) / 10f
                             draft = draft.copy(weight = next)
                         },
+                        what = tr("le poids", "weight", pl = "wagę", uk = "вагу", es = "el peso", de = "das Gewicht"),
+                    )
+                    DecimalField(
+                        value = w,
+                        min = 30f,
+                        max = 250f,
+                        label = tr("Poids en kg (30 à 250)", "Weight in kg (30 to 250)", pl = "Waga w kg (30–250)", uk = "Вага, кг (30–250)", es = "Peso en kg (30 a 250)", de = "Gewicht in kg (30 bis 250)"),
+                        onValue = { draft = draft.copy(weight = it) },
                     )
                     LunaButton(
                         tr("Effacer le poids", "Clear weight", pl = "Usuń wagę", uk = "Видалити вагу", es = "Borrar el peso", de = "Gewicht löschen"),
@@ -279,7 +290,7 @@ fun LogScreen(
                 if (temp == null) {
                     LunaButton(
                         tr("Noter ma température au réveil", "Log waking basal temperature", pl = "Zanotuj temperaturę po przebudzeniu", uk = "Записати базальну температуру після пробудження", es = "Anotar la temperatura basal al despertar", de = "Aufwachtemperatur eintragen"),
-                        onClick = { draft = draft.copy(basalTemperature = 36.5f) },
+                        onClick = { draft = draft.copy(basalTemperature = state.logs.lastOrNull { it.basalTemperature != null }?.basalTemperature ?: DEFAULT_TEMPERATURE) },
                         style = LunaButtonStyle.Outlined,
                     )
                 } else {
@@ -293,6 +304,14 @@ fun LogScreen(
                             val next = ((temp * 10).roundToInt() + 1).coerceAtMost(385) / 10f
                             draft = draft.copy(basalTemperature = next)
                         },
+                        what = tr("la température", "temperature", pl = "temperaturę", uk = "температуру", es = "la temperatura", de = "die Temperatur"),
+                    )
+                    DecimalField(
+                        value = temp,
+                        min = 35.5f,
+                        max = 38.5f,
+                        label = tr("Température en °C (35,5 à 38,5)", "Temperature in °C (35.5 to 38.5)", pl = "Temperatura w °C (35,5–38,5)", uk = "Температура, °C (35,5–38,5)", es = "Temperatura en °C (35,5 a 38,5)", de = "Temperatur in °C (35,5 bis 38,5)"),
+                        onValue = { draft = draft.copy(basalTemperature = it) },
                     )
                     LunaButton(
                         tr("Effacer la température", "Clear temperature", pl = "Usuń temperaturę", uk = "Видалити температуру", es = "Borrar la temperatura", de = "Temperatur löschen"),
@@ -432,3 +451,33 @@ internal fun copyFromYesterday(draft: DayLog, yesterdayLog: DayLog): DayLog = dr
 
 /** Une douleur gênante ou forte ouvre d'office les symptômes moins fréquents (pelvien, rapports, digestif, urinaire, irradiant). */
 internal fun painOpensMoreSymptoms(pain: Pain?): Boolean = pain == Pain.MODERATE || pain == Pain.SEVERE
+
+private const val DEFAULT_WEIGHT = 60.0f
+private const val DEFAULT_TEMPERATURE = 36.5f
+
+/** Lit un nombre décimal saisi avec un point ou une virgule ; `null` s'il est illisible ou hors de la plage. */
+internal fun parseDecimalInRange(text: String, min: Float, max: Float): Float? =
+    text.trim().replace(',', '.').toFloatOrNull()?.takeIf { it in min..max }
+
+/** Saisie décimale directe, avec validation de plage ; les boutons − et + restent pour l'ajustement fin. */
+@Composable
+private fun DecimalField(value: Float, min: Float, max: Float, label: String, onValue: (Float) -> Unit) {
+    var text by remember { mutableStateOf(ReportText.decimal(value.toDouble())) }
+    // Un changement venu des boutons − et + remplace le texte ; la frappe en cours n'est pas écrasée.
+    LaunchedEffect(value) {
+        if (parseDecimalInRange(text, min, max) != value) text = ReportText.decimal(value.toDouble())
+    }
+    val parsed = parseDecimalInRange(text, min, max)
+    OutlinedTextField(
+        value = text,
+        onValueChange = { input ->
+            text = input
+            parseDecimalInRange(input, min, max)?.let { onValue((it * 10).roundToInt() / 10f) }
+        },
+        label = { Text(label) },
+        singleLine = true,
+        isError = parsed == null,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+        modifier = Modifier.fillMaxWidth(),
+    )
+}
