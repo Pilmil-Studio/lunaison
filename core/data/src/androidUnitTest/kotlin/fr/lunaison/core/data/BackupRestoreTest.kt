@@ -62,6 +62,18 @@ class BackupRestoreTest {
     }
 
     @Test
+    fun `une sauvegarde sans reglages ne supprime pas le PIN du telephone`() = runBlocking {
+        val json = LunaisonRepository(InMemoryLunaisonDao()).exportBackupJson()
+
+        val target = LunaisonRepository(InMemoryLunaisonDao())
+        target.updateSettings { it.copy(pinHash = AppSettings.hashPin("1111")) }
+        target.restoreBackupJson(json)
+        val pin = target.settingsOnce().pinHash
+        assertNotNull(pin)
+        assertTrue(AppSettings.verifyPin("1111", pin))
+    }
+
+    @Test
     fun `une version inconnue ne modifie rien`() = runBlocking {
         val json = filledRepo().exportBackupJson().replace("\"version\":1", "\"version\":9")
         val target = filledRepo()

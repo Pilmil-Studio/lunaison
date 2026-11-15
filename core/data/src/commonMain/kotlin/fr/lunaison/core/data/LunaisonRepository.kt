@@ -186,8 +186,10 @@ class LunaisonRepository(private val dao: LunaisonDao) {
     suspend fun restoreBackupJson(json: String): BackupRestoreSummary {
         val content = LunaisonBackup.decode(json)
         settingsMutex.withLock {
-            val currentPin = dao.settingsOnce()?.pinHash
-            dao.replaceAll(content.logs, content.settings?.copy(pinHash = currentPin))
+            val current = dao.settingsOnce()
+            // Une sauvegarde sans réglages ne doit pas effacer ceux du téléphone, ni surtout son code PIN.
+            val settings = content.settings?.copy(pinHash = current?.pinHash) ?: current
+            dao.replaceAll(content.logs, settings)
         }
         return BackupRestoreSummary(daysCount = content.logs.size, settingsRestored = content.settings != null)
     }
