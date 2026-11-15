@@ -3,6 +3,7 @@ package fr.lunaison.ui
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -362,20 +363,6 @@ fun HomeScreen(
             )
         }
 
-        val completedCycles = (cycle as? CycleState.Known)?.stats?.completedCycles ?: 0
-        if (storePageAvailable && !state.settings.reviewPromptDismissed && completedCycles >= 2) {
-            val context = rememberPlatformContext()
-            ReviewPromptCard(
-                onReview = {
-                    actions.updateSettings { it.copy(reviewPromptDismissed = true) }
-                    openStore(context)
-                },
-                onDismiss = {
-                    actions.updateSettings { it.copy(reviewPromptDismissed = true) }
-                },
-            )
-        }
-
         if (!paused && cycle is CycleState.Known) {
             val pages = listOf(
                 tr("Aujourd'hui", "Today", pl = "Dziś", uk = "Сьогодні", es = "Hoy", de = "Heute"),
@@ -393,17 +380,24 @@ fun HomeScreen(
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     pages.forEachIndexed { idx, label ->
                         val selected = pagerState.currentPage == idx
-                        Surface(
-                            shape = RoundedCornerShape(18.dp),
-                            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-                            modifier = Modifier.clickable { scope.launch { pagerState.animateScrollToPage(idx) } },
+                        // Rôle Tab et cible de 48 dp : un lecteur d'écran annonce « onglet, sélectionné ».
+                        Box(
+                            modifier = Modifier
+                                .heightIn(min = 48.dp)
+                                .selectable(selected = selected, role = Role.Tab) { scope.launch { pagerState.animateScrollToPage(idx) } },
+                            contentAlignment = Alignment.Center,
                         ) {
-                            Text(
-                                text = label,
-                                style = MaterialTheme.typography.labelMedium,
-                                color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = 11.dp, vertical = 6.dp),
-                            )
+                            Surface(
+                                shape = RoundedCornerShape(18.dp),
+                                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                            ) {
+                                Text(
+                                    text = label,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(horizontal = 11.dp, vertical = 6.dp),
+                                )
+                            }
                         }
                     }
                 }
@@ -552,42 +546,6 @@ private fun RecapCard(recap: CycleRecap, onInsights: () -> Unit, onDismiss: () -
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
             TextButton(onClick = onDismiss) { Text(tr("Masquer", "Hide", pl = "Ukryj", uk = "Сховати", es = "Ocultar", de = "Ausblenden")) }
             TextButton(onClick = onInsights) { Text(tr("Mes cycles", "My cycles", pl = "Moje cykle", uk = "Мої цикли", es = "Mis ciclos", de = "Meine Zyklen")) }
-        }
-    }
-}
-
-@Composable
-private fun ReviewPromptCard(onReview: () -> Unit, onDismiss: () -> Unit) {
-    LunaCard {
-        Text(
-            tr(
-                "Vous utilisez Lunaison depuis quelques cycles",
-                "You've been using Lunaison for a few cycles",
-                pl = "Używasz Lunaison od kilku cykli",
-                uk = "Ви користуєтеся Lunaison уже кілька циклів",
-                es = "Llevas varios ciclos usando Lunaison",
-                de = "Du nutzt Lunaison seit einigen Zyklen",
-            ),
-            style = MaterialTheme.typography.titleMedium,
-        )
-        Text(
-            tr(
-                "Lunaison est une application libre, gratuite, sans publicité et sans serveur. Si elle vous est utile au quotidien, laisser un mot doux ou une note sur le Play Store aide d'autres personnes à la trouver face aux applications payantes.",
-                "Lunaison is a free and open-source app with no ads and no servers. If it helps you in your daily life, leaving a warm review or rating on the Play Store helps others find it among paid alternatives.",
-                pl = "Lunaison to darmowa, otwarta aplikacja bez reklam i bez serwerów. Jeśli pomaga Ci na co dzień, miłe słowo lub ocena w sklepie Play pomoże innym odnaleźć ją wśród płatnych aplikacji.",
-                uk = "Lunaison — це вільний, безкоштовний застосунок без реклами та серверів. Якщо він корисний для вас у щоденному житті, теплий відгук чи оцінка в Play Store допоможуть іншим знайти його серед платних додатків.",
-                es = "Lunaison es una aplicación libre, gratuita, sin anuncios y sin servidores. Si te resulta útil en tu día a día, dejar unas palabras o una valoración en Google Play ayuda a que otras personas la descubran frente a las aplicaciones de pago.",
-                de = "Lunaison ist eine freie, kostenlose App ohne Werbung und ohne Server. Wenn sie dir im Alltag hilft, unterstützt eine freundliche Bewertung im Play Store andere dabei, sie neben den kostenpflichtigen Apps zu finden.",
-            ),
-            style = MaterialTheme.typography.bodyMedium,
-        )
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            TextButton(onClick = onDismiss) {
-                Text(tr("Plus tard", "Not now", pl = "Później", uk = "Пізніше", es = "Más tarde", de = "Später"))
-            }
-            TextButton(onClick = onReview) {
-                Text(tr("Laisser un avis", "Leave a review", pl = "Wystaw opinię", uk = "Залишити відгук", es = "Dejar una opinión", de = "Bewertung abgeben"))
-            }
         }
     }
 }
