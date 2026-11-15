@@ -87,8 +87,8 @@ fun InsightsScreen(
             SectionTitle(tr("Pendant vos règles", "During your period", pl = "Podczas miesiączki", uk = "Під час менструації", es = "Durante la regla", de = "Während der Periode"))
             LunaCard {
                 Text(tr("Lors de vos dernières règles, vous avez souvent noté :", "During your recent periods, you often logged:", pl = "Podczas ostatnich miesiączek często zapisywano:", uk = "Під час ваших останніх менструацій ви часто записували:", es = "En tus últimas reglas has anotado con frecuencia:", de = "Bei deinen letzten Perioden hast du häufig eingetragen:"), style = MaterialTheme.typography.bodyMedium)
-                duringPeriod.symptoms.forEach { (s, n) -> Bullet(tr("${s.label} (${n} cycles sur ${duringPeriod.cycles})", "${s.label} (${n} of ${duringPeriod.cycles} cycles)", pl = "${s.label} (cykle: ${n} z ${duringPeriod.cycles})", uk = "${s.label} (цикли: ${n} з ${duringPeriod.cycles})", es = "${s.label} (${n} de ${duringPeriod.cycles} ciclos)", de = "${s.label} (${n} von ${duringPeriod.cycles} Zyklen)")) }
-                duringPeriod.moods.forEach { (m, n) -> Bullet(tr("${m.label} (${n} cycles sur ${duringPeriod.cycles})", "${m.label} (${n} of ${duringPeriod.cycles} cycles)", pl = "${m.label} (cykle: ${n} z ${duringPeriod.cycles})", uk = "${m.label} (цикли: ${n} з ${duringPeriod.cycles})", es = "${m.label} (${n} de ${duringPeriod.cycles} ciclos)", de = "${m.label} (${n} von ${duringPeriod.cycles} Zyklen)")) }
+                duringPeriod.symptoms.forEach { (s, n) -> Bullet(tr("${s.label} (${Format.cyclesFr(n)} sur ${duringPeriod.cycles})", "${s.label} (${n} of ${duringPeriod.cycles} cycles)", pl = "${s.label} (cykle: ${n} z ${duringPeriod.cycles})", uk = "${s.label} (цикли: ${n} з ${duringPeriod.cycles})", es = "${s.label} (${n} de ${duringPeriod.cycles} ciclos)", de = "${s.label} (${n} von ${duringPeriod.cycles} Zyklen)")) }
+                duringPeriod.moods.forEach { (m, n) -> Bullet(tr("${m.label} (${Format.cyclesFr(n)} sur ${duringPeriod.cycles})", "${m.label} (${n} of ${duringPeriod.cycles} cycles)", pl = "${m.label} (cykle: ${n} z ${duringPeriod.cycles})", uk = "${m.label} (цикли: ${n} з ${duringPeriod.cycles})", es = "${m.label} (${n} de ${duringPeriod.cycles} ciclos)", de = "${m.label} (${n} von ${duringPeriod.cycles} Zyklen)")) }
             }
         }
 
@@ -103,10 +103,10 @@ fun InsightsScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     pattern.symptoms.forEach { (s, n) ->
-                        Bullet(tr("${s.label} ($n cycles sur ${pattern.cycles})", "${s.label} ($n of ${pattern.cycles} cycles)", pl = "${s.label} (cykle: $n z ${pattern.cycles})", uk = "${s.label} (цикли: $n з ${pattern.cycles})", es = "${s.label} ($n de ${pattern.cycles} ciclos)", de = "${s.label} ($n von ${pattern.cycles} Zyklen)"))
+                        Bullet(tr("${s.label} (${Format.cyclesFr(n)} sur ${pattern.cycles})", "${s.label} ($n of ${pattern.cycles} cycles)", pl = "${s.label} (cykle: $n z ${pattern.cycles})", uk = "${s.label} (цикли: $n з ${pattern.cycles})", es = "${s.label} ($n de ${pattern.cycles} ciclos)", de = "${s.label} ($n von ${pattern.cycles} Zyklen)"))
                     }
                     pattern.moods.forEach { (m, n) ->
-                        Bullet(tr("Humeur : ${m.label.lowercase()} ($n cycles sur ${pattern.cycles})", "Mood: ${m.label.lowercase()} ($n of ${pattern.cycles} cycles)", pl = "Nastrój: ${m.label.lowercase()} (cykle: $n z ${pattern.cycles})", uk = "Настрій: ${m.label.lowercase()} (цикли: $n з ${pattern.cycles})", es = "Estado de ánimo: ${m.label.lowercase()} ($n de ${pattern.cycles} ciclos)", de = "Stimmung: ${m.label.lowercase()} ($n von ${pattern.cycles} Zyklen)"))
+                        Bullet(tr("Humeur : ${m.label.lowercase()} (${Format.cyclesFr(n)} sur ${pattern.cycles})", "Mood: ${m.label.lowercase()} ($n of ${pattern.cycles} cycles)", pl = "Nastrój: ${m.label.lowercase()} (cykle: $n z ${pattern.cycles})", uk = "Настрій: ${m.label.lowercase()} (цикли: $n з ${pattern.cycles})", es = "Estado de ánimo: ${m.label.lowercase()} ($n de ${pattern.cycles} ciclos)", de = "Stimmung: ${m.label.lowercase()} ($n von ${pattern.cycles} Zyklen)"))
                     }
                 }
             }

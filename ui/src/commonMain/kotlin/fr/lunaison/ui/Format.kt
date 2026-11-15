@@ -102,25 +102,26 @@ object Format {
 
     fun monthYear(date: LocalDate): String = "${current.monthsNominative[date.monthNumber - 1]} ${date.year}".capitalized()
 
-    fun days(count: Int): String = if (count <= 1) {
-        tr(
-            fr = "$count jour",
-            en = "$count day",
-            pl = "$count dzień",
-            uk = "$count день",
-            es = "$count día",
-            de = "$count Tag",
-        )
-    } else {
-        tr(
-            fr = "$count jours",
-            en = "$count days",
-            pl = "$count dni",
-            uk = "$count дн.",
-            es = "$count días",
-            de = "$count Tage",
-        )
+    /** Nombre de jours, avec l'accord de chaque langue : en français 0 et 1 restent au singulier, en anglais « 0 days ». */
+    fun days(count: Int): String {
+        val n = kotlin.math.abs(count)
+        val fr = if (n <= 1) "jour" else "jours"
+        val en = if (n == 1) "day" else "days"
+        val es = if (n == 1) "día" else "días"
+        val de = if (n == 1) "Tag" else "Tage"
+        val pl = if (n == 1) "dzień" else "dni"
+        val lastTwo = n % 100
+        val last = n % 10
+        val uk = when {
+            last == 1 && lastTwo != 11 -> "день"
+            last in 2..4 && lastTwo !in 12..14 -> "дні"
+            else -> "днів"
+        }
+        return tr(fr = "$count $fr", en = "$count $en", pl = "$count $pl", uk = "$count $uk", es = "$count $es", de = "$count $de")
     }
+
+    /** « 1 cycle », « 2 cycles » : le français met 0 et 1 au singulier (les autres langues gardent leur tournure « n of N cycles »). */
+    fun cyclesFr(count: Int): String = if (count <= 1) "$count cycle" else "$count cycles"
 
     fun relativeDay(date: LocalDate, today: LocalDate): String = when (date) {
         today -> tr("Aujourd'hui", "Today", "Dzisiaj", "Сьогодні", "Hoy", "Heute")
