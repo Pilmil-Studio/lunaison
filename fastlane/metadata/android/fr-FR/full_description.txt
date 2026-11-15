@@ -15,5 +15,5 @@ PÉDAGOGIE MÉDICALE ET ÉDUCATION
 
 RESPECT ABSOLU DE LA VIE PRIVÉE
 • Aucune collecte de données, aucun traceur, aucun identifiant publicitaire.
-• Export chiffré et sauvegarde locale.
+• Export CSV et sauvegarde locale.
 • Fonctionne intégralement sans connexion Internet.

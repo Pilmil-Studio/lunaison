@@ -15,5 +15,5 @@ EVIDENCE-BASED EDUCATION
 
 STRICT PRIVACY
 • Zero data collection, zero analytics, zero trackers.
-• Local export and encrypted backup.
+• Local CSV export and backup.
 • 100% functional without an Internet connection.
