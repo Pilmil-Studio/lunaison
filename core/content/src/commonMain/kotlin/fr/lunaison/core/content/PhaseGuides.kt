@@ -343,11 +343,22 @@ object DailyTip {
      * chaque jour : le même conseil toute la journée, un autre le lendemain, et aucun ne revient avant
      * que tous soient passés.
      */
-    fun pick(guide: PhaseGuide, date: LocalDate, today: DayLog?): Tip? {
+    fun pick(
+        guide: PhaseGuide,
+        date: LocalDate,
+        today: DayLog?,
+        offset: Int = 0,
+        excludeTexts: Set<String> = emptySet(),
+    ): Tip? {
         if (guide.tips.isEmpty()) return null
         val day = date.toEpochDay()
         val relevant = today?.let { log -> guide.tips.filter { it.matches(log) } }.orEmpty()
-        val pool = relevant.ifEmpty { guide.tips }
-        return pool[day.mod(pool.size.toLong()).toInt()]
+        val basePool = when {
+            relevant.isEmpty() -> guide.tips
+            relevant.size <= 2 && offset > 0 -> guide.tips
+            else -> relevant
+        }
+        val fresh = basePool.filterNot { it.fr in excludeTexts }.ifEmpty { basePool }
+        return fresh[(day + offset).mod(fresh.size.toLong()).toInt()]
     }
 }

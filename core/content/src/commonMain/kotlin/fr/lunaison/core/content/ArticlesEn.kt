@@ -277,7 +277,7 @@ internal object ArticlesEn {
                 "What to know",
                 listOf(
                     "Periods and the days before them can come with very real pain, tiredness and mood changes. They are neither exaggerated nor \"all in the head\".",
-                    "Every cycle is different, and so is every person. The only way to know what helps is to ask.",
+                    "Every cycle is different, and so is every person. The only way to know what helps is to ask. You can also read the guides on period pain and PMS to better understand what is happening.",
                 ),
             ),
             Section(
@@ -298,5 +298,62 @@ internal object ArticlesEn {
         sources = emptyList(),
     )
 
-    val all: List<Article> = listOf(cycle, pain, pms, food, consult, protection, predictions, partners)
+    val symptothermie = Article(
+        id = "symptothermie",
+        title = "Observing mucus and basal temperature",
+        summary = "How to track ovulation signs in Lunaison, what can skew measurements, and their limits.",
+        sections = listOf(
+            Section(
+                "Cervical mucus",
+                listOf(
+                    "Driven by estrogen, secretions from the cervix change over the cycle. Right after a period, sensation is often dry, then secretions become creamy or sticky.",
+                    "Approaching ovulation, mucus becomes more abundant, clear and stretchy, like raw egg white. After ovulation, progesterone quickly makes it dry or thick again.",
+                ),
+            ),
+            Section(
+                "Basal body temperature",
+                listOf(
+                    "Basal temperature is taken in the morning on waking, before getting out of bed, ideally at a consistent time with the same thermometer. After ovulation, progesterone raises resting temperature by about 0.2 to 0.5 °C until the next period.",
+                    "Several factors can skew a single reading: fever or infection, a very short or restless night, alcohol the evening before, travel or a shifted wake-up time. Note this context in a comment if needed.",
+                ),
+            ),
+            Section(
+                "What this tracking is for",
+                listOf(
+                    "Together, these signs help confirm after the fact that ovulation occurred, or better target the fertile window when trying to conceive. However, self-observation alone without structured training is not a reliable contraceptive method.",
+                ),
+            ),
+        ),
+        sources = listOf(Sources.BULL_2019, Sources.TRUSSELL_2011),
+    )
+
+    val transitions = Article(
+        id = "transitions",
+        title = "First periods, stopping the pill and postpartum",
+        summary = "Why cycles are irregular during major hormonal transitions and how to adapt Lunaison.",
+        sections = listOf(
+            Section(
+                "The first years (adolescence)",
+                listOf(
+                    "During the first two to three years after menarche, communication between the brain and ovaries matures gradually. Cycles between 21 and 45 days, sometimes without ovulation, are normal at this age.",
+                ),
+            ),
+            Section(
+                "After stopping hormonal contraception",
+                listOf(
+                    "Bleeding on a combined pill is not a natural period, but withdrawal bleeding triggered by the pill-free break. After stopping, ovulation and spontaneous cycles can take several weeks to a few months to settle.",
+                ),
+            ),
+            Section(
+                "Postpartum and breastfeeding",
+                listOf(
+                    "After childbirth, the return of periods varies widely. Exclusive, frequent breastfeeding often delays ovulation, yet a first ovulation can happen before the first bleed returns.",
+                    "During pregnancy, breastfeeding or continuous contraception, you can enable Pause mode in Settings. When cycles resume irregularly, switch on Naturally irregular cycles mode instead.",
+                ),
+            ),
+        ),
+        sources = listOf(Sources.ACOG_ADOLESCENTS_2015, Sources.FIGO_2018, Sources.BULL_2019),
+    )
+
+    val all: List<Article> = listOf(cycle, pain, pms, food, consult, protection, predictions, symptothermie, transitions, partners)
 }

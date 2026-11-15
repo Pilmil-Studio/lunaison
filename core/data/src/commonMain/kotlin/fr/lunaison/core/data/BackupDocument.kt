@@ -36,7 +36,7 @@ object LunaisonBackup {
     const val VERSION = 1
 
     /** Version du schéma Room au moment de l'écriture (information, pas une condition de lecture). */
-    const val SCHEMA_VERSION = 7
+    const val SCHEMA_VERSION = 8
 
     /** Écrit le document ; le hachage du code PIN est retiré des réglages. */
     fun encode(content: BackupContent): String {
@@ -86,6 +86,7 @@ object LunaisonBackup {
                 "trackOvulationSigns" to s.trackOvulationSigns,
                 "irregularCyclesMode" to s.irregularCyclesMode,
                 "reviewPromptDismissed" to s.reviewPromptDismissed,
+                "articleLastShown" to s.articleLastShown,
             )
         }
         val document = linkedMapOf<String, Any?>(
@@ -201,6 +202,7 @@ object LunaisonBackup {
                 trackOvulationSigns = bool("trackOvulationSigns"),
                 irregularCyclesMode = bool("irregularCyclesMode"),
                 reviewPromptDismissed = bool("reviewPromptDismissed"),
+                articleLastShown = stringOrNull("articleLastShown") ?: "",
             )
         }
 

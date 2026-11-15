@@ -5,6 +5,7 @@ import androidx.room.Database
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.ConstructedBy
 import androidx.room.RoomDatabase
 import androidx.room.RoomDatabaseConstructor
@@ -64,6 +65,7 @@ data class SettingsEntity(
     val trackOvulationSigns: Boolean = false,
     val irregularCyclesMode: Boolean = false,
     val reviewPromptDismissed: Boolean = false,
+    val articleLastShown: String = "",
 )
 
 @Dao
@@ -94,9 +96,18 @@ interface LunaisonDao {
 
     @Query("DELETE FROM settings")
     suspend fun deleteSettings()
+
+    /** Remplace tout le contenu de la base en une seule transaction : tout est remplacé, ou rien. */
+    @Transaction
+    suspend fun replaceAll(logs: List<DayLogEntity>, settings: SettingsEntity?) {
+        deleteLogs()
+        deleteSettings()
+        logs.forEach { upsertLog(it) }
+        if (settings != null) upsertSettings(settings)
+    }
 }
 
-@Database(entities = [DayLogEntity::class, SettingsEntity::class], version = 7, exportSchema = true)
+@Database(entities = [DayLogEntity::class, SettingsEntity::class], version = 8, exportSchema = true)
 @ConstructedBy(LunaisonDatabaseConstructor::class)
 abstract class LunaisonDatabase : RoomDatabase() {
     abstract fun dao(): LunaisonDao
@@ -151,6 +162,11 @@ abstract class LunaisonDatabase : RoomDatabase() {
                 "ALTER TABLE day_logs ADD COLUMN weight REAL",
                 "ALTER TABLE day_logs ADD COLUMN intimacy TEXT NOT NULL DEFAULT ''",
                 "ALTER TABLE day_logs ADD COLUMN libido TEXT",
+            ),
+            // Version 8 : mémorise la date de dernier affichage/lecture de chaque fiche éducative.
+            SqlMigration(
+                7, 8,
+                "ALTER TABLE settings ADD COLUMN articleLastShown TEXT NOT NULL DEFAULT ''",
             ),
         )
     }

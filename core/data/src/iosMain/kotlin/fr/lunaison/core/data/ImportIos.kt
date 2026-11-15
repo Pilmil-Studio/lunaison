@@ -15,6 +15,7 @@ actual suspend fun LunaisonRepository.importAuto(bytes: ByteArray, password: Str
     } else {
         bytes.decodeToString()
     }
+    require(!csvText.trimStart().startsWith("{")) { "Les sauvegardes complètes ne se restaurent pas encore sur iOS." }
     val report = importCsvReport(csvText)
     return ImportSummary(daysCount = report.imported, cyclesCount = 0, skippedCount = report.skipped)
 }

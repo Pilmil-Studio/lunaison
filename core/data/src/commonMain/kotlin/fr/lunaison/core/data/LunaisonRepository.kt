@@ -80,6 +80,8 @@ data class AppSettings(
     val irregularCyclesMode: Boolean = false,
     /** Mémorise si la demande d'avis discrète a été traitée (avis laissé ou masqué). */
     val reviewPromptDismissed: Boolean = false,
+    /** Date de dernier affichage ou lecture de chaque fiche (identifiant -> date ISO). */
+    val articleLastShown: Map<String, LocalDate> = emptyMap(),
 ) {
     val isAdult: Boolean get() = baseline.ageGroup == AgeGroup.ADULT
 
@@ -88,6 +90,7 @@ data class AppSettings(
 
     companion object {
         const val ALERT_SNOOZE_DAYS = 60L
+        const val ARTICLE_COOLDOWN_DAYS = 7L
         private const val PBKDF2_PREFIX = "pbkdf2$"
         private const val PBKDF2_ITERATIONS = 100_000
         private const val PBKDF2_KEY_BYTES = 32
@@ -165,6 +168,27 @@ class LunaisonRepository(private val dao: LunaisonDao) {
     suspend fun eraseAll() {
         dao.deleteLogs()
         dao.deleteSettings()
+    }
+
+    /**
+     * Document JSON de la sauvegarde complète : toutes les tables de la base, sans le code PIN.
+     * C'est le contenu qu'on chiffre dans un fichier .pilmil.
+     */
+    suspend fun exportBackupJson(): String =
+        LunaisonBackup.encode(BackupContent(dao.logsOnce(), dao.settingsOnce()))
+
+    /**
+     * Remplace toutes les données actuelles par celles d'une sauvegarde. Le document est lu et vérifié en entier
+     * avant tout changement ; en cas d'échec ([BackupFormatException]) rien n'est modifié.
+     * Le code PIN de ce téléphone est conservé : il n'est pas dans la sauvegarde.
+     */
+    suspend fun restoreBackupJson(json: String): BackupRestoreSummary {
+        val content = LunaisonBackup.decode(json)
+        settingsMutex.withLock {
+            val currentPin = dao.settingsOnce()?.pinHash
+            dao.replaceAll(content.logs, content.settings?.copy(pinHash = currentPin))
+        }
+        return BackupRestoreSummary(daysCount = content.logs.size, settingsRestored = content.settings != null)
     }
 
     /**
@@ -282,6 +306,9 @@ class LunaisonRepository(private val dao: LunaisonDao) {
     }
 }
 
+/** Ce qu'une restauration a remis en place. */
+data class BackupRestoreSummary(val daysCount: Int, val settingsRestored: Boolean)
+
 /** Bilan d'un import CSV : journées importées, lignes ignorées (illisibles ou vides) et valeurs non reconnues. */
 data class CsvImportReport(val imported: Int, val skipped: Int, val unknownValues: Int)
 
@@ -384,6 +411,12 @@ internal fun SettingsEntity.toModel() = AppSettings(
     trackOvulationSigns = trackOvulationSigns,
     irregularCyclesMode = irregularCyclesMode,
     reviewPromptDismissed = reviewPromptDismissed,
+    articleLastShown = articleLastShown.split(",").mapNotNull { pair ->
+        val parts = pair.split("@")
+        val id = parts.getOrNull(0)?.trim()?.takeIf { it.isNotEmpty() }
+        val date = parts.getOrNull(1)?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+        if (id != null && date != null) id to date else null
+    }.toMap(),
 )
 
 internal fun AppSettings.toEntity() = SettingsEntity(
@@ -413,6 +446,7 @@ internal fun AppSettings.toEntity() = SettingsEntity(
     trackOvulationSigns = trackOvulationSigns,
     irregularCyclesMode = irregularCyclesMode,
     reviewPromptDismissed = reviewPromptDismissed,
+    articleLastShown = articleLastShown.entries.joinToString(",") { "${it.key}@${it.value}" },
 )
 
 /** Identifiant de l'énumération, sinon libellé dans l'une des six langues (sans tenir compte de la casse). */

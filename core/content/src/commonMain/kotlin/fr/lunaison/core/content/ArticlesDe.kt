@@ -277,7 +277,7 @@ internal object ArticlesDe {
                 "Hintergrundwissen",
                 listOf(
                     "Die Periode und die Tage davor können mit realen Schmerzen, Erschöpfung und Stimmungsschwankungen einhergehen. Das ist weder Einbildung noch Übertreibung.",
-                    "Jeder Zyklus verläuft anders und jeder Mensch reagiert individuell. Was wirklich hilft, erfährt man am besten durch offenes, zugewandtes Nachfragen.",
+                    "Jeder Zyklus verläuft anders und jeder Mensch reagiert individuell. Was wirklich hilft, erfährt man am besten durch offenes, zugewandtes Nachfragen. Du kannst auch die Artikel über Regelschmerzen und PMS lesen, um besser zu verstehen, was passiert.",
                 ),
             ),
             Section(
@@ -298,5 +298,62 @@ internal object ArticlesDe {
         sources = emptyList(),
     )
 
-    val all: List<Article> = listOf(cycle, pain, pms, food, consult, protection, predictions, partners)
+    val symptothermie = Article(
+        id = "symptothermie",
+        title = "Zervixschleim und Basaltemperatur beobachten",
+        summary = "Wie man Eisprungzeichen in Lunaison verfolgt, was die Werte verfälschen kann und wo die Grenzen liegen.",
+        sections = listOf(
+            Section(
+                "Der Zervixschleim",
+                listOf(
+                    "Unter dem Einfluss von Östrogenen verändert sich das Sekret des Gebärmutterhalses im Laufe des Zyklus. Direkt nach der Periode fühlt es sich oft trocken an, danach wird der Schleim cremig oder zäh.",
+                    "Kurz vor dem Eisprung wird der Schleim reichlicher, klar und spinnbar, ähnlich wie rohes Eiweiß. Nach dem Eisprung macht das Progesteron ihn rasch wieder trocken oder dickflüssig.",
+                ),
+            ),
+            Section(
+                "Die Basaltemperatur",
+                listOf(
+                    "Die Basaltemperatur wird morgens direkt nach dem Aufwachen vor dem Aufstehen gemessen, idealerweise zur gleichen Uhrzeit mit demselben Thermometer. Nach dem Eisprung hebt Progesteron die Ruhetemperatur um etwa 0,2 bis 0,5 °C bis zur nächsten Periode an.",
+                    "Mehrere Faktoren können einen einzelnen Wert verfälschen: Fieber oder Infekt, eine sehr kurze oder unruhige Nacht, Alkohol am Vorabend, Reisen oder eine stark verschobene Aufwachzeit. Notiere diesen Kontext bei Bedarf im Kommentar.",
+                ),
+            ),
+            Section(
+                "Wozu diese Beobachtung dient",
+                listOf(
+                    "Beide Hinweise helfen, im Nachhinein zu bestätigen, ob ein Eisprung stattgefunden hat, oder bei Kinderwunsch das fruchtbare Fenster besser einzugrenzen. Ohne strukturierte Schulung ist die Selbstbeobachtung allein jedoch keine zuverlässige Verhütungsmethode.",
+                ),
+            ),
+        ),
+        sources = listOf(Sources.BULL_2019, Sources.TRUSSELL_2011),
+    )
+
+    val transitions = Article(
+        id = "transitions",
+        title = "Erste Periode, Pille absetzen und Postpartum",
+        summary = "Warum Zyklen in hormonellen Übergangsphasen unregelmäßig sind und wie man Lunaison anpasst.",
+        sections = listOf(
+            Section(
+                "Die ersten Jahre (Jugendalter)",
+                listOf(
+                    "In den ersten zwei bis drei Jahren nach der ersten Periode reift das Zusammenspiel zwischen Gehirn und Eierstöcken schrittweise heran. Zyklen zwischen 21 und 45 Tagen, teils auch ohne Eisprung, gehören in diesem Alter zum normalen Rahmen.",
+                ),
+            ),
+            Section(
+                "Nach dem Absetzen hormoneller Verhütung",
+                listOf(
+                    "Blutungen unter der Kombinationspille sind keine natürlichen Perioden, sondern Entzugsblutungen in der Einnahmepause. Nach dem Absetzen können Eisprung und eigener Zyklus einige Wochen bis mehrere Monate brauchen, bis sie ihren Rhythmus finden.",
+                ),
+            ),
+            Section(
+                "Nach der Geburt und in der Stillzeit",
+                listOf(
+                    "Nach einer Entbindung setzt die Periode sehr unterschiedlich wieder ein. Häufiges, ausschließliches Stillen verzögert oft den Eisprung, doch ein erster Eisprung kann bereits vor der ersten Blutung stattfinden.",
+                    "Während Schwangerschaft, Stillzeit oder durchgehender Verhütung kannst du in den Einstellungen den Pausenmodus aktivieren. Wenn die Zyklen unregelmäßig wieder einsetzen, nutze stattdessen den Modus für natürlich unregelmäßige Zyklen.",
+                ),
+            ),
+        ),
+        sources = listOf(Sources.ACOG_ADOLESCENTS_2015, Sources.FIGO_2018, Sources.BULL_2019),
+    )
+
+    val all: List<Article> = listOf(cycle, pain, pms, food, consult, protection, predictions, symptothermie, transitions, partners)
 }

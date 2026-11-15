@@ -166,6 +166,16 @@ class ContentTest {
     }
 
     @Test
+    fun `dailyTip evite les conseils recemment vus quand un decalage est demande`() {
+        val today = LocalDate.of(2026, 11, 1)
+        val first = assertNotNull(DailyTip.pick(PhaseGuides.menstrual, today, null))
+        val next = assertNotNull(
+            DailyTip.pick(PhaseGuides.menstrual, today, null, offset = 1, excludeTexts = setOf(first.fr)),
+        )
+        assertTrue(next.fr != first.fr)
+    }
+
+    @Test
     fun `phrases du bilan sans tiret cadratin et avec les bons comptes`() {
         setLanguage(Language.FR)
         val fr = InsightTexts.recapLines(recap)

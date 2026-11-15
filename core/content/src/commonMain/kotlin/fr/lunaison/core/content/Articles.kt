@@ -182,7 +182,7 @@ internal object ArticlesFr {
             Section(
                 "Quand demander de l'aide",
                 listOf(
-                    "Si ces jours-là votre moral s'effondre, si l'anxiété ou la colère abîment vos relations ou votre travail, parlez-en à un médecin. Une forme sévère, le trouble dysphorique prémenstruel, se soigne. Et si des idées noires apparaissent, n'attendez pas : appelez le 3114, numéro national de prévention du suicide, gratuit et ouvert jour et nuit.",
+                    "Si ces jours-là votre moral s'effondre, si l'anxiété ou la colère abîment vos relations ou votre travail, parlez-en à un médecin. Une forme sévère, le trouble dysphorique prémenstruel, se soigne. Et si des idées noires apparaissent, n'attendez pas : appelez le 3114 (en France), le 0800 32 123 (en Belgique), le 143 (en Suisse), ou le 112 en Europe.",
                 ),
             ),
         ),
@@ -213,12 +213,12 @@ internal object ArticlesFr {
                 ),
             ),
             Section(
-                "Appeler le 15 ou aller aux urgences",
+                "Appeler le 15 ou le 112, ou aller aux urgences",
                 listOf(
                     "Une douleur brutale et très forte dans le bas du ventre, surtout si une grossesse est possible.",
                     "Un saignement très abondant avec malaise, vertiges ou pâleur.",
                     "De la fièvre avec des douleurs dans le bas du ventre.",
-                    "Une fièvre brutale, des vomissements, une éruption sur la peau ou un malaise pendant le port d'un tampon ou d'une coupe : retirez-le et appelez le 15, c'est peut-être un choc toxique.",
+                    "Une fièvre brutale, des vomissements, une éruption sur la peau ou un malaise pendant le port d'un tampon ou d'une coupe : retirez-le et appelez le 15 ou le 112, c'est peut-être un choc toxique.",
                 ),
             ),
         ),
@@ -259,7 +259,7 @@ internal object ArticlesFr {
             Section(
                 "Les signes d'alerte",
                 listOf(
-                    "Fièvre brutale, vomissements ou diarrhée, éruption qui ressemble à un coup de soleil, malaise ou vertiges pendant le port d'une protection interne : retirez-la et appelez le 15.",
+                    "Fièvre brutale, vomissements ou diarrhée, éruption qui ressemble à un coup de soleil, malaise ou vertiges pendant le port d'une protection interne : retirez-la et appelez le 15 ou le 112.",
                 ),
             ),
         ),
@@ -302,7 +302,7 @@ internal object ArticlesFr {
                 "Ce qu'il faut savoir",
                 listOf(
                     "Les règles et les jours qui les précèdent peuvent s'accompagner de douleurs, de fatigue et de changements d'humeur bien réels. Ils ne sont ni exagérés ni « dans la tête ».",
-                    "Chaque cycle est différent, et chaque personne aussi. La seule façon de savoir ce qui aide, c'est de demander.",
+                    "Chaque cycle est différent, et chaque personne aussi. La seule façon de savoir ce qui aide, c'est de demander. Vous pouvez aussi lire les fiches sur les douleurs de règles et le syndrome prémenstruel pour mieux comprendre ce qui se passe.",
                 ),
             ),
             Section(
@@ -323,5 +323,62 @@ internal object ArticlesFr {
         sources = emptyList(),
     )
 
-    val all: List<Article> = listOf(cycle, pain, pms, food, consult, protection, predictions, partners)
+    val symptothermie = Article(
+        id = "symptothermie",
+        title = "Observer sa glaire et sa température",
+        summary = "Comment suivre les signes d'ovulation dans Lunaison, ce qui peut fausser les mesures et leurs limites.",
+        sections = listOf(
+            Section(
+                "La glaire cervicale",
+                listOf(
+                    "Sous l'effet des œstrogènes, les sécrétions du col de l'utérus changent au fil du cycle. Après les règles, la sensation est souvent sèche ou peu humide, puis les sécrétions deviennent crémeuses ou collantes.",
+                    "À l'approche de l'ovulation, la glaire devient plus abondante, transparente et élastique, comme du blanc d'œuf cru. Après l'ovulation, sous l'effet de la progestérone, elle redevient rapidement sèche ou épaisse.",
+                ),
+            ),
+            Section(
+                "La température basale",
+                listOf(
+                    "La température basale se prend le matin au réveil, avant de se lever, idéalement à heure régulière avec le même thermomètre. Après l'ovulation, la progestérone fait monter la température au repos d'environ 0,2 à 0,5 °C jusqu'aux règles suivantes.",
+                    "Plusieurs facteurs peuvent fausser une mesure isolée : fièvre ou infection, nuit très courte ou agitée, prise d'alcool la veille, voyage ou horaire de réveil très décalé. Notez ce contexte en commentaire si besoin.",
+                ),
+            ),
+            Section(
+                "À quoi sert ce suivi",
+                listOf(
+                    "Ces deux repères permettent de confirmer a posteriori que l'ovulation a bien eu lieu, ou de mieux cibler la période fertile dans un projet de grossesse. En revanche, l'observation seule sans apprentissage structuré ne constitue pas une méthode contraceptive fiable.",
+                ),
+            ),
+        ),
+        sources = listOf(Sources.BULL_2019, Sources.TRUSSELL_2011),
+    )
+
+    val transitions = Article(
+        id = "transitions",
+        title = "Premières règles, arrêt de pilule et post-partum",
+        summary = "Pourquoi les cycles sont irréguliers lors des grandes transitions hormonales et comment adapter Lunaison.",
+        sections = listOf(
+            Section(
+                "Les premières années (adolescence)",
+                listOf(
+                    "Pendant les deux à trois ans suivant les premières règles, le dialogue entre le cerveau et les ovaires se met en place progressivement. Des cycles de 21 à 45 jours, parfois sans ovulation, font partie des repères normaux à cet âge.",
+                ),
+            ),
+            Section(
+                "Après l'arrêt d'une contraception hormonale",
+                listOf(
+                    "Les saignements sous pilule combinée ne sont pas des règles naturelles, mais des saignements de privation déclenchés par la pause entre deux plaquettes. À l'arrêt, l'ovulation et le cycle spontané peuvent mettre quelques semaines à quelques mois à retrouver leur rythme.",
+                ),
+            ),
+            Section(
+                "Post-partum et allaitement",
+                listOf(
+                    "Après un accouchement, le retour de couches varie beaucoup d'une personne à l'autre. L'allaitement exclusif et fréquent freine souvent la reprise de l'ovulation, mais une première ovulation peut survenir avant même le retour des règles.",
+                    "Pendant une grossesse, l'allaitement ou une contraception en continu, vous pouvez activer le mode Pause dans les Réglages. Lorsque les cycles reprennent de façon irrégulière, activez plutôt le mode Cycles naturellement irréguliers.",
+                ),
+            ),
+        ),
+        sources = listOf(Sources.ACOG_ADOLESCENTS_2015, Sources.FIGO_2018, Sources.BULL_2019),
+    )
+
+    val all: List<Article> = listOf(cycle, pain, pms, food, consult, protection, predictions, symptothermie, transitions, partners)
 }

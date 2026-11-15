@@ -318,27 +318,49 @@ fun SettingsScreen(
             if (encryptedBackupAvailable) {
                 EncryptedBackupButton(
                     label = tr(
-                        "Sauvegarder mes données",
-                        "Back up my data",
-                        pl = "Utwórz kopię zapasową",
-                        uk = "Створити резервну копію",
-                        es = "Hacer copia de seguridad",
-                        de = "Meine Daten sichern",
+                        "Sauvegarde chiffrée (.pilmil)",
+                        "Encrypted backup (.pilmil)",
+                        pl = "Zaszyfrowana kopia (.pilmil)",
+                        uk = "Зашифрована копія (.pilmil)",
+                        es = "Copia cifrada (.pilmil)",
+                        de = "Verschlüsselte Sicherung (.pilmil)",
                     ),
                     fileName = "lunaison.pilmil",
-                    onProducePayload = { actions.exportCsv() },
+                    onProducePayload = { actions.exportBackup() },
                     onResult = { importResultMessage = it },
                 )
-            }
-            if (importAvailable) {
-                LunaButton(
-                    tr(
+                RestoreBackupButton(
+                    label = tr(
                         "Restaurer une sauvegarde",
                         "Restore a backup",
                         pl = "Przywróć kopię zapasową",
                         uk = "Відновити резервну копію",
                         es = "Restaurar una copia",
                         de = "Sicherung wiederherstellen",
+                    ),
+                    onRestore = { actions.restoreBackup(it) },
+                    onResult = { importResultMessage = it },
+                )
+                Muted(
+                    tr(
+                        "La sauvegarde chiffrée contient tout votre journal et vos réglages, sous le mot de passe de votre choix. Le code PIN n'est pas sauvegardé.",
+                        "The encrypted backup holds your whole log and your settings, under a password you choose. The PIN code is not backed up.",
+                        pl = "Zaszyfrowana kopia zawiera cały dziennik i ustawienia, chronione wybranym przez ciebie hasłem. Kod PIN nie jest zapisywany w kopii.",
+                        uk = "Зашифрована копія містить увесь щоденник і налаштування під обраним вами паролем. PIN-код не зберігається в копії.",
+                        es = "La copia cifrada contiene todo tu diario y tus ajustes, con la contraseña que elijas. El código PIN no se incluye en la copia.",
+                        de = "Die verschlüsselte Sicherung enthält dein ganzes Tagebuch und deine Einstellungen, geschützt mit einem Passwort deiner Wahl. Der PIN-Code wird nicht gesichert.",
+                    ),
+                )
+            }
+            if (importAvailable) {
+                LunaButton(
+                    tr(
+                        "Importer un CSV ou une autre appli",
+                        "Import a CSV or another app",
+                        pl = "Importuj CSV lub inną aplikację",
+                        uk = "Імпортувати CSV або інший застосунок",
+                        es = "Importar un CSV u otra aplicación",
+                        de = "CSV oder andere App importieren",
                     ),
                     onClick = { showImportSourceDialog = true },
                     style = LunaButtonStyle.Outlined,

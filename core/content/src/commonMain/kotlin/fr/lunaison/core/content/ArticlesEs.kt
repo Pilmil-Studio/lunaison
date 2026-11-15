@@ -277,7 +277,7 @@ internal object ArticlesEs {
                 "Lo que conviene saber",
                 listOf(
                     "La menstruación y los días previos pueden acompañarse de dolor, cansancio y cambios de humor totalmente reales. No son exageraciones ni están en la cabeza.",
-                    "Cada ciclo es diferente y cada persona también. La única forma de saber qué ayuda es preguntar con empatía.",
+                    "Cada ciclo es diferente y cada persona también. La única forma de saber qué ayuda es preguntar con empatía. También puedes leer las fichas sobre el dolor menstrual y el síndrome premenstrual para entender mejor lo que ocurre.",
                 ),
             ),
             Section(
@@ -298,5 +298,62 @@ internal object ArticlesEs {
         sources = emptyList(),
     )
 
-    val all: List<Article> = listOf(cycle, pain, pms, food, consult, protection, predictions, partners)
+    val symptothermie = Article(
+        id = "symptothermie",
+        title = "Observar el moco cervical y la temperatura",
+        summary = "Cómo seguir los signos de ovulación en Lunaison, qué puede alterar las mediciones y sus límites.",
+        sections = listOf(
+            Section(
+                "El moco cervical",
+                listOf(
+                    "Por efecto de los estrógenos, las secreciones del cuello uterino cambian a lo largo del ciclo. Justo después de la regla, la sensación suele ser seca, y luego el flujo se vuelve cremoso o pegajoso.",
+                    "Al acercarse la ovulación, el moco se vuelve más abundante, transparente y elástico, como clara de huevo cruda. Tras la ovulación, la progesterona hace que vuelva a ser seco o espeso rápidamente.",
+                ),
+            ),
+            Section(
+                "La temperatura basal",
+                listOf(
+                    "La temperatura basal se toma al despertar por la mañana, antes de levantarse, idealmente a la misma hora y con el mismo termómetro. Después de la ovulación, la progesterona eleva la temperatura en reposo unos 0,2 a 0,5 °C hasta la regla siguiente.",
+                    "Varios factores pueden alterar una medición aislada: fiebre o infección, una noche muy corta o agitada, consumo de alcohol la víspera, viajes o un cambio grande de horario al despertar. Anota ese contexto si hace falta.",
+                ),
+            ),
+            Section(
+                "Para qué sirve este seguimiento",
+                listOf(
+                    "Ambos indicadores ayudan a confirmar a posteriori que hubo ovulación o a orientar mejor la ventana fértil en un proyecto de embarazo. Sin embargo, la autoobservación sin formación estructurada no es un método anticonceptivo fiable.",
+                ),
+            ),
+        ),
+        sources = listOf(Sources.BULL_2019, Sources.TRUSSELL_2011),
+    )
+
+    val transitions = Article(
+        id = "transitions",
+        title = "Primeras reglas, dejar la píldora y posparto",
+        summary = "Por qué los ciclos son irregulares en las transiciones hormonales y cómo adaptar Lunaison.",
+        sections = listOf(
+            Section(
+                "Los primeros años (adolescencia)",
+                listOf(
+                    "Durante los dos o tres años posteriores a la primera regla, la comunicación entre el cerebro y los ovarios madura poco a poco. Ciclos de entre 21 y 45 días, a veces sin ovulación, entran dentro de la normalidad a esa edad.",
+                ),
+            ),
+            Section(
+                "Tras dejar un anticonceptivo hormonal",
+                listOf(
+                    "El sangrado con píldora combinada no es una regla natural, sino un sangrado por deprivación durante la pausa. Al dejarla, la ovulación y el ciclo espontáneo pueden tardar desde unas semanas hasta unos meses en estabilizarse.",
+                ),
+            ),
+            Section(
+                "Posparto y lactancia",
+                listOf(
+                    "Después del parto, el regreso de la regla varía mucho de una persona a otra. La lactancia materna exclusiva y frecuente suele retrasar la ovulación, aunque una primera ovulación puede ocurrir antes del primer sangrado.",
+                    "Durante el embarazo, la lactancia o una anticoncepción continua, puedes activar el modo Pausa en Ajustes. Cuando los ciclos vuelvan de forma irregular, activa el modo Ciclos naturalmente irregulares.",
+                ),
+            ),
+        ),
+        sources = listOf(Sources.ACOG_ADOLESCENTS_2015, Sources.FIGO_2018, Sources.BULL_2019),
+    )
+
+    val all: List<Article> = listOf(cycle, pain, pms, food, consult, protection, predictions, symptothermie, transitions, partners)
 }

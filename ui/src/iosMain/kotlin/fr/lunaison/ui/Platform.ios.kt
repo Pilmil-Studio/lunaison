@@ -24,6 +24,7 @@ import fr.lunaison.core.cycle.HealthReport
 import fr.lunaison.core.cycle.LogReminderMode
 import fr.lunaison.core.cycle.Prediction
 import fr.lunaison.core.data.AppSettings
+import fr.lunaison.core.data.BackupRestoreSummary
 import fr.lunaison.core.data.Partner
 import fr.lunaison.core.data.PartnerChannel
 import fr.lunaison.core.data.PinThrottleState
@@ -416,7 +417,18 @@ actual fun ImportDialogs(showSource: Boolean, onDismiss: () -> Unit, actions: Ac
     }
 }
 
-actual val encryptedBackupAvailable: Boolean = true
+/*
+ * Sauvegarde chiffrée complète et restauration : Android seulement pour l'instant. Le document JSON est en commonMain
+ * (LunaisonBackup), mais rien n'a été vérifié sur un iPhone : on ne propose pas le bouton.
+ */
+actual val encryptedBackupAvailable: Boolean = false
+
+@Composable
+actual fun RestoreBackupButton(
+    label: String,
+    onRestore: suspend (json: String) -> BackupRestoreSummary,
+    onResult: (String) -> Unit,
+) = Unit
 
 @Composable
 actual fun EncryptedBackupButton(

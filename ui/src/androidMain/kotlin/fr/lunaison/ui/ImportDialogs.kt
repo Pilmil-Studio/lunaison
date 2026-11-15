@@ -29,8 +29,6 @@ import fr.lunaison.core.data.ImportSummary
 import fr.lunaison.core.data.InvalidPasswordException
 import fr.lunaison.core.data.PeriodCalendarImporter
 import fr.lunaison.core.model.tr
-import fr.pilmil.core.platform.backup.AndroidBackupVault
-import fr.pilmil.core.platform.backup.InvalidPassphraseException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -95,7 +93,17 @@ actual fun ImportDialogs(
                         importResult(tr("Fichier vide ou inaccessible.", "Empty or inaccessible file.", pl = "Plik jest pusty lub niedostępny.", uk = "Файл порожній або недоступний.", es = "Archivo vacío o inaccesible.", de = "Datei leer oder nicht zugänglich."))
                         return@launch
                     }
-                    if (isPilmilVault(bytes) || (PeriodCalendarImporter.isZip(bytes) && PeriodCalendarImporter.isEncryptedZip(bytes))) {
+                    if (isPilmilVault(bytes)) {
+                        // Une sauvegarde .pilmil remplace les données : elle a son propre bouton, avec confirmation.
+                        importResult(tr(
+                            fr = "Ce fichier est une sauvegarde .pilmil : utilisez « Restaurer une sauvegarde ».",
+                            en = "This file is a .pilmil backup: use \"Restore a backup\".",
+                            pl = "To jest kopia .pilmil: użyj „Przywróć kopię zapasową”.",
+                            uk = "Це резервна копія .pilmil: скористайтеся «Відновити резервну копію».",
+                            es = "Este archivo es una copia .pilmil: usa «Restaurar una copia».",
+                            de = "Diese Datei ist eine .pilmil-Sicherung: nutze „Sicherung wiederherstellen“.",
+                        ))
+                    } else if (PeriodCalendarImporter.isZip(bytes) && PeriodCalendarImporter.isEncryptedZip(bytes)) {
                         pendingZipBytes = bytes
                         passwordInput = ""
                         passwordError = null
@@ -166,17 +174,17 @@ actual fun ImportDialogs(
                     ) {
                         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(
-                                tr("Lunaison (.pilmil / CSV)", "Lunaison (.pilmil / CSV)", pl = "Lunaison (.pilmil / CSV)", uk = "Lunaison (.pilmil / CSV)", es = "Lunaison (.pilmil / CSV)", de = "Lunaison (.pilmil / CSV)"),
+                                tr("Lunaison (CSV)", "Lunaison (CSV)", pl = "Lunaison (CSV)", uk = "Lunaison (CSV)", es = "Lunaison (CSV)", de = "Lunaison (CSV)"),
                                 style = MaterialTheme.typography.titleSmall,
                             )
                             Text(
                                 tr(
-                                    fr = "Sauvegarde chiffrée .pilmil ou fichier .csv exporté depuis Lunaison.",
-                                    en = "Encrypted .pilmil backup or .csv file exported from Lunaison.",
-                                    pl = "Zaszyfrowana kopia .pilmil lub plik .csv wyeksportowany z Lunaison.",
-                                    uk = "Зашифрована копія .pilmil або файл .csv, експортований із Lunaison.",
-                                    es = "Copia cifrada .pilmil o archivo .csv exportado desde Lunaison.",
-                                    de = "Verschlüsselte .pilmil-Sicherung oder aus Lunaison exportierte .csv-Datei.",
+                                    fr = "Fichier .csv exporté depuis Lunaison, quelle que soit la langue utilisée à l'export.",
+                                    en = "A .csv file exported from Lunaison, whatever language was used for the export.",
+                                    pl = "Plik .csv wyeksportowany z Lunaison, w dowolnym języku eksportu.",
+                                    uk = "Файл .csv, експортований із Lunaison, якою б мовою не робили експорт.",
+                                    es = "Archivo .csv exportado desde Lunaison, en cualquier idioma de exportación.",
+                                    de = "Aus Lunaison exportierte .csv-Datei, in welcher Sprache auch immer exportiert.",
                                 ),
                                 style = MaterialTheme.typography.bodySmall,
                             )
@@ -252,21 +260,11 @@ actual fun ImportDialogs(
                         if (bytes != null) {
                             scope.launch {
                                 try {
-                                    val summary = if (isPilmilVault(bytes)) {
-                                        val csv = withContext(Dispatchers.Default) {
-                                            AndroidBackupVault().decrypt(bytes, passwordInput.toCharArray())
-                                        }
-                                        val count = actions.importCsv(csv)
-                                        ImportSummary(daysCount = count, cyclesCount = 0)
-                                    } else {
-                                        actions.importAuto(bytes, passwordInput.trim())
-                                    }
+                                    val summary = actions.importAuto(bytes, passwordInput.trim())
                                     showPasswordDialog = false
                                     pendingZipBytes = null
                                     importResult(importSummaryMessage(summary))
                                 } catch (e: InvalidPasswordException) {
-                                    passwordError = tr("Mot de passe incorrect.", "Incorrect password.", pl = "Nieprawidłowe hasło.", uk = "Неправильний пароль.", es = "Contraseña incorrecta.", de = "Falsches Passwort.")
-                                } catch (e: InvalidPassphraseException) {
                                     passwordError = tr("Mot de passe incorrect.", "Incorrect password.", pl = "Nieprawidłowe hasło.", uk = "Неправильний пароль.", es = "Contraseña incorrecta.", de = "Falsches Passwort.")
                                 } catch (e: Exception) {
                                     passwordError = tr("Erreur : ${e.localizedMessage}", "Error: ${e.localizedMessage}", pl = "Błąd: ${e.localizedMessage}", uk = "Помилка: ${e.localizedMessage}", es = "Error: ${e.localizedMessage}", de = "Fehler: ${e.localizedMessage}")

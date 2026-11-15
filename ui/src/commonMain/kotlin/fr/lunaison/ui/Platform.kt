@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import fr.lunaison.core.cycle.HealthReport
 import fr.lunaison.core.cycle.Prediction
 import fr.lunaison.core.data.AppSettings
+import fr.lunaison.core.data.BackupRestoreSummary
 import fr.lunaison.core.data.Partner
 import fr.lunaison.core.data.PinThrottleState
 import fr.lunaison.core.model.DayLog
@@ -87,14 +88,26 @@ expect val importAvailable: Boolean
 @Composable
 expect fun ImportDialogs(showSource: Boolean, onDismiss: () -> Unit, actions: Actions, onResult: (String) -> Unit)
 
-/** L'export chiffré .pilmil est disponible sur la plateforme (Android). */
+/** La sauvegarde chiffrée .pilmil et sa restauration sont disponibles sur la plateforme (Android seulement). */
 expect val encryptedBackupAvailable: Boolean
 
+/** Chiffre le document de sauvegarde avec un mot de passe et l'enregistre dans un fichier .pilmil choisi par la personne. */
 @Composable
 expect fun EncryptedBackupButton(
     label: String,
     fileName: String,
     onProducePayload: suspend () -> String,
+    onResult: (String) -> Unit,
+)
+
+/**
+ * Choisit un fichier .pilmil, demande le mot de passe et une confirmation explicite, puis appelle [onRestore]
+ * avec le document déchiffré. Une erreur (mot de passe, fichier corrompu, version inconnue) laisse les données intactes.
+ */
+@Composable
+expect fun RestoreBackupButton(
+    label: String,
+    onRestore: suspend (json: String) -> BackupRestoreSummary,
     onResult: (String) -> Unit,
 )
 

@@ -254,6 +254,13 @@ private fun MainScaffold(
     }
     val savedMessage = tr("Journée enregistrée", "Day saved", pl = "Dzień zapisany", uk = "День збережено", es = "Día guardado", de = "Tag gespeichert")
 
+    val openArticle: (String) -> Unit = { id ->
+        if (state.settings.articleLastShown[id] != state.today) {
+            actions.updateSettings { it.copy(articleLastShown = it.articleLastShown + (id to state.today)) }
+        }
+        navController.navigate("fiche/$id")
+    }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbar) },
@@ -290,7 +297,7 @@ private fun MainScaffold(
                     state = state,
                     actions = actions,
                     onLog = { date, periodStart -> navController.navigate("jour/$date?debut=$periodStart") },
-                    onArticle = { navController.navigate("fiche/$it") },
+                    onArticle = openArticle,
                     onShare = { navController.navigate("partage") },
                     onCalendar = { navController.openTab(Tab.CALENDAR.route) },
                     onInsights = { navController.navigate("cycles") },
@@ -306,14 +313,14 @@ private fun MainScaffold(
                 )
             }
             composable(Tab.LEARN.route) {
-                LearnScreen(state = state, onArticle = { navController.navigate("fiche/$it") })
+                LearnScreen(state = state, onArticle = openArticle)
             }
             composable(Tab.SETTINGS.route) {
                 SettingsScreen(
                     state = state,
                     actions = actions,
                     versionName = versionName,
-                    onArticle = { navController.navigate("fiche/$it") },
+                    onArticle = openArticle,
                     onHealthReport = { navController.navigate("bilan") },
                     onReplayWelcome = onReplayWelcome,
                 )
@@ -344,7 +351,7 @@ private fun MainScaffold(
                 InsightsScreen(
                     state = state,
                     onBack = { navController.popBackStack() },
-                    onArticle = { navController.navigate("fiche/$it") },
+                    onArticle = openArticle,
                     onHealthReport = { navController.navigate("bilan") },
                 )
             }
@@ -362,7 +369,7 @@ private fun MainScaffold(
                     state = state,
                     actions = actions,
                     onBack = { navController.popBackStack() },
-                    onArticle = { navController.navigate("fiche/$it") },
+                    onArticle = openArticle,
                 )
             }
         }

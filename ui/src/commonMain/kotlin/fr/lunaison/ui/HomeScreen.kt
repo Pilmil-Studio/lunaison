@@ -40,6 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -68,6 +69,7 @@ import fr.lunaison.core.cycle.CycleRecap
 import fr.lunaison.core.cycle.CycleState
 import fr.lunaison.core.cycle.Phase
 import fr.lunaison.core.cycle.PhasePatterns
+import fr.lunaison.core.data.AppSettings
 import fr.lunaison.core.designsystem.LunaButton
 import fr.lunaison.core.designsystem.LunaButtonStyle
 import fr.lunaison.core.designsystem.LunaCard
@@ -79,6 +81,7 @@ import kotlinx.datetime.LocalDate
 import fr.lunaison.core.model.tr
 import fr.lunaison.core.model.isAfter
 import fr.lunaison.core.model.minusDays
+import fr.lunaison.core.model.plusDays
 
 @Composable
 fun HomeScreen(
@@ -431,62 +434,99 @@ fun HomeScreen(
             }
         }
 
-        DiscoverGuideCard(state = state, onArticle = onArticle)
+        DiscoverGuideCard(state = state, actions = actions, onArticle = onArticle)
     }
 }
 
+internal data class DiscoverGuidePick(val id: String, val isContextual: Boolean)
+
+internal fun pickDiscoverGuide(
+    today: LocalDate,
+    recentStrongPain: Boolean,
+    irregularCyclesMode: Boolean,
+    todayPain: Pain?,
+    knownPhase: Phase?,
+    articleLastShown: Map<String, LocalDate>,
+    cooldownDays: Long = AppSettings.ARTICLE_COOLDOWN_DAYS,
+): DiscoverGuidePick {
+    fun isEligible(id: String): Boolean {
+        val last = articleLastShown[id] ?: return true
+        if (last == today || last.isAfter(today)) return true
+        return last.plusDays(cooldownDays) <= today
+    }
+
+    val contextualIds = buildList {
+        if (recentStrongPain) add("endometriose")
+        if (irregularCyclesMode) add("perimenopause")
+        if (todayPain == Pain.MODERATE || todayPain == Pain.SEVERE) add("douleurs")
+        if (knownPhase == Phase.LUTEAL) add("spm")
+        if (knownPhase == Phase.MENSTRUAL) add("protections")
+    }
+    contextualIds.firstOrNull(::isEligible)?.let { return DiscoverGuidePick(it, isContextual = true) }
+
+    val featuredIds = listOf("cycle", "protections", "douleurs", "spm", "alimentation", "entourage")
+    val startIndex = ((today.toEpochDays() % featuredIds.size) + featuredIds.size).toInt() % featuredIds.size
+    val rotated = featuredIds.indices.map { offset -> featuredIds[(startIndex + offset) % featuredIds.size] }
+    rotated.firstOrNull(::isEligible)?.let { return DiscoverGuidePick(it, isContextual = false) }
+
+    val oldest = (contextualIds + rotated).distinct().minByOrNull { articleLastShown[it] ?: LocalDate(1970, 1, 1) }
+        ?: featuredIds.first()
+    return DiscoverGuidePick(oldest, isContextual = oldest in contextualIds)
+}
+
 @Composable
-private fun DiscoverGuideCard(state: AppState, onArticle: (String) -> Unit) {
+private fun DiscoverGuideCard(state: AppState, actions: Actions, onArticle: (String) -> Unit) {
     val todayLog = state.logFor(state.today)
     val recentStrongPain = state.logs.takeLast(14).count { it.pain == Pain.MODERATE || it.pain == Pain.SEVERE } >= 3
     val knownPhase = (state.cycle as? CycleState.Known)?.phase
+    val pick = pickDiscoverGuide(
+        today = state.today,
+        recentStrongPain = recentStrongPain,
+        irregularCyclesMode = state.settings.irregularCyclesMode,
+        todayPain = todayLog.pain,
+        knownPhase = knownPhase,
+        articleLastShown = state.settings.articleLastShown,
+    )
 
-    val customCard: Triple<String, String, String>? = when {
-        recentStrongPain -> Triple(
-            "endometriose",
-            tr("Comprendre l'endométriose", "Understanding endometriosis"),
-            tr("Repères sur les douleurs pelviennes intenses et quand en parler à un soignant.", "Key facts on intense pelvic pain and when to talk to a clinician."),
-        )
-        state.settings.irregularCyclesMode -> Triple(
-            "perimenopause",
-            tr("Cycles irréguliers et périménopause", "Irregular cycles and perimenopause"),
-            tr("Pourquoi les cycles varient et comment lire les signaux hormonaux.", "Why cycles vary and how to read hormonal shifts."),
-        )
-        else -> null
-    }
-
-    if (customCard != null) {
-        val (id, title, summary) = customCard
-        LunaCard(modifier = Modifier.clickable { onArticle(id) }) {
-            Text(
-                tr("Lecture recommandée", "Recommended reading"),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.secondary,
-            )
-            Text(title, style = MaterialTheme.typography.titleMedium)
-            Text(summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    LaunchedEffect(pick.id, state.today) {
+        if (state.settings.articleLastShown[pick.id] != state.today) {
+            actions.updateSettings { it.copy(articleLastShown = it.articleLastShown + (pick.id to state.today)) }
         }
-        return
     }
 
-    val contextualId = when {
-        todayLog.pain == Pain.MODERATE || todayLog.pain == Pain.SEVERE -> "douleurs"
-        knownPhase == Phase.LUTEAL -> "spm"
-        knownPhase == Phase.MENSTRUAL -> "protections"
-        else -> null
+    val label = if (pick.isContextual) {
+        tr("Lecture recommandée", "Recommended reading")
+    } else {
+        tr("À découvrir", "Good to know", pl = "Warto wiedzieć", uk = "Варто знати", es = "Para descubrir", de = "Gut zu wissen")
     }
-    val featuredIds = listOf("cycle", "protections", "douleurs", "spm", "alimentation", "entourage")
-    val pickedId = contextualId ?: featuredIds[((state.today.toEpochDays() % featuredIds.size) + featuredIds.size).toInt() % featuredIds.size]
-    val article = Articles.byId(pickedId) ?: return
-    LunaCard(modifier = Modifier.clickable { onArticle(article.id) }) {
-        Text(
-            if (contextualId != null) tr("Lecture recommandée", "Recommended reading")
-            else tr("À découvrir", "Good to know", pl = "Warto wiedzieć", uk = "Варто знати", es = "Para descubrir", de = "Gut zu wissen"),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.secondary,
-        )
-        Text(article.title, style = MaterialTheme.typography.titleMedium)
-        Text(article.summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+    when (pick.id) {
+        "endometriose" -> LunaCard(modifier = Modifier.clickable { onArticle("endometriose") }) {
+            Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
+            Text(tr("Comprendre l'endométriose", "Understanding endometriosis"), style = MaterialTheme.typography.titleMedium)
+            Text(
+                tr("Repères sur les douleurs pelviennes intenses et quand en parler à un soignant.", "Key facts on intense pelvic pain and when to talk to a clinician."),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        "perimenopause" -> LunaCard(modifier = Modifier.clickable { onArticle("perimenopause") }) {
+            Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
+            Text(tr("Cycles irréguliers et périménopause", "Irregular cycles and perimenopause"), style = MaterialTheme.typography.titleMedium)
+            Text(
+                tr("Pourquoi les cycles varient et comment lire les signaux hormonaux.", "Why cycles vary and how to read hormonal shifts."),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        else -> {
+            val article = Articles.byId(pick.id) ?: return
+            LunaCard(modifier = Modifier.clickable { onArticle(article.id) }) {
+                Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
+                Text(article.title, style = MaterialTheme.typography.titleMedium)
+                Text(article.summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
     }
 }
 

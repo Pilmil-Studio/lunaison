@@ -27,6 +27,9 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import fr.lunaison.core.cycle.HealthReport
 import fr.lunaison.core.cycle.Prediction
 import fr.lunaison.core.data.AppSettings
+import fr.lunaison.core.data.BackupFailure
+import fr.lunaison.core.data.BackupFormatException
+import fr.lunaison.core.data.BackupRestoreSummary
 import fr.lunaison.core.data.PinThrottleState
 import fr.lunaison.core.model.DayLog
 import androidx.compose.ui.unit.dp
@@ -138,6 +141,9 @@ actual fun rememberFileExporter(mimeType: String, content: suspend () -> String)
 
 actual val encryptedBackupAvailable: Boolean = true
 
+private fun passwordLabel() = tr("Mot de passe", "Password", pl = "Hasło", uk = "Пароль", es = "Contraseña", de = "Passwort")
+private fun cancelLabel() = tr("Annuler", "Cancel", pl = "Anuluj", uk = "Скасувати", es = "Cancelar", de = "Abbrechen")
+
 @Composable
 actual fun EncryptedBackupButton(
     label: String,
@@ -167,9 +173,9 @@ actual fun EncryptedBackupButton(
                     withContext(Dispatchers.IO) {
                         context.contentResolver.openOutputStream(uri)?.use { it.write(encrypted) }
                     }
-                    notify(tr("Sauvegarde chiffrée (.pilmil) enregistrée.", "Encrypted backup (.pilmil) saved."))
+                    notify(tr("Sauvegarde chiffrée (.pilmil) enregistrée.", "Encrypted backup (.pilmil) saved.", pl = "Zaszyfrowana kopia (.pilmil) zapisana.", uk = "Зашифровану копію (.pilmil) збережено.", es = "Copia cifrada (.pilmil) guardada.", de = "Verschlüsselte Sicherung (.pilmil) gespeichert."))
                 } catch (e: Exception) {
-                    notify(tr("Erreur : ${e.localizedMessage}", "Error: ${e.localizedMessage}"))
+                    notify(tr("Erreur : ${e.localizedMessage}", "Error: ${e.localizedMessage}", pl = "Błąd: ${e.localizedMessage}", uk = "Помилка: ${e.localizedMessage}", es = "Error: ${e.localizedMessage}", de = "Fehler: ${e.localizedMessage}"))
                 } finally {
                     pwd.fill('\u0000')
                 }
@@ -188,29 +194,33 @@ actual fun EncryptedBackupButton(
         val valid = passphrase.isNotEmpty() && passphrase == confirm
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { androidx.compose.material3.Text(tr("Mot de passe de la sauvegarde", "Backup password")) },
+            title = { androidx.compose.material3.Text(tr("Mot de passe de la sauvegarde", "Backup password", pl = "Hasło kopii zapasowej", uk = "Пароль резервної копії", es = "Contraseña de la copia", de = "Passwort der Sicherung")) },
             text = {
                 androidx.compose.foundation.layout.Column(
                     verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
                 ) {
                     androidx.compose.material3.Text(
                         tr(
-                            "Ce mot de passe chiffrera votre fichier .pilmil (AES-256-GCM). Conservez-le précieusement : il est impossible de le récupérer sans.",
-                            "This password will encrypt your .pilmil file (AES-256-GCM). Keep it safe: it cannot be recovered without it.",
+                            "Ce mot de passe chiffre votre fichier .pilmil (AES-256-GCM). Il contient tout votre journal et vos réglages. Conservez-le : sans lui, le fichier est illisible. Le code PIN n'est pas sauvegardé.",
+                            "This password encrypts your .pilmil file (AES-256-GCM). It holds your whole log and your settings. Keep it: without it the file cannot be read. The PIN code is not backed up.",
+                            pl = "To hasło szyfruje plik .pilmil (AES-256-GCM). Zawiera cały dziennik i ustawienia. Zachowaj je: bez niego plik jest nieczytelny. Kod PIN nie jest zapisywany w kopii.",
+                            uk = "Цей пароль шифрує ваш файл .pilmil (AES-256-GCM). У ньому весь щоденник і налаштування. Збережіть його: без нього файл не прочитати. PIN-код не зберігається в копії.",
+                            es = "Esta contraseña cifra tu archivo .pilmil (AES-256-GCM). Contiene todo tu diario y tus ajustes. Guárdala: sin ella no se puede leer el archivo. El código PIN no se incluye en la copia.",
+                            de = "Dieses Passwort verschlüsselt deine .pilmil-Datei (AES-256-GCM). Sie enthält dein ganzes Tagebuch und deine Einstellungen. Bewahre es auf: ohne es ist die Datei nicht lesbar. Der PIN-Code wird nicht gesichert.",
                         ),
                         style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
                     )
                     androidx.compose.material3.OutlinedTextField(
                         value = passphrase,
                         onValueChange = { passphrase = it },
-                        label = { androidx.compose.material3.Text(tr("Mot de passe", "Password")) },
+                        label = { androidx.compose.material3.Text(passwordLabel()) },
                         singleLine = true,
                         visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
                     )
                     androidx.compose.material3.OutlinedTextField(
                         value = confirm,
                         onValueChange = { confirm = it },
-                        label = { androidx.compose.material3.Text(tr("Confirmer", "Confirm")) },
+                        label = { androidx.compose.material3.Text(tr("Confirmer", "Confirm", pl = "Potwierdź", uk = "Підтвердити", es = "Confirmar", de = "Bestätigen")) },
                         singleLine = true,
                         isError = mismatch,
                         visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
@@ -227,11 +237,192 @@ actual fun EncryptedBackupButton(
                         showDialog = false
                         launcher.launch(fileName)
                     },
-                ) { androidx.compose.material3.Text(tr("Exporter", "Export")) }
+                ) { androidx.compose.material3.Text(tr("Exporter", "Export", pl = "Eksportuj", uk = "Експортувати", es = "Exportar", de = "Exportieren")) }
             },
             dismissButton = {
                 androidx.compose.material3.TextButton(onClick = { showDialog = false }) {
-                    androidx.compose.material3.Text(tr("Annuler", "Cancel"))
+                    androidx.compose.material3.Text(cancelLabel())
+                }
+            },
+        )
+    }
+}
+
+private val PILMIL_FILE_MAGIC = "PILMIL".toByteArray(Charsets.US_ASCII)
+
+@Composable
+actual fun RestoreBackupButton(
+    label: String,
+    onRestore: suspend (json: String) -> BackupRestoreSummary,
+    onResult: (String) -> Unit,
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val restore by rememberUpdatedState(onRestore)
+    val notify by rememberUpdatedState(onResult)
+    var pendingBytes by remember { mutableStateOf<ByteArray?>(null) }
+    var passphrase by remember { mutableStateOf("") }
+    var understood by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
+    var working by remember { mutableStateOf(false) }
+
+    val corrupted = tr(
+        "Ce fichier est corrompu ou n'est pas une sauvegarde Lunaison. Rien n'a été modifié.",
+        "This file is corrupted or is not a Lunaison backup. Nothing was changed.",
+        pl = "Ten plik jest uszkodzony lub nie jest kopią Lunaison. Nic nie zmieniono.",
+        uk = "Цей файл пошкоджено або це не резервна копія Lunaison. Нічого не змінено.",
+        es = "Este archivo está dañado o no es una copia de Lunaison. No se ha modificado nada.",
+        de = "Diese Datei ist beschädigt oder keine Lunaison-Sicherung. Es wurde nichts geändert.",
+    )
+
+    fun close() {
+        pendingBytes = null
+        passphrase = ""
+        understood = false
+        error = null
+        working = false
+    }
+
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            scope.launch {
+                val bytes = try {
+                    withContext(Dispatchers.IO) { context.contentResolver.openInputStream(uri)?.use { it.readBytes() } }
+                } catch (e: Exception) {
+                    null
+                }
+                when {
+                    bytes == null || bytes.isEmpty() -> notify(tr("Fichier vide ou inaccessible.", "Empty or inaccessible file.", pl = "Plik jest pusty lub niedostępny.", uk = "Файл порожній або недоступний.", es = "Archivo vacío o inaccesible.", de = "Datei leer oder nicht zugänglich."))
+                    bytes.size < PILMIL_FILE_MAGIC.size || !PILMIL_FILE_MAGIC.indices.all { bytes[it] == PILMIL_FILE_MAGIC[it] } -> notify(corrupted)
+                    else -> {
+                        close()
+                        pendingBytes = bytes
+                    }
+                }
+            }
+        }
+    }
+
+    LunaButton(label, onClick = { picker.launch(arrayOf("*/*")) }, style = LunaButtonStyle.Outlined)
+
+    val bytes = pendingBytes
+    if (bytes != null) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { if (!working) close() },
+            title = { androidx.compose.material3.Text(tr("Restaurer une sauvegarde", "Restore a backup", pl = "Przywróć kopię zapasową", uk = "Відновити резервну копію", es = "Restaurar una copia", de = "Sicherung wiederherstellen")) },
+            text = {
+                androidx.compose.foundation.layout.Column(
+                    verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+                ) {
+                    androidx.compose.material3.Text(
+                        tr(
+                            "Entrez le mot de passe de ce fichier .pilmil. La restauration remplace les données actuelles de ce téléphone (journal et réglages). Le code PIN de ce téléphone est conservé.",
+                            "Enter the password of this .pilmil file. Restoring replaces the current data on this phone (log and settings). This phone's PIN code is kept.",
+                            pl = "Wpisz hasło do tego pliku .pilmil. Przywrócenie zastępuje obecne dane na tym telefonie (dziennik i ustawienia). Kod PIN tego telefonu zostaje zachowany.",
+                            uk = "Введіть пароль до цього файлу .pilmil. Відновлення замінює поточні дані на цьому телефоні (щоденник і налаштування). PIN-код цього телефона зберігається.",
+                            es = "Introduce la contraseña de este archivo .pilmil. La restauración reemplaza los datos actuales de este teléfono (diario y ajustes). Se conserva el código PIN de este teléfono.",
+                            de = "Gib das Passwort dieser .pilmil-Datei ein. Die Wiederherstellung ersetzt die aktuellen Daten auf diesem Telefon (Tagebuch und Einstellungen). Der PIN-Code dieses Telefons bleibt erhalten.",
+                        ),
+                        style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                    )
+                    androidx.compose.material3.OutlinedTextField(
+                        value = passphrase,
+                        onValueChange = { passphrase = it; error = null },
+                        label = { androidx.compose.material3.Text(passwordLabel()) },
+                        singleLine = true,
+                        isError = error != null,
+                        visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                    )
+                    androidx.compose.foundation.layout.Row(
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                    ) {
+                        androidx.compose.material3.Checkbox(checked = understood, onCheckedChange = { understood = it })
+                        androidx.compose.material3.Text(
+                            tr(
+                                "Je comprends que cela remplace les données actuelles",
+                                "I understand this replaces the current data",
+                                pl = "Rozumiem, że to zastąpi obecne dane",
+                                uk = "Розумію, що це замінить поточні дані",
+                                es = "Entiendo que esto reemplaza los datos actuales",
+                                de = "Ich verstehe, dass dies die aktuellen Daten ersetzt",
+                            ),
+                            style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                    error?.let {
+                        androidx.compose.material3.Text(
+                            it,
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.error,
+                            style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                androidx.compose.material3.TextButton(
+                    enabled = understood && passphrase.isNotEmpty() && !working,
+                    onClick = {
+                        working = true
+                        val pwd = passphrase.toCharArray()
+                        scope.launch {
+                            try {
+                                val json = withContext(Dispatchers.Default) {
+                                    fr.pilmil.core.platform.backup.AndroidBackupVault().decrypt(bytes, pwd)
+                                }
+                                val summary = restore(json)
+                                close()
+                                notify(
+                                    tr(
+                                        "Sauvegarde restaurée : ${summary.daysCount} journées.",
+                                        "Backup restored: ${summary.daysCount} days.",
+                                        pl = "Kopia przywrócona: dni: ${summary.daysCount}.",
+                                        uk = "Копію відновлено: днів: ${summary.daysCount}.",
+                                        es = "Copia restaurada: ${summary.daysCount} días.",
+                                        de = "Sicherung wiederhergestellt: ${summary.daysCount} Tage.",
+                                    ),
+                                )
+                            } catch (e: fr.pilmil.core.platform.backup.InvalidPassphraseException) {
+                                working = false
+                                error = tr(
+                                    "Mot de passe incorrect, ou fichier altéré. Rien n'a été modifié.",
+                                    "Wrong password, or the file was altered. Nothing was changed.",
+                                    pl = "Nieprawidłowe hasło lub plik został zmieniony. Nic nie zmieniono.",
+                                    uk = "Неправильний пароль або файл змінено. Нічого не змінено.",
+                                    es = "Contraseña incorrecta o archivo alterado. No se ha modificado nada.",
+                                    de = "Falsches Passwort oder Datei verändert. Es wurde nichts geändert.",
+                                )
+                            } catch (e: BackupFormatException) {
+                                working = false
+                                error = if (e.failure == BackupFailure.UNSUPPORTED_VERSION) {
+                                    tr(
+                                        "Cette sauvegarde vient d'une version plus récente de Lunaison. Mettez l'appli à jour. Rien n'a été modifié.",
+                                        "This backup comes from a newer version of Lunaison. Update the app. Nothing was changed.",
+                                        pl = "Ta kopia pochodzi z nowszej wersji Lunaison. Zaktualizuj aplikację. Nic nie zmieniono.",
+                                        uk = "Ця копія з новішої версії Lunaison. Оновіть застосунок. Нічого не змінено.",
+                                        es = "Esta copia viene de una versión más reciente de Lunaison. Actualiza la app. No se ha modificado nada.",
+                                        de = "Diese Sicherung stammt aus einer neueren Lunaison-Version. Aktualisiere die App. Es wurde nichts geändert.",
+                                    )
+                                } else {
+                                    corrupted
+                                }
+                            } catch (e: fr.pilmil.core.platform.backup.BackupException) {
+                                working = false
+                                error = corrupted
+                            } catch (e: Exception) {
+                                working = false
+                                error = tr("Erreur : ${e.localizedMessage}", "Error: ${e.localizedMessage}", pl = "Błąd: ${e.localizedMessage}", uk = "Помилка: ${e.localizedMessage}", es = "Error: ${e.localizedMessage}", de = "Fehler: ${e.localizedMessage}")
+                            } finally {
+                                pwd.fill('\u0000')
+                            }
+                        }
+                    },
+                ) {
+                    androidx.compose.material3.Text(tr("Remplacer les données", "Replace data", pl = "Zastąp dane", uk = "Замінити дані", es = "Reemplazar datos", de = "Daten ersetzen"))
+                }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(enabled = !working, onClick = { close() }) {
+                    androidx.compose.material3.Text(cancelLabel())
                 }
             },
         )
