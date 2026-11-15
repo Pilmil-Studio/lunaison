@@ -620,13 +620,6 @@ private fun CycleCard(cycle: CycleState.Known, showFertility: Boolean, showPregn
             Text(Format.range(cycle), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
             if (showFertility) {
                 Text(Format.fertileWindow(cycle), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
-                if (cycle.stats.completedCycles < 2) {
-                    Text(
-                        tr("Repère de calendrier : ne remplace pas une contraception.", "Calendar estimate: does not replace contraception.", pl = "Szacunek kalendarzowy: nie zastępuje antykoncepcji.", uk = "Календарна оцінка: не замінює контрацепцію.", es = "Estimación de calendario: no sustituye a un anticonceptivo.", de = "Kalenderschätzung: ersetzt keine Verhütung."),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                }
             }
         }
 
@@ -657,6 +650,14 @@ private fun CycleCard(cycle: CycleState.Known, showFertility: Boolean, showPregn
             }
         }
 
+        // Affichée en permanence dès que la fenêtre fertile ou la probabilité est visible, quel que soit le nombre de cycles.
+        if (showFertility || showPregnancyOdds) {
+            Text(
+                tr("Repère de calendrier : ne remplace pas une contraception.", "Calendar estimate: does not replace contraception.", pl = "Szacunek kalendarzowy: nie zastępuje antykoncepcji.", uk = "Календарна оцінка: не замінює контрацепцію.", es = "Estimación de calendario: no sustituye a un anticonceptivo.", de = "Kalenderschätzung: ersetzt keine Verhütung."),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+        }
         Text(Format.confidence(cycle.stats.confidence), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
         if (!cycle.inPeriod && cycle.daysLate == 0) {
             TextButton(onClick = { onArticle("previsions") }) {
