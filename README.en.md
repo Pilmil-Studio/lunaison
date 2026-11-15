@@ -52,7 +52,7 @@ Screenshots are generated automatically from the screen code on every change.
 
 ## Design commitments
 
-- **No Internet permission**: the app requests no network access from Android. Your period dates, symptoms and notes stay on your phone.
+- **No Internet permission**: the app requests no network access from Android (the only permission is the camera, to scan a partner's QR Code). Your period dates, symptoms and notes stay on your phone.
 - **Everything included upfront**: perimenopause mode, consultation summaries, ovulation signs and partner sharing are all available with no subscription.
 - **A calm tone, with no red warnings**: an extended delay or unusual symptom is explained plainly with its medical references.
 - **No daily streak counter**: skipping a few days is normal and does not stop the app from working.
@@ -66,7 +66,7 @@ The app sticks to what is necessary. What it does not say itself, where its refe
 ## Privacy
 
 - No Internet permission, no third-party SDK, no account.
-- Cloud backup turned off by default (`pilmil-core`): health data never passes through any server. Direct device-to-device transfer is supported, along with spreadsheet CSV export, **encrypted `.pilmil` vault** export/import (AES-256-GCM), and **direct import of password-protected Period Calendar archives**, processed 100% locally.
+- Cloud backup turned off by default (`pilmil-core`): health data never passes through any server. Direct device-to-device transfer is supported, along with CSV export and import (same header and values in every language), and, on Android only, a **full encrypted `.pilmil` backup** (AES-256-GCM, a password you choose: log and settings, without the PIN code) with a restore that replaces the phone's data, and **direct import of password-protected Period Calendar archives**, processed 100% locally.
 - Optional 4-digit PIN lock with anti-bruteforce throttling (`PinThrottle`) and hidden preview in recent apps.
 - The system contact picker gives access only to the chosen contact, with no permission on the address book.
 - Complete erasure in one tap.

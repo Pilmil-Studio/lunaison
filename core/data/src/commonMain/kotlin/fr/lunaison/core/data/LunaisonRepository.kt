@@ -68,7 +68,7 @@ data class AppSettings(
     val showFertility: Boolean = false,
     /** Palette de couleurs choisie. */
     val themePalette: ThemePalette = ThemePalette.PLUM,
-    /** Empreinte SHA-256 du code PIN à 4 chiffres, ou null si aucun verrouillage n'est actif. */
+    /** Empreinte salée du code PIN à 4 chiffres (PBKDF2-HMAC-SHA256 ; les anciens hash SHA-256 restent lisibles), ou null si aucun verrouillage n'est actif. */
     val pinHash: String? = null,
     /** Empreinte du cycle d'un ou d'une partenaire importée par QR Code ou SMS. */
     val followedPartner: PartnerSnapshot? = null,
@@ -96,6 +96,7 @@ data class AppSettings(
         private const val PBKDF2_KEY_BYTES = 32
         private const val PBKDF2_SALT_BYTES = 16
 
+        /** Empreinte salée du code : `pbkdf2$sel$dérivé` (PBKDF2-HMAC-SHA256, sel aléatoire). Voir [verifyPin]. */
         fun hashPin(pin: String): String {
             val salt = randomPinSalt(PBKDF2_SALT_BYTES)
             val derived = pbkdf2HmacSha256(pin, salt, PBKDF2_ITERATIONS, PBKDF2_KEY_BYTES)
