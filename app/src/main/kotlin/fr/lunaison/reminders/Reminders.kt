@@ -63,8 +63,10 @@ object ReminderScheduler {
             manager.cancelUniqueWork(workName(kind))
             return
         }
+        val zone = TimeZone.currentSystemDefault()
+        val delayMs = (at.toInstant(zone).toEpochMilliseconds() - now.toInstant(zone).toEpochMilliseconds()).coerceAtLeast(0L)
         val request = OneTimeWorkRequestBuilder<ReminderWorker>()
-            .setInitialDelay(Duration.ofMillis(at.toInstant(TimeZone.UTC).toEpochMilliseconds() - now.toInstant(TimeZone.UTC).toEpochMilliseconds()))
+            .setInitialDelay(Duration.ofMillis(delayMs))
             .setInputData(workDataOf(ReminderWorker.KIND to kind.name))
             .build()
         manager.enqueueUniqueWork(workName(kind), ExistingWorkPolicy.REPLACE, request)
