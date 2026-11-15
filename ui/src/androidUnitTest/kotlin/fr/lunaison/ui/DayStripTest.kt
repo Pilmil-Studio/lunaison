@@ -21,4 +21,12 @@ class DayStripTest {
         assertEquals("Mardi 17 novembre, journée notée", dayDescription(date, bleeding = false, logged = true))
         assertEquals("Mardi 17 novembre", dayDescription(date, bleeding = false, logged = false))
     }
+
+    @Test
+    fun forecastCardHasOneDescription() {
+        Locale.setDefault(Locale.forLanguageTag("fr"))
+        val date = LocalDate.of(2026, 11, 17)
+        assertEquals("Mardi 17 novembre, jour 12, règles probables", forecastDescription(date, 12, true, "Phase lutéale", ""))
+        assertEquals("Mardi 17 novembre, jour 12, Phase lutéale, Faibles", forecastDescription(date, 12, false, "Phase lutéale", "Faibles"))
+    }
 }

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -138,7 +139,7 @@ private fun CycleBars(overview: CycleOverview) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text(Format.dayMonth(record.start), style = MaterialTheme.typography.bodySmall, modifier = Modifier.width(84.dp))
+            Text(Format.dayMonth(record.start), style = MaterialTheme.typography.bodySmall, modifier = Modifier.widthIn(min = 84.dp))
             Box(Modifier.weight(1f).height(14.dp)) {
                 Box(
                     Modifier
@@ -147,7 +148,7 @@ private fun CycleBars(overview: CycleOverview) {
                         .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(7.dp)),
                 )
             }
-            Text(tr("${record.length} j", "${record.length} d", pl = "${record.length} dn.", uk = "${record.length} дн.", es = "${record.length} d", de = "${record.length} T"), style = MaterialTheme.typography.bodySmall, modifier = Modifier.width(40.dp))
+            Text(tr("${record.length} j", "${record.length} d", pl = "${record.length} dn.", uk = "${record.length} дн.", es = "${record.length} d", de = "${record.length} T"), style = MaterialTheme.typography.bodySmall, modifier = Modifier.widthIn(min = 40.dp))
         }
     }
 }
