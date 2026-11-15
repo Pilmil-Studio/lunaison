@@ -80,6 +80,8 @@ class DiscoverGuideTest {
             "protections" to today.minusDays(2),
             "douleurs" to today.minusDays(3),
             "spm" to today.minusDays(4),
+            "symptothermie" to today.minusDays(4),
+            "transitions" to today.minusDays(5),
             "alimentation" to today.minusDays(6),
             "entourage" to today.minusDays(5),
         )
