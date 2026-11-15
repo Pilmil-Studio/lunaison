@@ -177,7 +177,7 @@ fun HomeScreen(
             state.logs.filter { !it.isEmpty && !it.date.isAfter(state.today) }.maxOfOrNull { it.date }
         }
         val daysSinceLastLog = lastLoggedDate?.daysTo(state.today)
-        if (!paused && todayLog.isEmpty && daysSinceLastLog != null && daysSinceLastLog >= 10) {
+        if (shouldShowReturnWelcomeCard(paused = paused, todayLog = todayLog, daysSinceLastLog = daysSinceLastLog)) {
             LunaCard {
                 Text(
                     tr("Ravie de vous revoir", "Good to see you again", pl = "Miło Cię znowu widzieć", uk = "Раді знову вас бачити", es = "Me alegra verte de nuevo", de = "Schön, dich wiederzusehen"),
@@ -248,7 +248,7 @@ fun HomeScreen(
             icon = Icons.Filled.Edit,
         )
         if (!todayLog.isEmpty) TodaySummary(todayLog, state.settings.reminders.medicationLabel)
-        if (todayLog.pain == Pain.SEVERE) {
+        if (shouldShowDifficultDayCard(todayLog)) {
             LunaCard(container = MaterialTheme.colorScheme.secondaryContainer) {
                 Text(
                     tr("Journée difficile", "Tough day", pl = "Trudny dzień", uk = "Важкий день", es = "Día difícil", de = "Schwieriger Tag"),
@@ -439,6 +439,12 @@ fun HomeScreen(
 }
 
 internal data class DiscoverGuidePick(val id: String, val isContextual: Boolean)
+
+internal fun shouldShowReturnWelcomeCard(paused: Boolean, todayLog: DayLog, daysSinceLastLog: Int?): Boolean =
+    !paused && todayLog.isEmpty && daysSinceLastLog != null && daysSinceLastLog >= 10
+
+internal fun shouldShowDifficultDayCard(todayLog: DayLog): Boolean =
+    todayLog.pain == Pain.SEVERE
 
 internal fun pickDiscoverGuide(
     today: LocalDate,

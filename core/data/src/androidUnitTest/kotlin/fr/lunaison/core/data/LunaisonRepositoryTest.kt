@@ -193,12 +193,21 @@ class LunaisonRepositoryTest {
             trackOvulationSigns = true,
             irregularCyclesMode = true,
             reviewPromptDismissed = true,
+            articleLastShown = mapOf(
+                "spm" to LocalDate.of(2026, 4, 12),
+                "douleurs" to LocalDate.of(2026, 4, 5),
+            ),
         )
 
         val restored = settings.toEntity().toModel()
         assertEquals(settings, restored)
         assertNotNull(restored.followedPartner)
         assertNull(AppSettings().toEntity().toModel().partner)
+
+        val malformed = settings.toEntity().copy(
+            articleLastShown = "spm@2026-04-12,bad,@2026-04-01,cycle@not-a-date",
+        ).toModel()
+        assertEquals(mapOf("spm" to LocalDate.of(2026, 4, 12)), malformed.articleLastShown)
     }
 
     @Test

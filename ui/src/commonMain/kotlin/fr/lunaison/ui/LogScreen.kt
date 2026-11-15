@@ -102,18 +102,10 @@ fun LogScreen(
         }
 
         val yesterdayLog = remember(date, state.logs) { state.logFor(date.minusDays(1)) }
-        if (!yesterdayLog.isEmpty && draft.isEmpty) {
+        if (canCopyYesterdayLog(yesterdayLog = yesterdayLog, draft = draft)) {
             LunaButton(
                 tr("Reprendre comme hier", "Same as yesterday", pl = "Tak jak wczoraj", uk = "Так само, як учора", es = "Igual que ayer", de = "Wie gestern"),
-                onClick = {
-                    draft = draft.copy(
-                        flow = yesterdayLog.flow,
-                        pain = yesterdayLog.pain,
-                        symptoms = yesterdayLog.symptoms,
-                        moods = yesterdayLog.moods,
-                        pillStatus = yesterdayLog.pillStatus,
-                    )
-                },
+                onClick = { draft = copyFromYesterday(draft = draft, yesterdayLog = yesterdayLog) },
                 style = LunaButtonStyle.Outlined,
             )
         }
@@ -419,3 +411,21 @@ fun LogScreen(
 }
 
 private fun <T> Set<T>.toggle(item: T): Set<T> = if (item in this) this - item else this + item
+
+internal fun canCopyYesterdayLog(yesterdayLog: DayLog, draft: DayLog): Boolean =
+    !yesterdayLog.isEmpty && draft.isEmpty
+
+internal fun copyFromYesterday(draft: DayLog, yesterdayLog: DayLog): DayLog = draft.copy(
+    flow = yesterdayLog.flow,
+    pain = yesterdayLog.pain,
+    symptoms = yesterdayLog.symptoms,
+    moods = yesterdayLog.moods,
+    medicationTaken = yesterdayLog.medicationTaken,
+    pillStatus = yesterdayLog.pillStatus,
+    medications = yesterdayLog.medications,
+    weight = yesterdayLog.weight,
+    intimacy = yesterdayLog.intimacy,
+    libido = yesterdayLog.libido,
+    mucus = yesterdayLog.mucus,
+    basalTemperature = yesterdayLog.basalTemperature,
+)
