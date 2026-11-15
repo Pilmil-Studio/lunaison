@@ -2,6 +2,14 @@ package fr.lunaison.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.material3.Surface
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
@@ -75,6 +83,7 @@ fun HealthReportScreen(
     }
     val context = rememberPlatformContext()
     val scope = rememberCoroutineScope()
+    var exportError by remember { mutableStateOf<String?>(null) }
     var exporting by remember { mutableStateOf(false) }
 
     val logsLast90Days = remember(state.logs, state.today) {
@@ -96,6 +105,8 @@ fun HealthReportScreen(
         )
     }
 
+    Column(Modifier.fillMaxSize()) {
+    Box(Modifier.weight(1f)) {
     Page {
         PageTitle(
             tr(fr = "Bilan de santé", en = "Health report", pl = "Raport medyczny", uk = "Медичний звіт", es = "Informe médico", de = "Arztbericht"),
@@ -455,50 +466,6 @@ fun HealthReportScreen(
             }
         }
 
-        if (pdfReportAvailable) {
-            LunaButton(
-                if (exporting) {
-                    tr(
-                        fr = "Création du PDF...",
-                        en = "Creating the PDF...",
-                        pl = "Tworzenie pliku PDF...",
-                        uk = "Створення PDF...",
-                        es = "Creando el PDF...",
-                        de = "PDF wird erstellt...",
-                    )
-                } else {
-                    tr(fr = "Exporter en PDF", en = "Export as PDF", pl = "Eksportuj do PDF", uk = "Експортувати в PDF", es = "Exportar a PDF", de = "Als PDF exportieren")
-                },
-                onClick = {
-                    if (!exporting) {
-                        exporting = true
-                        val sections = selectedSections
-                        val medicationLabel = state.settings.reminders.medicationLabel
-                        scope.launch {
-                            try {
-                                shareHealthReportPdf(context, report, medicationLabel, logsLast90Days, sections)
-                            } catch (e: CancellationException) {
-                                throw e
-                            } catch (_: Exception) {
-                                val message = tr(
-                                    fr = "Impossible de créer le PDF.",
-                                    en = "Could not create the PDF.",
-                                    pl = "Nie udało się utworzyć pliku PDF.",
-                                    uk = "Не вдалося створити PDF.",
-                                    es = "No se pudo crear el PDF.",
-                                    de = "Das PDF konnte nicht erstellt werden.",
-                                )
-                                showToast(context, message)
-                            } finally {
-                                exporting = false
-                            }
-                        }
-                    }
-                },
-                icon = Icons.Filled.Share,
-                enabled = !exporting,
-            )
-        }
         Muted(
             tr(
                 fr = "Ce résumé est généré sur votre téléphone pour faciliter l'échange avec un professionnel de santé. Il ne constitue pas un diagnostic médical.",
@@ -509,5 +476,68 @@ fun HealthReportScreen(
                 de = "Diese Zusammenfassung wird auf deinem Smartphone erstellt und erleichtert das Gespräch mit medizinischem Fachpersonal. Sie ist keine medizinische Diagnose.",
             ),
         )
+    }
+    }
+    if (pdfReportAvailable && report != null) {
+        // Barre fixe : l'export reste atteignable sans faire défiler tout le bilan.
+        Surface(color = MaterialTheme.colorScheme.surface, shadowElevation = 8.dp) {
+            Column(
+                Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 20.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                exportError?.let { message ->
+                    // Erreur affichée en ligne et annoncée par le lecteur d'écran, plutôt qu'un Toast furtif.
+                    Text(
+                        message,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Assertive },
+                    )
+                }
+                LunaButton(
+                    if (exporting) {
+                        tr(
+                            fr = "Création du PDF...",
+                            en = "Creating the PDF...",
+                            pl = "Tworzenie pliku PDF...",
+                            uk = "Створення PDF...",
+                            es = "Creando el PDF...",
+                            de = "PDF wird erstellt...",
+                        )
+                    } else {
+                        tr(fr = "Exporter en PDF", en = "Export as PDF", pl = "Eksportuj do PDF", uk = "Експортувати в PDF", es = "Exportar a PDF", de = "Als PDF exportieren")
+                    },
+                    onClick = {
+                        if (!exporting) {
+                            exporting = true
+                            exportError = null
+                            val sections = selectedSections
+                            val medicationLabel = state.settings.reminders.medicationLabel
+                            scope.launch {
+                                try {
+                                    shareHealthReportPdf(context, report, medicationLabel, logsLast90Days, sections)
+                                } catch (e: CancellationException) {
+                                    throw e
+                                } catch (_: Exception) {
+                                    exportError = tr(
+                                        fr = "Impossible de créer le PDF.",
+                                        en = "Could not create the PDF.",
+                                        pl = "Nie udało się utworzyć pliku PDF.",
+                                        uk = "Не вдалося створити PDF.",
+                                        es = "No se pudo crear el PDF.",
+                                        de = "Das PDF konnte nicht erstellt werden.",
+                                    )
+                                } finally {
+                                    exporting = false
+                                }
+                            }
+                        }
+                    },
+                    icon = Icons.Filled.Share,
+                    enabled = !exporting,
+                )
+            }
+        }
+    }
     }
 }
