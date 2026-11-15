@@ -74,4 +74,12 @@ class CoreDataUtilsTest {
         assertEquals(0L, normalized.blockedUntil)
         assertEquals(55_000L, normalized.savedAt)
     }
+
+    @Test
+    fun `AppSettings verifyPin refuse les empreintes malformees`() {
+        assertFalse(AppSettings.verifyPin("1234", ""))
+        assertFalse(AppSettings.verifyPin("1234", "pbkdf2\$not_hex\$abcd"))
+        assertFalse(AppSettings.verifyPin("1234", "pbkdf2\$0011"))
+        assertFalse(AppSettings.verifyPin("", AppSettings.hashPin("1234")))
+    }
 }

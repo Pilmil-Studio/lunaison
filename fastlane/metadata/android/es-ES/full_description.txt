@@ -1,0 +1,29 @@
+Lunaison es un diario del ciclo y de los síntomas para todas las personas que menstrúan, desde la adolescencia hasta la perimenopausia.
+
+Libre (MPL-2.0), gratuita, sin anuncios, sin cuenta y sin internet: Lunaison no solicita ningún permiso de red. Tus datos del ciclo se quedan en tu teléfono y no se envían a ninguna parte.
+
+ANOTA TU DÍA EN POCOS SEGUNDOS
+• Sangrado, dolor (descrito por su efecto), síntomas, estado de ánimo, anticoncepción o medicación y una nota personal.
+• Opcional: moco cervical y temperatura basal para observar la ovulación.
+• Cinta de la última semana en la pantalla de inicio para completar un día olvidado con un toque.
+
+PREVISIONES CON CAUTELA
+• Inicio estimado de la regla como rango de fechas, calculado con los últimos seis ciclos.
+• Modo para ciclos naturalmente irregulares (perimenopausia, SOP, posparto) y modo pausa (embarazo, lactancia, anticoncepción continua).
+• Las previsiones son estimaciones. Lunaison no es un método anticonceptivo.
+
+COMPRENDER
+• Fichas breves y con fuentes sobre el ciclo, el dolor menstrual, el síndrome premenstrual, la alimentación, la anticoncepción, la endometriosis, el SOP, la adenomiosis y la perimenopausia (entre otras, SEGO, ESHRE, FIGO y ACOG).
+• Esquemas interactivos de la anatomía y de las hormonas.
+• Señales que justifican consultar a un profesional. Nunca un diagnóstico.
+
+PARA LA CONSULTA
+• Informe médico en PDF o en una página: duración del ciclo, duración de la regla, días de dolor, sangrados fuera de la regla y pautas de dolor.
+
+CAMBIO DE APP Y PRIVACIDAD
+• Importación de tu copia de seguridad de la app «Calendrier des règles» (ZIP o JSON) y de archivos CSV de Lunaison, todo en el dispositivo.
+• Bloqueo opcional con PIN, notificaciones neutras («Lunaison») y exportación en CSV.
+• Compartir con tu pareja (mayores de 18 años) por mensaje o código QR, sin servidor y solo cuando tú lo decides.
+• Sin recogida de datos, sin rastreadores, sin identificador publicitario.
+
+Disponible en español, francés, inglés, alemán, polaco y ucraniano. Lunaison no es un producto sanitario ni un método anticonceptivo.

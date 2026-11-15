@@ -1,0 +1,29 @@
+Lunaison ist ein Zyklus- und Symptomtagebuch für alle Menschen, die menstruieren: von Jugendlichen bis zur Perimenopause.
+
+Frei (MPL-2.0), kostenlos, ohne Werbung, ohne Konto und ohne Internet: Lunaison fordert keine Netzwerkberechtigung an. Deine Zyklusdaten bleiben auf deinem Telefon und werden nirgends hochgeladen.
+
+TAGEBUCH IN WENIGEN SEKUNDEN
+• Blutung, Schmerzen (nach ihrer Wirkung beschrieben), Symptome, Stimmung, Verhütung oder Medikamente und eine persönliche Notiz.
+• Optional: Zervixschleim und Basaltemperatur zur Beobachtung des Eisprungs.
+• Wochenleiste auf der Startseite, um einen vergessenen Tag mit einem Tipp nachzutragen.
+
+VORHERSAGEN MIT AUGENMASS
+• Voraussichtlicher Beginn als Zeitraum, berechnet aus den letzten sechs Zyklen.
+• Modus für natürlich unregelmäßige Zyklen (Perimenopause, PCOS, nach der Geburt) und Pausenmodus (Schwangerschaft, Stillzeit, durchgehende Verhütung).
+• Die Vorhersagen sind Schätzungen. Lunaison ist kein Verhütungsmittel.
+
+VERSTEHEN
+• Kurze, belegte Artikel zu Zyklus, Regelschmerzen, PMS, Ernährung, Verhütung, Endometriose, PCOS, Adenomyose und Perimenopause, mit Quellen (u. a. AWMF, ESHRE, FIGO, ACOG).
+• Interaktive Schemata zu Anatomie und Hormonverlauf.
+• Hinweise, wann ein ärztlicher Rat sinnvoll ist. Nie eine Diagnose.
+
+FÜR DAS GESPRÄCH MIT DER ÄRZTIN ODER DEM ARZT
+• Arztbericht als PDF oder auf einer Seite: Zykluslänge, Dauer der Blutung, Schmerztage, Zwischenblutungen und Schmerzmuster.
+
+WECHSEL UND PRIVATSPHÄRE
+• Import deiner Sicherung aus der App „Calendrier des règles“ (ZIP oder JSON) und von Lunaison-CSV-Dateien, vollständig auf dem Gerät.
+• Optionale PIN-Sperre, neutrale Benachrichtigungen („Lunaison“), Export als CSV.
+• Teilen mit Partnerin oder Partner (ab 18 Jahren) per Nachricht oder QR-Code, ohne Server und nur, wenn du es auslöst.
+• Keine Datenerhebung, keine Tracker, keine Werbe-ID.
+
+Die App ist in Deutsch, Französisch, Englisch, Spanisch, Polnisch und Ukrainisch verfügbar. Lunaison ist weder ein Medizinprodukt noch eine Verhütungsmethode.

@@ -63,6 +63,7 @@ class BackupDocumentTest {
         trackOvulationSigns = true,
         irregularCyclesMode = true,
         reviewPromptDismissed = true,
+        articleLastShown = "spm@2026-02-01,cycle@2026-01-20",
     )
 
     @Test
@@ -93,6 +94,16 @@ class BackupDocumentTest {
     }
 
     @Test
+    fun `une sauvegarde v7 sans articleLastShown reste importable`() {
+        val v8Json = LunaisonBackup.encode(BackupContent(logs, settings))
+        val v7Json = v8Json
+            .replace("\"schemaVersion\":8", "\"schemaVersion\":7")
+            .replace(",\"articleLastShown\":\"spm@2026-02-01,cycle@2026-01-20\"", "")
+        val back = LunaisonBackup.decode(v7Json)
+        assertEquals("", back.settings?.articleLastShown)
+    }
+
+    @Test
     fun `un JSON tronque est refuse a chaque longueur`() {
         val json = LunaisonBackup.encode(BackupContent(logs, settings))
         for (len in listOf(0, 1, 10, json.length / 3, json.length / 2, json.length - 20, json.length - 1)) {
@@ -111,11 +122,39 @@ class BackupDocumentTest {
             good.replace("\"date\":\"2026-02-03\"", "\"date\":\"pas-une-date\""),
             good.replace("\"logReminderTime\":\"21:15\"", "\"logReminderTime\":\"minuit\""),
             good.replace("\"onboarded\":true", "\"onboarded\":\"oui\""),
+            "{\"format\":\"lunaison-backup\",\"version\":1,\"tables\":{\"day_logs\":{},\"settings\":[]}}",
+            "{\"format\":\"lunaison-backup\",\"version\":1,\"tables\":{\"day_logs\":[],\"settings\":{}}}",
+            "{\"format\":\"lunaison-backup\",\"version\":1,\"tables\":{\"day_logs\":[42],\"settings\":[]}}",
+            "{\"format\":\"lunaison-backup\",\"version\":1,\"tables\":{\"day_logs\":[{\"date\":\"2026-02-03\",\"flow\":null,\"pain\":null,\"symptoms\":\"\",\"moods\":\"\",\"note\":\"\",\"medicationTaken\":false,\"mucus\":null,\"basalTemperature\":\"chaud\",\"pillStatus\":null,\"medications\":\"\",\"weight\":null,\"intimacy\":\"\",\"libido\":null}],\"settings\":[]}}",
+            "[".repeat(40) + "]".repeat(40),
             good + "garbage",
         )
         bad.forEach { json ->
             val e = assertFailsWith<BackupFormatException>(json.take(60)) { LunaisonBackup.decode(json) }
             assertEquals(BackupFailure.INVALID, e.failure)
         }
+    }
+
+    @Test
+    fun `echappements unicode et valeurs limites sont preserves`() {
+        val tricky = DayLogEntity(
+            date = "2026-03-01",
+            flow = null,
+            pain = null,
+            symptoms = "",
+            moods = "",
+            note = "Ctrl:\b\u000C\r\t\"\\ et unicode \u00E9\u20AC",
+            medicationTaken = false,
+            mucus = null,
+            basalTemperature = 37.25f,
+            pillStatus = null,
+            medications = "",
+            weight = 54.0f,
+            intimacy = "",
+            libido = null,
+        )
+        val json = LunaisonBackup.encode(BackupContent(listOf(tricky), null))
+        val back = LunaisonBackup.decode(json)
+        assertEquals(listOf(tricky), back.logs)
     }
 }

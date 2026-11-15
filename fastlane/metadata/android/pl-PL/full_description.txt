@@ -1,0 +1,29 @@
+Lunaison to dziennik cyklu i objawów dla wszystkich osób, które miesiączkują: od nastolatek po okres okołomenopauzalny.
+
+Wolne oprogramowanie (MPL-2.0), darmowe, bez reklam, bez konta i bez internetu: Lunaison nie prosi o żadne uprawnienie sieciowe. Dane o cyklu zostają w Twoim telefonie i nigdzie nie są wysyłane.
+
+ZAPISZ DZIEŃ W KILKA SEKUND
+• Krwawienie, ból (opisany przez jego skutek), objawy, nastrój, antykoncepcja lub leki oraz osobista notatka.
+• Opcjonalnie: śluz szyjkowy i temperatura podstawowa do obserwacji owulacji.
+• Pasek ostatnich dni na ekranie głównym, aby uzupełnić pominięty dzień jednym dotknięciem.
+
+PROGNOZY Z OSTROŻNOŚCIĄ
+• Przewidywany początek miesiączki jako przedział dat, obliczany z ostatnich sześciu cykli.
+• Tryb naturalnie nieregularnych cykli (perimenopauza, PCOS, połóg) oraz tryb pauzy (ciąża, karmienie piersią, ciągła antykoncepcja).
+• Prognozy to szacunki. Lunaison nie jest metodą antykoncepcji.
+
+ZROZUMIEĆ
+• Krótkie artykuły ze źródłami o cyklu, bólu miesiączkowym, zespole napięcia przedmiesiączkowego, diecie, antykoncepcji, endometriozie, PCOS, adenomiozie i perimenopauzie (m.in. PTGiP, ESHRE, FIGO, ACOG).
+• Interaktywne schematy anatomii i hormonów.
+• Sygnały, przy których warto skontaktować się z lekarzem. Nigdy diagnoza.
+
+NA WIZYTĘ U LEKARZA
+• Raport dla lekarza w PDF lub na jednej stronie: długość cyklu, czas trwania miesiączki, dni bólu, krwawienia poza miesiączką i wzorce bólu.
+
+ZMIANA APLIKACJI I PRYWATNOŚĆ
+• Import kopii zapasowej z aplikacji „Calendrier des règles” (ZIP lub JSON) oraz plików CSV z Lunaison, w całości na urządzeniu.
+• Opcjonalna blokada kodem PIN, neutralne powiadomienia („Lunaison”), eksport do CSV.
+• Udostępnianie partnerowi lub partnerce (od 18 lat) wiadomością lub kodem QR, bez serwera i tylko wtedy, gdy sama zdecydujesz.
+• Brak zbierania danych, brak trackerów, brak identyfikatora reklamowego.
+
+Dostępna po polsku, francusku, angielsku, niemiecku, hiszpańsku i ukraińsku. Lunaison nie jest wyrobem medycznym ani metodą antykoncepcji.
