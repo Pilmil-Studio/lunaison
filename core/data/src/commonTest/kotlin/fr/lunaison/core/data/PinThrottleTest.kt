@@ -41,4 +41,19 @@ class PinThrottleTest {
         assertEquals(30_000L, PinThrottle.remainingMs(normalized, 500L))
         assertEquals(state, PinThrottle.normalize(state, 110_000L)) // pas de redémarrage : inchangé
     }
+
+    @Test
+    fun rebootClearsExpiredBlockWhenClockResets() {
+        val expiredBeforeReboot = PinThrottleState(
+            failures = 5,
+            blockedUntil = 50_000L,
+            savedAt = 60_000L,
+            lastDelayMs = 30_000L,
+        )
+        val normalized = PinThrottle.normalize(expiredBeforeReboot, now = 500L)
+        assertEquals(0L, normalized.blockedUntil)
+        assertEquals(500L, normalized.savedAt)
+        assertEquals(5, normalized.failures)
+        assertFalse(PinThrottle.isBlocked(normalized, 500L))
+    }
 }

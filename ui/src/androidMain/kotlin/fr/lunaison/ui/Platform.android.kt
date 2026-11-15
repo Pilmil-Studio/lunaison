@@ -27,6 +27,7 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import fr.lunaison.core.cycle.HealthReport
 import fr.lunaison.core.cycle.Prediction
 import fr.lunaison.core.data.AppSettings
+import fr.lunaison.core.data.PinThrottleState
 import fr.lunaison.core.model.DayLog
 import fr.lunaison.core.model.tr
 import kotlinx.coroutines.Dispatchers
@@ -216,3 +217,30 @@ actual fun setCloudBackupEnabled(enabled: Boolean) = Unit
 
 // Android : WorkManager observe déjà le dépôt dans LunaisonApplication.
 actual fun syncReminders(settings: AppSettings, prediction: Prediction?) = Unit
+
+actual fun currentElapsedRealtimeMs(): Long = android.os.SystemClock.elapsedRealtime()
+
+@Composable
+actual fun rememberPinThrottleStore(): PinThrottleStore {
+    val context = LocalContext.current.applicationContext
+    return remember(context) {
+        val prefs = context.getSharedPreferences("lunaison_pin_throttle", Context.MODE_PRIVATE)
+        object : PinThrottleStore {
+            override fun load(): PinThrottleState = PinThrottleState(
+                failures = prefs.getInt("failures", 0),
+                blockedUntil = prefs.getLong("blocked_until", 0L),
+                savedAt = prefs.getLong("saved_at", 0L),
+                lastDelayMs = prefs.getLong("last_delay_ms", 0L),
+            )
+
+            override fun save(state: PinThrottleState) {
+                prefs.edit()
+                    .putInt("failures", state.failures)
+                    .putLong("blocked_until", state.blockedUntil)
+                    .putLong("saved_at", state.savedAt)
+                    .putLong("last_delay_ms", state.lastDelayMs)
+                    .apply()
+            }
+        }
+    }
+}

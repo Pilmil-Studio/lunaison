@@ -26,6 +26,7 @@ import fr.lunaison.core.model.DayLog
 import fr.lunaison.core.model.PartnerSnapshot
 import fr.lunaison.core.model.minusDays
 import fr.lunaison.core.model.tr
+import fr.lunaison.core.data.PinThrottleState
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
@@ -471,5 +472,28 @@ actual fun syncReminders(settings: AppSettings, prediction: Prediction?) {
         }
         val trigger = UNCalendarNotificationTrigger.triggerWithDateMatchingComponents(components, repeats = false)
         center.addNotificationRequest(UNNotificationRequest.requestWithIdentifier(ID_PERIOD_REMINDER, content, trigger), withCompletionHandler = null)
+    }
+}
+
+actual fun currentElapsedRealtimeMs(): Long =
+    (platform.Foundation.NSProcessInfo.processInfo.systemUptime * 1000.0).toLong()
+
+@Composable
+actual fun rememberPinThrottleStore(): PinThrottleStore = remember {
+    val defaults = platform.Foundation.NSUserDefaults.standardUserDefaults
+    object : PinThrottleStore {
+        override fun load(): PinThrottleState = PinThrottleState(
+            failures = defaults.integerForKey("lunaison.pin.failures").toInt(),
+            blockedUntil = defaults.doubleForKey("lunaison.pin.blocked_until").toLong(),
+            savedAt = defaults.doubleForKey("lunaison.pin.saved_at").toLong(),
+            lastDelayMs = defaults.doubleForKey("lunaison.pin.last_delay_ms").toLong(),
+        )
+
+        override fun save(state: PinThrottleState) {
+            defaults.setInteger(state.failures.toLong(), forKey = "lunaison.pin.failures")
+            defaults.setDouble(state.blockedUntil.toDouble(), forKey = "lunaison.pin.blocked_until")
+            defaults.setDouble(state.savedAt.toDouble(), forKey = "lunaison.pin.saved_at")
+            defaults.setDouble(state.lastDelayMs.toDouble(), forKey = "lunaison.pin.last_delay_ms")
+        }
     }
 }

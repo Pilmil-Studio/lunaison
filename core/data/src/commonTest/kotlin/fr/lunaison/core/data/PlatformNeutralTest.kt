@@ -2,6 +2,8 @@ package fr.lunaison.core.data
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class PlatformNeutralTest {
 
@@ -18,12 +20,16 @@ class PlatformNeutralTest {
     }
 
     @Test
-    fun `l'empreinte du code PIN reste celle de la version Android d'origine`() {
+    fun `verifyPin reste compatible avec les anciens hash SHA-256 et supporte PBKDF2 sale`() {
         // SHA-256 de « 1234 », telle que l'ancienne version l'enregistrait.
-        assertEquals(
-            "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
-            AppSettings.hashPin("1234"),
-        )
+        val legacyHash = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4"
+        assertTrue(AppSettings.verifyPin("1234", legacyHash))
+        assertFalse(AppSettings.verifyPin("4321", legacyHash))
+
+        val saltedHash = AppSettings.hashPin("1234")
+        assertTrue(saltedHash.startsWith("pbkdf2$"))
+        assertTrue(AppSettings.verifyPin("1234", saltedHash))
+        assertFalse(AppSettings.verifyPin("4321", saltedHash))
     }
 
     @Test

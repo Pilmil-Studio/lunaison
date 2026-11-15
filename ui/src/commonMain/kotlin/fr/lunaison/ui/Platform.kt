@@ -5,6 +5,7 @@ import fr.lunaison.core.cycle.HealthReport
 import fr.lunaison.core.cycle.Prediction
 import fr.lunaison.core.data.AppSettings
 import fr.lunaison.core.data.Partner
+import fr.lunaison.core.data.PinThrottleState
 import fr.lunaison.core.model.DayLog
 import fr.lunaison.core.model.PartnerSnapshot
 
@@ -112,3 +113,15 @@ expect fun rememberScanner(onSnapshot: (PartnerSnapshot) -> Unit): ScannerState
 
 /** Synchronise les rappels locaux sur la plateforme (iOS : `UNCalendarNotificationTrigger`). */
 expect fun syncReminders(settings: AppSettings, prediction: Prediction?)
+
+/** Persistance locale de l'état anti-bruteforce du code PIN. */
+interface PinThrottleStore {
+    fun load(): PinThrottleState
+    fun save(state: PinThrottleState)
+}
+
+@Composable
+expect fun rememberPinThrottleStore(): PinThrottleStore
+
+/** Horloge monotone en millisecondes (Android : `SystemClock.elapsedRealtime()`). */
+expect fun currentElapsedRealtimeMs(): Long

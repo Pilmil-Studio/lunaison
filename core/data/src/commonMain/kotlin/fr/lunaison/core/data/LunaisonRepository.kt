@@ -19,6 +19,8 @@ import fr.lunaison.core.model.Symptom
 import fr.lunaison.core.model.ThemePalette
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import fr.lunaison.core.model.of
@@ -86,15 +88,61 @@ data class AppSettings(
 
     companion object {
         const val ALERT_SNOOZE_DAYS = 60L
+        private const val PBKDF2_PREFIX = "pbkdf2$"
+        private const val PBKDF2_ITERATIONS = 100_000
+        private const val PBKDF2_KEY_BYTES = 32
+        private const val PBKDF2_SALT_BYTES = 16
 
-        fun hashPin(pin: String): String =
-            Sha256.digest(pin.encodeToByteArray())
-                .joinToString("") { (it.toInt() and 0xFF).toString(16).padStart(2, '0') }
+        fun hashPin(pin: String): String {
+            val salt = randomPinSalt(PBKDF2_SALT_BYTES)
+            val derived = pbkdf2HmacSha256(pin, salt, PBKDF2_ITERATIONS, PBKDF2_KEY_BYTES)
+            return "$PBKDF2_PREFIX${salt.toHex()}$${derived.toHex()}"
+        }
+
+        fun verifyPin(pin: String, storedHash: String): Boolean {
+            if (storedHash.startsWith(PBKDF2_PREFIX)) {
+                val parts = storedHash.split('$')
+                if (parts.size != 3) return false
+                val salt = parts[1].hexToBytesOrNull() ?: return false
+                val expected = parts[2].hexToBytesOrNull() ?: return false
+                if (salt.isEmpty() || expected.isEmpty()) return false
+                val actual = pbkdf2HmacSha256(pin, salt, PBKDF2_ITERATIONS, expected.size)
+                return constantTimeEquals(actual, expected)
+            }
+            // Compatibilité avec les anciens hash SHA-256 non salés (64 caractères hexadécimaux).
+            if (storedHash.length == 64 && storedHash.all { it in '0'..'9' || it in 'a'..'f' || it in 'A'..'F' }) {
+                val legacyActual = Sha256.digest(pin.encodeToByteArray()).toHex()
+                return constantTimeEquals(legacyActual.encodeToByteArray(), storedHash.lowercase().encodeToByteArray())
+            }
+            return false
+        }
+
+        private fun ByteArray.toHex(): String =
+            joinToString("") { (it.toInt() and 0xFF).toString(16).padStart(2, '0') }
+
+        private fun String.hexToBytesOrNull(): ByteArray? {
+            if (length % 2 != 0) return null
+            val out = ByteArray(length / 2)
+            for (i in out.indices) {
+                val byteVal = substring(i * 2, i * 2 + 2).toIntOrNull(16) ?: return null
+                out[i] = byteVal.toByte()
+            }
+            return out
+        }
+
+        private fun constantTimeEquals(a: ByteArray, b: ByteArray): Boolean {
+            if (a.size != b.size) return false
+            var diff = 0
+            for (i in a.indices) diff = diff or (a[i].toInt() xor b[i].toInt())
+            return diff == 0
+        }
     }
 }
 
 /** Seule source de données de l'appli. Tout reste sur le téléphone. */
 class LunaisonRepository(private val dao: LunaisonDao) {
+
+    private val settingsMutex = Mutex()
 
     val logs: kotlinx.coroutines.flow.Flow<List<DayLog>> = dao.logs().map { list -> list.map { it.toModel() } }
     val settings: kotlinx.coroutines.flow.Flow<AppSettings> = dao.settings().map { it?.toModel() ?: AppSettings() }
@@ -108,7 +156,9 @@ class LunaisonRepository(private val dao: LunaisonDao) {
     }
 
     suspend fun updateSettings(transform: (AppSettings) -> AppSettings) {
-        dao.upsertSettings(transform(settingsOnce()).toEntity())
+        settingsMutex.withLock {
+            dao.upsertSettings(transform(settingsOnce()).toEntity())
+        }
     }
 
     /** Efface tout, sans retour possible. */

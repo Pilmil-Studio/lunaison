@@ -22,8 +22,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -34,7 +37,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import fr.lunaison.core.data.AppSettings
+import fr.lunaison.core.data.PinThrottle
 import fr.lunaison.core.model.tr
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Écran de déverrouillage par code PIN à 4 chiffres au lancement de l'application,
@@ -45,19 +53,62 @@ fun PinUnlockScreen(
     expectedHash: String,
     onUnlocked: () -> Unit,
 ) {
+    val throttleStore = rememberPinThrottleStore()
+    val scope = rememberCoroutineScope()
+    var throttleState by remember {
+        mutableStateOf(PinThrottle.normalize(throttleStore.load(), currentElapsedRealtimeMs()))
+    }
+    var nowMs by remember { mutableStateOf(currentElapsedRealtimeMs()) }
     var entered by rememberSaveable { mutableStateOf("") }
     var error by rememberSaveable { mutableStateOf(false) }
+    var verifying by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        val loaded = throttleStore.load()
+        val normalized = PinThrottle.normalize(loaded, currentElapsedRealtimeMs())
+        throttleState = normalized
+        if (normalized != loaded) throttleStore.save(normalized)
+    }
+
+    val remainingMs = PinThrottle.remainingMs(throttleState, nowMs)
+    val isBlocked = remainingMs > 0L
+
+    LaunchedEffect(throttleState, isBlocked) {
+        if (!isBlocked) return@LaunchedEffect
+        while (PinThrottle.isBlocked(throttleState, currentElapsedRealtimeMs())) {
+            delay(500L)
+            nowMs = currentElapsedRealtimeMs()
+        }
+        nowMs = currentElapsedRealtimeMs()
+    }
 
     fun appendDigit(digit: Char) {
-        if (entered.length >= 4) return
+        val currentNow = currentElapsedRealtimeMs()
+        if (verifying || PinThrottle.isBlocked(throttleState, currentNow) || entered.length >= 4) return
         val next = entered + digit
         error = false
         if (next.length == 4) {
-            if (AppSettings.hashPin(next) == expectedHash) {
-                onUnlocked()
-            } else {
-                entered = ""
-                error = true
+            entered = next
+            verifying = true
+            scope.launch {
+                val ok = withContext(Dispatchers.Default) {
+                    AppSettings.verifyPin(next, expectedHash)
+                }
+                verifying = false
+                if (ok) {
+                    val reset = PinThrottle.onSuccess()
+                    throttleState = reset
+                    throttleStore.save(reset)
+                    onUnlocked()
+                } else {
+                    val failNow = currentElapsedRealtimeMs()
+                    val updated = PinThrottle.onFailure(throttleState, failNow)
+                    throttleState = updated
+                    throttleStore.save(updated)
+                    nowMs = failNow
+                    entered = ""
+                    error = true
+                }
             }
         } else {
             entered = next
@@ -74,11 +125,25 @@ fun PinUnlockScreen(
         ) {
             Text("Lunaison", style = MaterialTheme.typography.headlineMedium)
             Spacer(Modifier.height(8.dp))
+            val statusMessage = when {
+                isBlocked -> {
+                    val remainingSec = ((remainingMs + 999L) / 1000L).coerceAtLeast(1L)
+                    tr(
+                        "Trop d'essais. Réessayez dans ${remainingSec} s",
+                        "Too many attempts. Try again in ${remainingSec}s",
+                        pl = "Zbyt wiele prób. Spróbuj ponownie za ${remainingSec} s",
+                        uk = "Забагато спроб. Спробуйте знову через ${remainingSec} с",
+                        es = "Demasiados intentos. Inténtalo de nuevo en ${remainingSec} s",
+                        de = "Zu viele Versuche. Erneut versuchen in ${remainingSec} s",
+                    )
+                }
+                error -> tr("Code incorrect, réessayez", "Incorrect code, please try again", pl = "Nieprawidłowy kod, spróbuj ponownie", uk = "Неправильний код, спробуйте ще раз", es = "Código incorrecto, inténtalo de nuevo", de = "Falscher Code, bitte erneut versuchen")
+                else -> tr("Entrez votre code à 4 chiffres", "Enter your 4-digit code", pl = "Wpisz swój 4-cyfrowy kod", uk = "Введіть свій 4-значний код", es = "Introduce tu código de 4 dígitos", de = "Gib deinen 4-stelligen Code ein")
+            }
             Text(
-                if (error) tr("Code incorrect, réessayez", "Incorrect code, please try again", pl = "Nieprawidłowy kod, spróbuj ponownie", uk = "Неправильний код, спробуйте ще раз", es = "Código incorrecto, inténtalo de nuevo", de = "Falscher Code, bitte erneut versuchen")
-                else tr("Entrez votre code à 4 chiffres", "Enter your 4-digit code", pl = "Wpisz swój 4-cyfrowy kod", uk = "Введіть свій 4-значний код", es = "Introduce tu código de 4 dígitos", de = "Gib deinen 4-stelligen Code ein"),
+                statusMessage,
                 style = MaterialTheme.typography.bodyLarge,
-                color = if (error) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                color = if (isBlocked || error) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(Modifier.height(24.dp))
             Row(
@@ -105,19 +170,21 @@ fun PinUnlockScreen(
                 listOf('4', '5', '6'),
                 listOf('7', '8', '9'),
             )
+            val inputEnabled = !isBlocked && !verifying
             Column(verticalArrangement = Arrangement.spacedBy(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 rows.forEach { row ->
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         row.forEach { digit ->
-                            PinKey(label = digit.toString(), onClick = { appendDigit(digit) })
+                            PinKey(label = digit.toString(), enabled = inputEnabled, onClick = { appendDigit(digit) })
                         }
                     }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Spacer(Modifier.size(72.dp))
-                    PinKey(label = "0", onClick = { appendDigit('0') })
+                    PinKey(label = "0", enabled = inputEnabled, onClick = { appendDigit('0') })
                     TextButton(
                         onClick = { if (entered.isNotEmpty()) entered = entered.dropLast(1) },
+                        enabled = inputEnabled,
                         modifier = Modifier.size(72.dp),
                     ) {
                         Text("⌫", style = MaterialTheme.typography.titleLarge)
@@ -129,9 +196,10 @@ fun PinUnlockScreen(
 }
 
 @Composable
-private fun PinKey(label: String, onClick: () -> Unit) {
+private fun PinKey(label: String, enabled: Boolean, onClick: () -> Unit) {
     FilledTonalButton(
         onClick = onClick,
+        enabled = enabled,
         shape = CircleShape,
         modifier = Modifier.size(72.dp),
         colors = ButtonDefaults.filledTonalButtonColors(

@@ -29,8 +29,12 @@ object PinThrottle {
      * fonctionnement ultérieur, il passerait inaperçu et le blocage serait seulement écourté.
      */
     fun normalize(state: PinThrottleState, now: Long): PinThrottleState =
-        if (now < state.savedAt && state.blockedUntil > state.savedAt) {
-            state.copy(blockedUntil = now + state.lastDelayMs, savedAt = now)
+        if (now < state.savedAt) {
+            if (state.blockedUntil > state.savedAt) {
+                state.copy(blockedUntil = now + state.lastDelayMs, savedAt = now)
+            } else {
+                state.copy(blockedUntil = 0L, savedAt = now)
+            }
         } else {
             state
         }
