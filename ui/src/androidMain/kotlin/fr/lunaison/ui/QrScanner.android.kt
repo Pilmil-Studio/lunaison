@@ -90,9 +90,13 @@ private fun CameraQrPreview(onCodeDetected: (String) -> Unit) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val executor = remember { Executors.newSingleThreadExecutor() }
     val reader = remember { QRCodeReader() }
+    var cameraProvider by remember { mutableStateOf<ProcessCameraProvider?>(null) }
 
     DisposableEffect(Unit) {
-        onDispose { executor.shutdown() }
+        onDispose {
+            cameraProvider?.unbindAll()
+            executor.shutdown()
+        }
     }
 
     Box(
@@ -110,6 +114,7 @@ private fun CameraQrPreview(onCodeDetected: (String) -> Unit) {
                 cameraProviderFuture.addListener(
                     {
                         val provider = runCatching { cameraProviderFuture.get() }.getOrNull() ?: return@addListener
+                        cameraProvider = provider
                         val preview = Preview.Builder().build().also {
                             it.surfaceProvider = previewView.surfaceProvider
                         }
@@ -120,17 +125,39 @@ private fun CameraQrPreview(onCodeDetected: (String) -> Unit) {
                             try {
                                 val plane = imageProxy.planes.firstOrNull()
                                 if (plane != null) {
+                                    val width = imageProxy.width
+                                    val height = imageProxy.height
+                                    val rowStride = plane.rowStride
                                     val buffer = plane.buffer
-                                    val bytes = ByteArray(buffer.remaining())
-                                    buffer.get(bytes)
+                                    buffer.rewind()
+                                    val bytes = ByteArray(width * height)
+                                    if (rowStride == width) {
+                                        buffer.get(bytes, 0, bytes.size.coerceAtMost(buffer.remaining()))
+                                    } else {
+                                        val rowBuffer = ByteArray(rowStride)
+                                        for (row in 0 until height) {
+                                            val toRead = if (row == height - 1) {
+                                                width.coerceAtMost(buffer.remaining())
+                                            } else {
+                                                rowStride.coerceAtMost(buffer.remaining())
+                                            }
+                                            buffer.get(rowBuffer, 0, toRead)
+                                            rowBuffer.copyInto(
+                                                bytes,
+                                                destinationOffset = row * width,
+                                                startIndex = 0,
+                                                endIndex = width.coerceAtMost(toRead),
+                                            )
+                                        }
+                                    }
                                     val source = PlanarYUVLuminanceSource(
                                         bytes,
-                                        imageProxy.width,
-                                        imageProxy.height,
+                                        width,
+                                        height,
                                         0,
                                         0,
-                                        imageProxy.width,
-                                        imageProxy.height,
+                                        width,
+                                        height,
                                         false,
                                     )
                                     val bitmap = BinaryBitmap(HybridBinarizer(source))
