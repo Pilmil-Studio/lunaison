@@ -9,4 +9,36 @@ plugins {
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.room) apply false
     alias(libs.plugins.paparazzi) apply false
+    alias(libs.plugins.kover)
+    alias(libs.plugins.detekt) apply false
+}
+
+dependencies {
+    kover(project(":core:model"))
+    kover(project(":core:cycle"))
+    kover(project(":core:content"))
+    kover(project(":core:data"))
+    kover(project(":ui"))
+}
+
+subprojects {
+    apply(plugin = "org.jetbrains.kotlinx.kover")
+    apply(plugin = "io.gitlab.arturbosch.detekt")
+
+    extensions.configure<io.gitlab.arturbosch.detekt.extensions.DetektExtension> {
+        buildUponDefaultConfig = true
+        config.setFrom(rootProject.files("config/detekt/detekt.yml"))
+        parallel = true
+    }
+
+    tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+        setSource(files("src/commonMain/kotlin", "src/androidMain/kotlin", "src/iosMain/kotlin"))
+        include("**/*.kt")
+        exclude("**/build/**")
+        reports {
+            html.required.set(true)
+            xml.required.set(false)
+            txt.required.set(true)
+        }
+    }
 }

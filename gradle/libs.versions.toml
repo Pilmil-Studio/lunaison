@@ -19,6 +19,8 @@ kotlinxDatetime = "0.6.1"
 composeMultiplatform = "1.7.3"
 jbNavigation = "2.8.0-alpha10"
 jbLifecycle = "2.8.4"
+kover = "0.9.1"
+detekt = "1.23.8"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -60,3 +62,5 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 room = { id = "androidx.room", version.ref = "room" }
 paparazzi = { id = "app.cash.paparazzi", version.ref = "paparazzi" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }

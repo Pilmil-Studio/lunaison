@@ -78,7 +78,6 @@ fun SettingsScreen(
     onReplayWelcome: () -> Unit = {},
 ) {
     val context = rememberPlatformContext()
-    val scope = rememberCoroutineScope()
     val settings = state.settings
     val reminders = settings.reminders
     var confirmErase by rememberSaveable { mutableStateOf(false) }
