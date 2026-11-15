@@ -277,7 +277,7 @@ internal object ArticlesPl {
                 "Warto wiedzieć",
                 listOf(
                     "Miesiączka i dni ją poprzedzające mogą wiązać się z realnym bólem, zmęczeniem i zmianami nastroju. Nie są to wymysły ani przesada.",
-                    "Każdy cykl i każda osoba są inne. Najlepszym sposobem, by dowiedzieć się, co pomaga, jest spokojne i życzliwe pytanie.",
+                    "Każdy cykl i każda osoba są inne. Najlepszym sposobem, by dowiedzieć się, co pomaga, jest spokojne i życzliwe pytanie. Możesz też przeczytać artykuły o bólu miesiączkowym i PMS, aby lepiej zrozumieć, co się dzieje.",
                 ),
             ),
             Section(
@@ -298,5 +298,62 @@ internal object ArticlesPl {
         sources = emptyList(),
     )
 
-    val all: List<Article> = listOf(cycle, pain, pms, food, consult, protection, predictions, partners)
+    val symptothermie = Article(
+        id = "symptothermie",
+        title = "Obserwacja śluzu i temperatury",
+        summary = "Jak śledzić oznaki owulacji w Lunaison, co może zaburzać pomiary i jakie są ich granice.",
+        sections = listOf(
+            Section(
+                "Śluz szyjkowy",
+                listOf(
+                    "Pod wpływem estrogenów wydzielina z szyjki macicy zmienia się w trakcie cyklu. Tuż po miesiączce odczucie jest często suche, a potem śluz staje się kremowy lub lepki.",
+                    "Przed owulacją śluz staje się obfitszy, przejrzysty i rozciągliwy, jak surowe białko jaja. Po owulacji progesteron szybko sprawia, że znów staje się suchy lub gęsty.",
+                ),
+            ),
+            Section(
+                "Podstawowa temperatura ciała",
+                listOf(
+                    "Temperaturę mierzy się rano po przebudzeniu, przed wstaniem z łóżka, najlepiej o stałej porze i tym samym termometrem. Po owulacji progesteron podnosi temperaturę spoczynkową o około 0,2 do 0,5 °C aż do kolejnej miesiączki.",
+                    "Pojedynczy wynik mogą zaburzyć różne czynniki: gorączka lub infekcja, bardzo krótka albo niespokojna noc, alkohol wieczorem, podróż lub duża zmiana godziny pobudki. W razie potrzeby zanotuj ten kontekst w komentarzu.",
+                ),
+            ),
+            Section(
+                "Do czego służy ta obserwacja",
+                listOf(
+                    "Oba sygnały pozwalają potwierdzić po fakcie, że owulacja wystąpiła, lub lepiej wyznaczyć dni płodne przy staraniach o ciążę. Sama obserwacja bez ustrukturyzowanej nauki nie jest jednak niezawodną metodą antykoncepcji.",
+                ),
+            ),
+        ),
+        sources = listOf(Sources.BULL_2019, Sources.TRUSSELL_2011),
+    )
+
+    val transitions = Article(
+        id = "transitions",
+        title = "Pierwsze miesiączki, odstawienie tabletki i połóg",
+        summary = "Dlaczego cykle bywają nieregularne w okresach zmian hormonalnych i jak dostosować Lunaison.",
+        sections = listOf(
+            Section(
+                "Pierwsze lata (okres dojrzewania)",
+                listOf(
+                    "Przez pierwsze dwa do trzech lat po pierwszej miesiączce komunikacja między mózgiem a jajnikami stopniowo dojrzewa. Cykle trwające od 21 do 45 dni, czasem bez owulacji, mieszczą się w normie dla tego wieku.",
+                ),
+            ),
+            Section(
+                "Po odstawieniu antykoncepcji hormonalnej",
+                listOf(
+                    "Krwawienie podczas przyjmowania tabletki dwuskładnikowej nie jest naturalną miesiączką, lecz krwawieniem z odstawienia w przerwie. Po zakończeniu stosowania powrót owulacji i własnego rytmu cyklu może zająć od kilku tygodni do kilku miesięcy.",
+                ),
+            ),
+            Section(
+                "Połóg i karmienie piersią",
+                listOf(
+                    "Po porodzie powrót miesiączki przebiega bardzo różnie. Wyłączne i częste karmienie piersią często opóźnia owulację, ale pierwsza owulacja może pojawić się jeszcze przed pierwszym krwawieniem.",
+                    "W czasie ciąży, karmienia piersią lub ciągłej antykoncepcji możesz włączyć tryb Pauzy w Ustawieniach. Gdy cykle wrócą nieregularnie, włącz tryb Naturalnie nieregularnych cykli.",
+                ),
+            ),
+        ),
+        sources = listOf(Sources.ACOG_ADOLESCENTS_2015, Sources.FIGO_2018, Sources.BULL_2019),
+    )
+
+    val all: List<Article> = listOf(cycle, pain, pms, food, consult, protection, predictions, symptothermie, transitions, partners)
 }

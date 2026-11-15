@@ -63,10 +63,13 @@ import androidx.compose.ui.unit.sp
 import kotlin.math.roundToInt
 import fr.lunaison.core.content.Article
 import fr.lunaison.core.content.Articles
+import fr.lunaison.core.content.Source
+import fr.lunaison.core.content.Sources
 import fr.lunaison.core.cycle.CycleState
 import fr.lunaison.core.cycle.Phase
 import fr.lunaison.core.designsystem.LunaCard
 import fr.lunaison.core.designsystem.SectionTitle
+import fr.lunaison.core.model.AgeGroup
 import fr.lunaison.core.model.Pain
 import fr.lunaison.core.model.tr
 
@@ -122,17 +125,18 @@ fun LearnScreen(
                         add("protections")
                     }
                     Phase.LUTEAL -> add("spm")
-                    Phase.FOLLICULAR, Phase.OVULATION -> add("cycle")
+                    Phase.FOLLICULAR, Phase.OVULATION -> add(if (state.settings.trackOvulationSigns) "symptothermie" else "cycle")
                     Phase.LATE -> add("previsions")
                     null -> add("cycle")
                 }
+                if (state.settings.trackOvulationSigns) add("symptothermie")
+                if (state.settings.pausePredictions || state.settings.baseline.ageGroup == AgeGroup.UNDER_18) add("transitions")
                 if (state.settings.irregularCyclesMode) add("perimenopause")
                 val hasStrongPain = state.logs.takeLast(14).any { it.pain == Pain.MODERATE || it.pain == Pain.SEVERE }
-                if (hasStrongPain && "endometriose" !in this) add("endometriose")
-            }.distinct().take(2)
+                if (hasStrongPain) add("endometriose")
+            }.distinct().take(3)
 
-            val contextualArticles = contextualIds.mapNotNull { Articles.byId(it) }
-            if (contextualArticles.isNotEmpty()) {
+            if (contextualIds.isNotEmpty()) {
                 SectionTitle(
                     tr(
                         "Pour vous en ce moment",
@@ -143,8 +147,8 @@ fun LearnScreen(
                         de = "Aktuell für dich",
                     ),
                 )
-                contextualArticles.forEach { article ->
-                    ArticleCard(article, onArticle)
+                contextualIds.forEach { id ->
+                    LearnEntryCard(id = id, onArticle = onArticle)
                 }
             }
         }
@@ -197,7 +201,7 @@ fun LearnScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        val cycleArticles = Articles.all.filter { it.id in listOf("cycle", "previsions") }
+        val cycleArticles = Articles.all.filter { it.id in listOf("cycle", "previsions", "symptothermie", "transitions") }
         cycleArticles.forEach { article ->
             ArticleCard(article, onArticle)
         }
@@ -288,6 +292,32 @@ fun LearnScreen(
 }
 
 @Composable
+private fun LearnEntryCard(id: String, onArticle: (String) -> Unit) {
+    Articles.byId(id)?.let { article ->
+        ArticleCard(article, onArticle)
+        return
+    }
+    when (id) {
+        "endometriose" -> LunaCard(modifier = Modifier.clickable(role = Role.Button) { onArticle("endometriose") }) {
+            Text(tr("Endométriose & douleurs pelviennes", "Endometriosis & pelvic pain", pl = "Endometrioza i ból miednicy", uk = "Ендометріоз і тазовий біль", es = "Endometriosis y dolor pélvico", de = "Endometriose und Beckenschmerzen"), style = MaterialTheme.typography.titleMedium)
+            Text(
+                tr("Comprendre les signaux d'alerte (les 5 « D »), le diagnostic et les pistes de soulagement au quotidien.", "Understand warning signs (the 5 'Ds'), diagnosis and everyday relief options.", pl = "Zrozumieć sygnały alarmowe (5 „D”), diagnostykę i sposoby łagodzenia dolegliwości na co dzień.", uk = "Розуміння тривожних сигналів (5 «Д»), діагностики та способів полегшення в повсякденному житті.", es = "Comprender las señales de alerta (las 5 «D»), el diagnóstico y las vías de alivio en el día a día.", de = "Warnzeichen (die 5 „D“), Diagnose und Wege zur Linderung im Alltag verstehen."),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        "perimenopause" -> LunaCard(modifier = Modifier.clickable(role = Role.Button) { onArticle("perimenopause") }) {
+            Text(tr("La périménopause et ses changements", "Perimenopause and its changes", pl = "Perimenopauza i jej zmiany", uk = "Перименопауза та її зміни", es = "La perimenopausia y sus cambios", de = "Die Perimenopause und ihre Veränderungen"), style = MaterialTheme.typography.titleMedium)
+            Text(
+                tr("Cycles irréguliers, bouffées de chaleur, sommeil et transition hormonale expliqués.", "Irregular cycles, hot flashes, sleep and hormonal transition explained.", pl = "Nieregularne cykle, uderzenia gorąca, sen i przejście hormonalne wyjaśnione.", uk = "Нерегулярні цикли, припливи жару, сон і гормональний перехід: пояснення.", es = "Ciclos irregulares, sofocos, sueño y transición hormonal explicados.", de = "Unregelmäßige Zyklen, Hitzewallungen, Schlaf und hormoneller Übergang erklärt."),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
 private fun ArticleCard(article: Article, onArticle: (String) -> Unit) {
     LunaCard(modifier = Modifier.clickable(role = Role.Button) { onArticle(article.id) }) {
         Text(article.title, style = MaterialTheme.typography.titleMedium)
@@ -333,6 +363,7 @@ fun ArticleScreen(id: String, onBack: () -> Unit) {
             "protections" -> ProtectionsWearVisual()
             "douleurs" -> PainMechanismVisual()
             "spm" -> SpmWindowVisual()
+            "symptothermie" -> SymptothermalVisual()
         }
 
         article.sections.forEach { section ->
@@ -344,6 +375,70 @@ fun ArticleScreen(id: String, onBack: () -> Unit) {
             TextButton(onClick = { openLink(context, Links.sourcesOf(article.id)) }) {
                 Text(
                     tr("Sources de cette fiche, sur le site", "Sources for this guide, on the website (in French)", pl = "Źródła tego artykułu na stronie", uk = "Джерела цієї статті на сайті", es = "Fuentes de esta ficha, en el sitio web", de = "Quellen zu diesem Artikel auf der Website"),
+                    style = MaterialTheme.typography.bodySmall,
+                    textDecoration = TextDecoration.Underline,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SymptothermalVisual() {
+    val colors = MaterialTheme.colorScheme
+    LunaCard {
+        Text(
+            tr(
+                "Le tandem glaire + température autour de l'ovulation",
+                "Mucus + temperature tandem around ovulation",
+                pl = "Śluz i temperatura wokół owulacji",
+                uk = "Слиз і температура навколо овуляції",
+                es = "Moco y temperatura en torno a la ovulación",
+                de = "Schleim und Temperatur rund um den Eisprung",
+            ),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            MechanismStep(
+                modifier = Modifier.weight(1f),
+                title = tr("Avant ovulation", "Before ovulation", pl = "Przed owulacją", uk = "До овуляції", es = "Antes de ovulación", de = "Vor Eisprung"),
+                subtitle = tr("Glaire claire filante\nTempérature basse", "Clear stretchy mucus\nBaseline temp", pl = "Przejrzysty śluz\nNiższa temp.", uk = "Прозорий слиз\nНижча темп.", es = "Moco elástico\nTemp. basal baja", de = "Klarer Schleim\nTiefe Temp."),
+                bg = colors.primaryContainer,
+                fg = colors.onPrimaryContainer,
+            )
+            MechanismStep(
+                modifier = Modifier.weight(1f),
+                title = tr("Après ovulation", "After ovulation", pl = "Po owulacji", uk = "Після овуляції", es = "Tras ovulación", de = "Nach Eisprung"),
+                subtitle = tr("Glaire sèche/épaisse\n+0,2 à +0,5 °C", "Dry/thick mucus\n+0.2 to +0.5 °C", pl = "Śluz suchy/gęsty\n+0,2 do +0,5 °C", uk = "Сухий/густий слиз\n+0,2…+0,5 °C", es = "Moco seco/espeso\n+0,2 a +0,5 °C", de = "Trockener Schleim\n+0,2 bis +0,5 °C"),
+                bg = colors.tertiaryContainer,
+                fg = colors.onTertiaryContainer,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ClinicalGuideSourcesCard(sources: List<Source>) {
+    if (sources.isEmpty()) return
+    val context = rememberPlatformContext()
+    SectionTitle(
+        tr(
+            "Références scientifiques",
+            "Scientific references",
+            pl = "Źródła naukowe",
+            uk = "Наукові джерела",
+            es = "Referencias científicas",
+            de = "Wissenschaftliche Quellen",
+        ),
+    )
+    LunaCard {
+        sources.forEach { source ->
+            TextButton(onClick = { openLink(context, source.url) }) {
+                Text(
+                    text = source.label,
                     style = MaterialTheme.typography.bodySmall,
                     textDecoration = TextDecoration.Underline,
                 )
@@ -617,6 +712,49 @@ fun ContraceptionGuideScreen(onBack: () -> Unit) {
 
         SectionTitle(tr("Toutes les méthodes en résumé", "All methods overview", pl = "Wszystkie metody w skrócie", uk = "Усі методи коротко", es = "Todos los métodos en resumen", de = "Alle Methoden im Überblick"))
         ContraceptionComparisonCard()
+
+        SectionTitle(
+            tr(
+                "En cas d'oubli ou de doute",
+                "If you miss a pill or are unsure",
+                pl = "W razie pominięcia tabletki lub wątpliwości",
+                uk = "У разі пропуску таблетки або сумнівів",
+                es = "En caso de olvido o duda",
+                de = "Bei vergessener Einnahme oder Unsicherheit",
+            ),
+        )
+        LunaCard {
+            Bullet(
+                tr(
+                    "Pilule combinée : le délai de tolérance est souvent de 12 heures (vérifiez la notice). Au-delà, prenez le comprimé oublié dès que possible et utilisez une protection mécanique pendant 7 jours.",
+                    "Combined pill: the usual grace window is up to 12 hours (check your leaflet). Beyond that, take the missed pill as soon as possible and use a barrier method for 7 days.",
+                    pl = "Tabletka dwuskładnikowa: dopuszczalne opóźnienie wynosi zwykle do 12 godzin (sprawdź ulotkę). Po tym czasie przyjmij pominiętą tabletkę jak najszybciej i stosuj zabezpieczenie mechaniczne przez 7 dni.",
+                    uk = "Комбінована таблетка: допустиме запізнення зазвичай до 12 годин (перевірте інструкцію). Якщо минуло більше часу, прийміть пропущену таблетку якомога швидше та використовуйте бар'єрний метод протягом 7 днів.",
+                    es = "Píldora combinada: el margen habitual es de hasta 12 horas (revisa el prospecto). Si pasa más tiempo, toma la píldora olvidada cuanto antes y usa un método de barrera durante 7 días.",
+                    de = "Kombinationspille: Das übliche Zeitfenster beträgt bis zu 12 Stunden (Packungsbeilage prüfen). Danach die vergessene Tablette rasch nachnehmen und 7 Tage lang zusätzlich verhüten.",
+                ),
+            )
+            Bullet(
+                tr(
+                    "Pilule progestative seule : le délai de tolérance peut être très court (3 heures ou 12 heures selon la molécule). Vérifiez la notice de votre plaquette.",
+                    "Progestin-only pill: the grace window can be very short (3 hours or 12 hours depending on the formulation). Always check your leaflet.",
+                    pl = "Tabletka jednoskładnikowa: okno tolerancji bywa bardzo krótkie (3 lub 12 godzin zależnie od substancji). Sprawdź ulotkę swojego leku.",
+                    uk = "Чисто прогестинова таблетка: допустимий інтервал може бути дуже коротким (3 або 12 годин залежно від препарату). Перевірте інструкцію.",
+                    es = "Píldora de solo progestágeno: el margen puede ser muy corto (3 o 12 horas según el principio activo). Revisa el prospecto.",
+                    de = "Minipille (Gestagen-Monopräparat): Das Zeitfenster kann sehr kurz sein (3 oder 12 Stunden je nach Wirkstoff). Beachte die Packungsbeilage.",
+                ),
+            )
+            Bullet(
+                tr(
+                    "Contraception d'urgence : en cas de rapport à risque, une contraception d'urgence (en pharmacie ou centre de santé sexuelle) reste possible jusqu'à 3 à 5 jours selon la méthode, et est d'autant plus efficace qu'elle est prise tôt.",
+                    "Emergency contraception: after unprotected sex or a high-risk missed pill, emergency contraception (from a pharmacy or sexual health clinic) can be used up to 3 to 5 days depending on the method, and works best the sooner it is taken.",
+                    pl = "Antykoncepcja awaryjna: po ryzykownym stosunku lub pominięciu tabletki można zastosować antykoncepcję awaryjną do 3–5 dni zależnie od metody; im szybciej, tym większa skuteczność.",
+                    uk = "Екстрена контрацепція: після ризикованого контакту її можна застосувати протягом 3-5 днів залежно від методу (в аптеці чи центрі сексуального здоров'я); чим раніше, тим вища ефективність.",
+                    es = "Anticoncepción de urgencia: tras una relación de riesgo o un olvido, puede utilizarse hasta 3 o 5 días después según el método (en farmacia o centro de salud sexual); es más eficaz cuanto antes se tome.",
+                    de = "Notfallverhütung: Nach ungeschütztem Verkehr oder einem Einnahmefehler ist sie je nach Methode bis zu 3 bis 5 Tage möglich (Apotheke oder Beratungsstelle) und wirkt umso besser, je früher sie erfolgt.",
+                ),
+            )
+        }
 
         TextButton(onClick = {
             openLink(
@@ -2373,6 +2511,14 @@ fun EndometriosisGuideScreen(onBack: () -> Unit) {
             }
         }
 
+        ClinicalGuideSourcesCard(
+            listOf(
+                Sources.ESHRE_ENDOMETRIOSIS_2022,
+                Sources.ENDOMETRIOSIS_2024,
+                Sources.ACOG_DYSMENORRHEA_2018,
+            ),
+        )
+
         Muted(tr("Cette fiche est informative et ne remplace pas une consultation médicale avec un professionnel de santé.", "This guide is for informational purposes and does not replace consultation with a healthcare professional.", pl = "Ten artykuł ma charakter informacyjny i nie zastępuje konsultacji medycznej z osobą z personelu medycznego.", uk = "Ця стаття має інформаційний характер і не замінює медичну консультацію з медичним працівником.", es = "Esta ficha es informativa y no sustituye una consulta médica con un profesional sanitario.", de = "Dieser Artikel dient der Information und ersetzt keine ärztliche Beratung durch medizinisches Fachpersonal."))
     }
 }
@@ -2513,6 +2659,8 @@ fun PcosGuideScreen(onBack: () -> Unit) {
                 )
             }
         }
+
+        ClinicalGuideSourcesCard(listOf(Sources.FIGO_2018, Sources.BULL_2019))
 
         Muted(tr("Cette fiche est informative et ne remplace pas une consultation médicale avec un professionnel de santé.", "This guide is for informational purposes and does not replace consultation with a healthcare professional.", pl = "Ten artykuł ma charakter informacyjny i nie zastępuje konsultacji medycznej z osobą z personelu medycznego.", uk = "Ця стаття має інформаційний характер і не замінює медичну консультацію з медичним працівником.", es = "Esta ficha es informativa y no sustituye una consulta médica con un profesional sanitario.", de = "Dieser Artikel dient der Information und ersetzt keine ärztliche Beratung durch medizinisches Fachpersonal."))
     }
@@ -2656,6 +2804,14 @@ fun AdenomyosisGuideScreen(onBack: () -> Unit) {
             }
         }
 
+        ClinicalGuideSourcesCard(
+            listOf(
+                Sources.ESHRE_ENDOMETRIOSIS_2022,
+                Sources.NHS_HEAVY_PERIODS,
+                Sources.FIGO_2018,
+            ),
+        )
+
         Muted(tr("Cette fiche est informative et ne remplace pas une consultation médicale avec un professionnel de santé.", "This guide is for informational purposes and does not replace consultation with a healthcare professional.", pl = "Ten artykuł ma charakter informacyjny i nie zastępuje konsultacji medycznej z osobą z personelu medycznego.", uk = "Ця стаття має інформаційний характер і не замінює медичну консультацію з медичним працівником.", es = "Esta ficha es informativa y no sustituye una consulta médica con un profesional sanitario.", de = "Dieser Artikel dient der Information und ersetzt keine ärztliche Beratung durch medizinisches Fachpersonal."))
     }
 }
@@ -2719,6 +2875,8 @@ fun PerimenopauseGuideScreen(onBack: () -> Unit) {
             Bullet(tr("Modérer les déclencheurs de bouffées : l'alcool, le café, les repas très épicés et le stress aigu accentuent la fréquence des bouffées de chaleur.", "Moderate triggers: alcohol, caffeine, spicy foods and acute stress commonly trigger hot flashes.", pl = "Ograniczać czynniki wyzwalające uderzenia gorąca: alkohol, kawa, bardzo ostre potrawy i silny stres zwiększają częstość uderzeń gorąca.", uk = "Помірковано ставитися до тригерів припливів: алкоголь, кава, дуже гостра їжа та гострий стрес збільшують частоту припливів жару.", es = "Moderar los desencadenantes de los sofocos: el alcohol, el café, las comidas muy picantes y el estrés agudo aumentan la frecuencia de los sofocos.", de = "Auslöser von Hitzewallungen mäßigen: Alkohol, Kaffee, sehr scharfe Mahlzeiten und akuter Stress erhöhen die Häufigkeit der Hitzewallungen."))
             Bullet(tr("Traitement hormonal de la ménopause (THM) : peut être discuté avec un soignant si les symptômes altèrent la qualité de vie, avec un bilan bénéfice/risque personnalisé.", "Menopausal hormone therapy (MHT): can be evaluated with a doctor if symptoms substantially affect daily quality of life.", pl = "Menopauzalna terapia hormonalna (MTH): można ją omówić z osobą z personelu medycznego, jeśli objawy pogarszają jakość życia, z indywidualną oceną korzyści i ryzyka.", uk = "Менопаузальна гормональна терапія (МГТ): її можна обговорити з медичним працівником, якщо симптоми погіршують якість життя, з індивідуальною оцінкою користі та ризику.", es = "Tratamiento hormonal de la menopausia (THM): puede plantearse con un profesional sanitario si los síntomas afectan a la calidad de vida, con una valoración personalizada del beneficio y el riesgo.", de = "Menopausale Hormontherapie (MHT): Sie kann mit medizinischem Fachpersonal besprochen werden, wenn die Beschwerden die Lebensqualität beeinträchtigen, mit einer individuellen Nutzen-Risiko-Abwägung."))
             Bullet(tr("Dans Lunaison : notez vos bouffées et troubles du sommeil dans votre carnet, et activez le mode « Cycles irréguliers » dans les Réglages.", "In Lunaison: track hot flashes and sleep in your log, and enable 'Irregular cycles' mode in Settings.", pl = "W Lunaison: zapisuj uderzenia gorąca i zaburzenia snu w dzienniku oraz włącz tryb „Naturalnie nieregularne cykle” w Ustawieniach.", uk = "У Lunaison: записуйте припливи жару та порушення сну у своєму щоденнику й увімкніть режим «Природно нерегулярні цикли» в Налаштуваннях.", es = "En Lunaison: anota tus sofocos y trastornos del sueño en tu registro y activa el modo «Ciclos naturalmente irregulares» en Ajustes.", de = "In Lunaison: Trage deine Hitzewallungen und Schlafstörungen in dein Tagebuch ein und aktiviere in den Einstellungen den Modus „Natürlich unregelmäßige Zyklen“."))
+            Bullet(tr("Contraception : tant que la ménopause n'est pas confirmée (12 mois consécutifs sans règles), une grossesse reste possible malgré des cycles irréguliers.", "Contraception: until menopause is confirmed (12 consecutive months without a period), pregnancy remains possible despite irregular cycles.", pl = "Antykoncepcja: dopóki menopauza nie jest potwierdzona (12 kolejnych miesięcy bez miesiączki), ciąża nadal jest możliwa mimo nieregularnych cyklów.", uk = "Контрацепція: поки менопауза не підтверджена (12 місяців поспіль без менструації), вагітність усе ще можлива попри нерегулярні цикли.", es = "Anticoncepción: mientras no se confirme la menopausia (12 meses consecutivos sin regla), sigue siendo posible un embarazo aunque los ciclos sean irregulares.", de = "Verhütung: Solange die Menopause nicht bestätigt ist (12 aufeinanderfolgende Monate ohne Periode), bleibt eine Schwangerschaft trotz unregelmäßiger Zyklen möglich."))
+            Bullet(tr("Saignements à signaler : des règles très abondantes ou prolongées, ou tout saignement survenant après 12 mois sans règles, doivent amener à consulter.", "Bleeding to report: very heavy or prolonged periods, or any bleeding occurring after 12 months without a period, should be evaluated by a clinician.", pl = "Krwawienia wymagające konsultacji: bardzo obfite lub przedłużone miesiączki albo każde krwawienie po 12 miesiącach bez miesiączki wymagają wizyty lekarskiej.", uk = "Кровотечі, про які варто повідомити: дуже рясні чи тривалі менструації або будь-яка кровотеча після 12 місяців без менструації потребують консультації лікаря.", es = "Sangrados que conviene consultar: reglas muy abundantes o prolongadas, o cualquier sangrado tras 12 meses sin regla, requieren valoración médica.", de = "Abzuklärende Blutungen: Sehr starke oder verlängerte Perioden sowie jede Blutung nach 12 Monaten ohne Periode sollten ärztlich abgeklärt werden."))
         }
 
         SectionTitle(
@@ -2785,6 +2943,8 @@ fun PerimenopauseGuideScreen(onBack: () -> Unit) {
                 )
             }
         }
+
+        ClinicalGuideSourcesCard(listOf(Sources.FIGO_2018, Sources.NHS_HEAVY_PERIODS))
 
         Muted(tr("Cette fiche est informative et ne remplace pas une consultation médicale avec un professionnel de santé.", "This guide is for informational purposes and does not replace consultation with a healthcare professional.", pl = "Ten artykuł ma charakter informacyjny i nie zastępuje konsultacji medycznej z osobą z personelu medycznego.", uk = "Ця стаття має інформаційний характер і не замінює медичну консультацію з медичним працівником.", es = "Esta ficha es informativa y no sustituye una consulta médica con un profesional sanitario.", de = "Dieser Artikel dient der Information und ersetzt keine ärztliche Beratung durch medizinisches Fachpersonal."))
     }

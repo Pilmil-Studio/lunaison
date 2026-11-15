@@ -464,7 +464,7 @@ internal fun pickDiscoverGuide(
     }
     contextualIds.firstOrNull(::isEligible)?.let { return DiscoverGuidePick(it, isContextual = true) }
 
-    val featuredIds = listOf("cycle", "protections", "douleurs", "spm", "alimentation", "entourage")
+    val featuredIds = listOf("cycle", "protections", "douleurs", "spm", "symptothermie", "transitions", "alimentation", "entourage")
     val startIndex = ((today.toEpochDays() % featuredIds.size) + featuredIds.size).toInt() % featuredIds.size
     val rotated = featuredIds.indices.map { offset -> featuredIds[(startIndex + offset) % featuredIds.size] }
     rotated.firstOrNull(::isEligible)?.let { return DiscoverGuidePick(it, isContextual = false) }

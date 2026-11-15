@@ -102,7 +102,7 @@ fun PilmilLegalBlock(modifier: Modifier = Modifier) {
                     fontWeight = FontWeight.SemiBold,
                 )
                 Text(
-                    text = "Alfortville, France",
+                    text = "France",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -110,27 +110,27 @@ fun PilmilLegalBlock(modifier: Modifier = Modifier) {
         }
         Text(
             text = tr(
-                "Éditeur : Pilmil Studio (Alfortville, France).\n" +
+                "Éditeur : Pilmil Studio (France).\n" +
                     "Confidentialité : 100 % hors-ligne, aucune permission réseau, aucun traceur, aucun compte.\n" +
                     "Licence : logiciel libre MPL-2.0 · Contact : pilmil.studio@proton.me\n" +
                     "Un besoin d'outil hors-ligne sans pub ni suivi ? Écrivez-nous à pilmil.studio@proton.me.",
-                "Publisher: Pilmil Studio (Alfortville, France).\n" +
+                "Publisher: Pilmil Studio (France).\n" +
                     "Privacy: 100% offline, no network permission, no trackers, no account.\n" +
                     "License: open-source MPL-2.0 · Contact: pilmil.studio@proton.me\n" +
                     "Need an offline tool with no ads or tracking? Write to pilmil.studio@proton.me.",
-                pl = "Wydawca: Pilmil Studio (Alfortville, Francja).\n" +
+                pl = "Wydawca: Pilmil Studio (Francja).\n" +
                     "Prywatność: 100% offline, brak dostępu do sieci, brak trackerów, brak konta.\n" +
                     "Licencja: otwarte oprogramowanie MPL-2.0 · Kontakt: pilmil.studio@proton.me\n" +
                     "Potrzebujesz narzędzia offline bez reklam i śledzenia? Napisz na pilmil.studio@proton.me.",
-                uk = "Видавець: Pilmil Studio (Альфорвіль, Франція).\n" +
+                uk = "Видавець: Pilmil Studio (Франція).\n" +
                     "Конфіденційність: 100% офлайн, без доступу до мережі, без трекерів і облікового запису.\n" +
                     "Ліцензія: вільне ПЗ MPL-2.0 · Контакт: pilmil.studio@proton.me\n" +
                     "Потрібен офлайн-інструмент без реклами й стеження? Пишіть на pilmil.studio@proton.me.",
-                es = "Editor: Pilmil Studio (Alfortville, Francia).\n" +
+                es = "Editor: Pilmil Studio (Francia).\n" +
                     "Privacidad: 100 % sin conexión, sin permiso de red, sin rastreadores, sin cuenta.\n" +
                     "Licencia: software libre MPL-2.0 · Contacto: pilmil.studio@proton.me\n" +
                     "¿Necesitas una herramienta sin conexión, sin anuncios ni rastreo? Escríbenos a pilmil.studio@proton.me.",
-                de = "Herausgeber: Pilmil Studio (Alfortville, Frankreich).\n" +
+                de = "Herausgeber: Pilmil Studio (Frankreich).\n" +
                     "Datenschutz: 100 % offline, keine Netzwerkberechtigung, keine Tracker, kein Konto.\n" +
                     "Lizenz: Freie Software MPL-2.0 · Kontakt: pilmil.studio@proton.me\n" +
                     "Fehlt dir ein Offline-Werkzeug ohne Werbung und Tracking? Schreib an pilmil.studio@proton.me.",

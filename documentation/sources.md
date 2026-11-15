@@ -105,6 +105,17 @@ Dans l'appli, chaque fiche renvoie vers cette partie, sans liste de références
 - [Bull JR et al., 2019](https://doi.org/10.1038/s41746-019-0152-7)
 - [Trussell J, 2011](https://doi.org/10.1016/j.contraception.2011.01.021)
 
+### Observer sa glaire et sa température {#fiche-symptothermie}
+
+- [Bull JR et al., 2019](https://doi.org/10.1038/s41746-019-0152-7)
+- [Trussell J, 2011](https://doi.org/10.1016/j.contraception.2011.01.021)
+
+### Premières règles, arrêt de pilule et post-partum {#fiche-transitions}
+
+- [ACOG, Committee Opinion n° 651, 2015](https://www.acog.org/clinical/clinical-guidance/committee-opinion/articles/2015/12/menstruation-in-girls-and-adolescents-using-the-menstrual-cycle-as-a-vital-sign)
+- [Munro MG et al. (FIGO), 2018](https://doi.org/10.1002/ijgo.12666)
+- [Bull JR et al., 2019](https://doi.org/10.1038/s41746-019-0152-7)
+
 ## Sources des conseils du jour
 
 L'accueil affiche un conseil par jour, sans sa source. Les voici toutes, phase par phase.
