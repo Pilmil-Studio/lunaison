@@ -167,25 +167,29 @@ class LunaisonRepository(private val dao: LunaisonDao) {
         dao.deleteSettings()
     }
 
-    /** Export lisible par un tableur. Rien ne quitte le téléphone sans que la personne choisisse où l'enregistrer. */
+    /**
+     * Export lisible par un tableur. Rien ne quitte le téléphone sans que la personne choisisse où l'enregistrer.
+     * Le format ne dépend pas de la langue : en-tête anglais fixe, valeurs d'énumération sous leur identifiant
+     * (`HEAVY`, `CRAMPS`...), booléens `true`/`false`, dates ISO-8601, nombres avec un point.
+     */
     suspend fun exportCsv(): String = buildString {
-        appendLine("date;flow;pain;symptoms;moods;medication;mucus;temperature;pill;medications;weight;intimacy;libido;note")
+        appendLine(CSV_HEADER)
         logsOnce().forEach { log ->
             appendLine(
                 listOf(
                     log.date.toString(),
-                    log.flow?.label.orEmpty(),
-                    log.pain?.label.orEmpty(),
-                    log.symptoms.joinToString(", ") { it.label },
-                    log.moods.joinToString(", ") { it.label },
-                    if (log.medicationTaken || log.pillStatus == PillStatus.TAKEN) "yes" else "",
-                    log.mucus?.label.orEmpty(),
+                    log.flow?.name.orEmpty(),
+                    log.pain?.name.orEmpty(),
+                    log.symptoms.joinToString(", ") { it.name },
+                    log.moods.joinToString(", ") { it.name },
+                    (log.medicationTaken || log.pillStatus == PillStatus.TAKEN).toString(),
+                    log.mucus?.name.orEmpty(),
                     log.basalTemperature?.let { it.toOneDecimal() }.orEmpty(),
-                    log.pillStatus?.label.orEmpty(),
-                    log.medications.joinToString(", ") { it.label },
+                    log.pillStatus?.name.orEmpty(),
+                    log.medications.joinToString(", ") { it.name },
                     log.weight?.let { it.toOneDecimal() }.orEmpty(),
-                    log.intimacy.joinToString(", ") { it.label },
-                    log.libido?.label.orEmpty(),
+                    log.intimacy.joinToString(", ") { it.name },
+                    log.libido?.name.orEmpty(),
                     sanitizeCsvNote(log.note),
                 ).joinToString(";"),
             )
@@ -194,37 +198,58 @@ class LunaisonRepository(private val dao: LunaisonDao) {
 
     /**
      * Importe un fichier CSV (format Lunaison `;` ou export externe `,` contenant dates et flux)
-     * et renvoie le nombre de journées importées.
+     * et renvoie le nombre de journées importées. Voir [importCsvReport] pour le détail.
      */
-    suspend fun importCsv(content: String): Int {
+    suspend fun importCsv(content: String): Int = importCsvReport(content).imported
+
+    /**
+     * Comme [importCsv], avec le détail. Les valeurs d'énumération sont reconnues sous leur identifiant ou sous
+     * leur libellé dans n'importe quelle des six langues (anciens exports). Une valeur inconnue n'empêche pas
+     * l'import : la journée est importée sans ce champ et la valeur est comptée dans [CsvImportReport.unknownValues].
+     */
+    suspend fun importCsvReport(content: String): CsvImportReport {
         var imported = 0
+        var skipped = 0
+        var unknown = 0
         val lines = content.lineSequence().map { it.trim() }.filter { it.isNotEmpty() }.toList()
-        for (line in lines) {
+        for ((index, line) in lines.withIndex()) {
             val delimiter = if (';' in line) ';' else ','
             val cols = line.split(delimiter).map { it.trim().removeSurrounding("\"") }
-            val date = cols.firstOrNull()?.take(10)?.let { runCatching { LocalDate.parse(it) }.getOrNull() } ?: continue
-            val rawFlow = cols.getOrNull(1).orEmpty()
-            val flow = parseFlow(rawFlow)
-            val pain = cols.getOrNull(2)?.let(::parsePain)
-            val symptoms = cols.getOrNull(3)?.let(::parseSymptoms).orEmpty()
-            val moods = cols.getOrNull(4)?.let(::parseMoods).orEmpty()
-            val medCol = cols.getOrNull(5).orEmpty().lowercase()
-            val medTaken = medCol in setOf("oui", "yes", "true", "1")
+            val date = cols.firstOrNull()?.take(10)?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+            if (date == null) {
+                // La première ligne est l'en-tête : elle n'est pas une journée perdue.
+                if (index > 0) skipped += 1
+                continue
+            }
+            fun <T> field(raw: String?, parse: (String) -> T?): T? {
+                val text = raw.orEmpty().trim()
+                if (text.isEmpty()) return null
+                return parse(text).also { if (it == null) unknown += 1 }
+            }
+            fun <T> fieldSet(raw: String?, parse: (String) -> T?): Set<T> =
+                raw.orEmpty().split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                    .mapNotNull { item -> parse(item).also { if (it == null) unknown += 1 } }.toSet()
+
+            val flow = field(cols.getOrNull(1), ::parseFlow)
+            val pain = field(cols.getOrNull(2)) { parseLabelled(it, Pain.entries, Pain::allLabels) }
+            val symptoms = fieldSet(cols.getOrNull(3)) { parseLabelled(it, Symptom.entries, Symptom::allLabels) }
+            val moods = fieldSet(cols.getOrNull(4)) { parseLabelled(it, Mood.entries, Mood::allLabels) }
+            val medTaken = cols.getOrNull(5).orEmpty().trim().lowercase() in TRUE_VALUES
             val isV2 = cols.size >= 14
             val isV1Extended = !isV2 && cols.size >= 9
-            val mucus = if (isV2 || isV1Extended) parseMucus(cols.getOrNull(6).orEmpty()) else null
+            val mucus = if (isV2 || isV1Extended) field(cols.getOrNull(6)) { parseLabelled(it, CervicalMucus.entries, CervicalMucus::allLabels) } else null
             val temp = if (isV2 || isV1Extended) cols.getOrNull(7)?.replace(',', '.')?.toFloatOrNull() else null
-            val pillStatus = if (isV2) parsePillStatus(cols.getOrNull(8).orEmpty()) else null
-            val medications = if (isV2) parseMedications(cols.getOrNull(9).orEmpty()) else emptySet()
+            val pillStatus = if (isV2) field(cols.getOrNull(8)) { parseLabelled(it, PillStatus.entries, PillStatus::allLabels) } else null
+            val medications = if (isV2) fieldSet(cols.getOrNull(9)) { parseLabelled(it, MedicationKind.entries, MedicationKind::allLabels) } else emptySet()
             val weight = if (isV2) cols.getOrNull(10)?.replace(',', '.')?.toFloatOrNull() else null
-            val intimacy = if (isV2) parseIntimacy(cols.getOrNull(11).orEmpty()) else emptySet()
-            val libido = if (isV2) parseLibido(cols.getOrNull(12).orEmpty()) else null
+            val intimacy = if (isV2) fieldSet(cols.getOrNull(11)) { parseLabelled(it, IntimacyKind.entries, IntimacyKind::allLabels) } else emptySet()
+            val libido = if (isV2) field(cols.getOrNull(12)) { parseLabelled(it, Libido.entries, Libido::allLabels) } else null
             val noteColIdx = when {
                 isV2 -> 13
                 isV1Extended -> 8
                 else -> 6
             }
-            val note = cols.getOrNull(noteColIdx).orEmpty().take(500)
+            val note = unsanitizeCsvNote(cols.getOrNull(noteColIdx).orEmpty()).take(500)
             val log = DayLog(
                 date = date,
                 flow = flow,
@@ -244,13 +269,24 @@ class LunaisonRepository(private val dao: LunaisonDao) {
             if (!log.isEmpty) {
                 save(log)
                 imported += 1
+            } else {
+                skipped += 1
             }
         }
-        return imported
+        return CsvImportReport(imported = imported, skipped = skipped, unknownValues = unknown)
     }
 
-    companion object
+    companion object {
+        /** En-tête fixe de l'export CSV, identique dans toutes les langues. */
+        const val CSV_HEADER = "date;flow;pain;symptoms;moods;medication;mucus;temperature;pill;medications;weight;intimacy;libido;note"
+    }
 }
+
+/** Bilan d'un import CSV : journées importées, lignes ignorées (illisibles ou vides) et valeurs non reconnues. */
+data class CsvImportReport(val imported: Int, val skipped: Int, val unknownValues: Int)
+
+/** Valeurs acceptées pour « vrai » : canonique, anglais et anciens libellés des six langues. */
+private val TRUE_VALUES = setOf("true", "yes", "oui", "tak", "так", "sí", "si", "ja", "1")
 
 interface LunaisonRepositoryProvider {
     val repository: LunaisonRepository
@@ -265,6 +301,10 @@ private fun sanitizeCsvNote(raw: String): String {
         cleaned
     }
 }
+
+/** Retire l'apostrophe ajoutée par [sanitizeCsvNote] devant une note qui commence comme une formule. */
+private fun unsanitizeCsvNote(raw: String): String =
+    if (raw.length >= 2 && raw[0] == '\'' && raw[1] in charArrayOf('=', '+', '-', '@')) raw.substring(1) else raw
 
 private inline fun <reified T : Enum<T>> String?.toEnumOrNull(): T? =
     this?.let { name -> enumValues<T>().firstOrNull { it.name == name } }
@@ -375,10 +415,18 @@ internal fun AppSettings.toEntity() = SettingsEntity(
     reviewPromptDismissed = reviewPromptDismissed,
 )
 
+/** Identifiant de l'énumération, sinon libellé dans l'une des six langues (sans tenir compte de la casse). */
+private fun <T : Enum<T>> parseLabelled(raw: String, entries: List<T>, labels: (T) -> List<String>): T? {
+    val v = raw.trim().lowercase()
+    if (v.isEmpty()) return null
+    return entries.firstOrNull { it.name.lowercase() == v }
+        ?: entries.firstOrNull { entry -> labels(entry).any { it.lowercase() == v } }
+}
+
 private fun parseFlow(raw: String): Flow? {
     val v = raw.trim().lowercase()
     if (v.isEmpty()) return null
-    return Flow.entries.firstOrNull { it.name.lowercase() == v || it.label.lowercase() == v }
+    return parseLabelled(v, Flow.entries, Flow::allLabels)
         ?: when {
             "spot" in v || "trace" in v -> Flow.SPOTTING
             "light" in v || "léger" in v || "leger" in v -> Flow.LIGHT
@@ -386,52 +434,4 @@ private fun parseFlow(raw: String): Flow? {
             "med" in v || "moyen" in v || "period" in v || "règle" in v -> Flow.MEDIUM
             else -> null
         }
-}
-
-private fun parsePain(raw: String): Pain? {
-    val v = raw.trim().lowercase()
-    if (v.isEmpty()) return null
-    return Pain.entries.firstOrNull { it.name.lowercase() == v || it.label.lowercase() == v }
-}
-
-private fun parseSymptoms(raw: String): Set<Symptom> =
-    raw.split(",").mapNotNull { item ->
-        val v = item.trim().lowercase()
-        Symptom.entries.firstOrNull { it.name.lowercase() == v || it.label.lowercase() == v }
-    }.toSet()
-
-private fun parseMoods(raw: String): Set<Mood> =
-    raw.split(",").mapNotNull { item ->
-        val v = item.trim().lowercase()
-        Mood.entries.firstOrNull { it.name.lowercase() == v || it.label.lowercase() == v }
-    }.toSet()
-
-private fun parseMucus(raw: String): CervicalMucus? {
-    val v = raw.trim().lowercase()
-    if (v.isEmpty()) return null
-    return CervicalMucus.entries.firstOrNull { it.name.lowercase() == v || it.label.lowercase() == v }
-}
-
-private fun parsePillStatus(raw: String): PillStatus? {
-    val v = raw.trim().lowercase()
-    if (v.isEmpty()) return null
-    return PillStatus.entries.firstOrNull { it.name.lowercase() == v || it.label.lowercase() == v }
-}
-
-private fun parseMedications(raw: String): Set<MedicationKind> =
-    raw.split(",").mapNotNull { item ->
-        val v = item.trim().lowercase()
-        MedicationKind.entries.firstOrNull { it.name.lowercase() == v || it.label.lowercase() == v }
-    }.toSet()
-
-private fun parseIntimacy(raw: String): Set<IntimacyKind> =
-    raw.split(",").mapNotNull { item ->
-        val v = item.trim().lowercase()
-        IntimacyKind.entries.firstOrNull { it.name.lowercase() == v || it.label.lowercase() == v }
-    }.toSet()
-
-private fun parseLibido(raw: String): Libido? {
-    val v = raw.trim().lowercase()
-    if (v.isEmpty()) return null
-    return Libido.entries.firstOrNull { it.name.lowercase() == v || it.label.lowercase() == v }
 }

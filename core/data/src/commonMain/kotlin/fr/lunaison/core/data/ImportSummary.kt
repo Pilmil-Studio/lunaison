@@ -1,6 +1,6 @@
 package fr.lunaison.core.data
 
-data class ImportSummary(val daysCount: Int, val cyclesCount: Int)
+data class ImportSummary(val daysCount: Int, val cyclesCount: Int, val skippedCount: Int = 0)
 
 /**
  * Importe un fichier d'une autre appli de suivi (archive Zip, JSON ou CSV). Android seulement :

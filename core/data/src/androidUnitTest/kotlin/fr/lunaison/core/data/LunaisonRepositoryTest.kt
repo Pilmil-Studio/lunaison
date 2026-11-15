@@ -36,7 +36,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-private class InMemoryLunaisonDao : LunaisonDao {
+internal class InMemoryLunaisonDao : LunaisonDao {
     private val logsMap = MutableStateFlow<Map<String, DayLogEntity>>(emptyMap())
     private val settingsFlow = MutableStateFlow<SettingsEntity?>(null)
 

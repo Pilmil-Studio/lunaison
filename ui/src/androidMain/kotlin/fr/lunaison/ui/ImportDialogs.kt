@@ -35,8 +35,22 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/** Message affiché après un import réussi. */
-internal fun importSummaryMessage(summary: ImportSummary): String =
+/** Message affiché après un import réussi ; signale les lignes du fichier qui n'ont pas pu être lues. */
+internal fun importSummaryMessage(summary: ImportSummary): String {
+    val base = importedMessage(summary)
+    if (summary.skippedCount <= 0) return base
+    val n = summary.skippedCount
+    return base + " " + tr(
+        fr = "$n ligne(s) ignorée(s).",
+        en = "$n line(s) skipped.",
+        pl = "Pominięte wiersze: $n.",
+        uk = "Пропущено рядків: $n.",
+        es = "$n línea(s) omitida(s).",
+        de = "$n Zeile(n) übersprungen.",
+    )
+}
+
+private fun importedMessage(summary: ImportSummary): String =
     if (summary.cyclesCount > 0) {
         tr(
             fr = "${summary.daysCount} journées et ${summary.cyclesCount} cycles importés depuis Calendrier.",

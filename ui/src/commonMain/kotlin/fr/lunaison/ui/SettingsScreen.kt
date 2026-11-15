@@ -91,6 +91,8 @@ fun SettingsScreen(
         if (!notifications.allowed) notifications.request()
     }
 
+    val exportCsv = rememberFileExporter("text/csv") { actions.exportCsv() }
+
     Page {
         PageTitle(tr("Réglages", "Settings", pl = "Ustawienia", uk = "Налаштування", es = "Ajustes", de = "Einstellungen"))
 
@@ -308,6 +310,11 @@ fun SettingsScreen(
                 Text(tr("Tout est enregistré sur ce téléphone, nulle part ailleurs. Lunaison n'a pas accès à Internet et ne fait pas de sauvegarde dans le nuage.", "Everything is saved on this phone, nowhere else. Lunaison has no Internet access and makes no cloud backup.", pl = "Wszystko jest zapisane na tym telefonie i nigdzie indziej. Lunaison nie ma dostępu do internetu i nie tworzy kopii zapasowych w chmurze.", uk = "Усе зберігається на цьому телефоні й ніде більше. Lunaison не має доступу до інтернету й не створює резервних копій у хмарі.", es = "Todo se guarda en este teléfono, en ningún otro sitio. Lunaison no tiene acceso a Internet y no hace copias de seguridad en la nube.", de = "Alles wird auf diesem Telefon gespeichert, nirgendwo sonst. Lunaison hat keinen Internetzugriff und erstellt keine Cloud-Sicherung."), style = MaterialTheme.typography.bodyMedium)
             }
             LunaButton(tr("Bilan de santé pour un soignant", "Health report for a clinician", pl = "Raport medyczny dla personelu medycznego", uk = "Медичний звіт для медичного працівника", es = "Informe médico para el profesional sanitario", de = "Arztbericht für medizinisches Fachpersonal"), onClick = onHealthReport, style = LunaButtonStyle.Outlined)
+            LunaButton(
+                tr("Exporter le journal (CSV)", "Export the log (CSV)", pl = "Eksportuj dziennik (CSV)", uk = "Експортувати щоденник (CSV)", es = "Exportar el diario (CSV)", de = "Tagebuch exportieren (CSV)"),
+                onClick = { exportCsv("lunaison.csv") },
+                style = LunaButtonStyle.Outlined,
+            )
             if (encryptedBackupAvailable) {
                 EncryptedBackupButton(
                     label = tr(

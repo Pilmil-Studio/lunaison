@@ -19,6 +19,9 @@ enum class Flow(
 
     val label: String get() = tr(fr, en, pl, uk, es, de)
 
+    /** Le libellé dans les six langues : les anciens exports CSV portent celui de la langue du téléphone d'alors. */
+    val allLabels: List<String> get() = listOf(fr, en, pl, uk, es, de)
+
     /** Un vrai saignement, par opposition à de simples traces. */
     val isBleeding: Boolean get() = this != SPOTTING
 }
@@ -65,6 +68,9 @@ enum class Pain(
     ;
 
     val label: String get() = tr(fr, en, pl, uk, es, de)
+
+    /** Le libellé dans les six langues : les anciens exports CSV portent celui de la langue du téléphone d'alors. */
+    val allLabels: List<String> get() = listOf(fr, en, pl, uk, es, de)
     val description: String get() = tr(frDescription, enDescription, plDescription, ukDescription, esDescription, deDescription)
 }
 
@@ -99,6 +105,9 @@ enum class Symptom(
     ;
 
     val label: String get() = tr(fr, en, pl, uk, es, de)
+
+    /** Le libellé dans les six langues : les anciens exports CSV portent celui de la langue du téléphone d'alors. */
+    val allLabels: List<String> get() = listOf(fr, en, pl, uk, es, de)
 }
 
 /** Observation facultative de la glaire cervicale (suivi symptothermique / signes d'ovulation). */
@@ -117,6 +126,9 @@ enum class CervicalMucus(
     ;
 
     val label: String get() = tr(fr, en, pl, uk, es, de)
+
+    /** Le libellé dans les six langues : les anciens exports CSV portent celui de la langue du téléphone d'alors. */
+    val allLabels: List<String> get() = listOf(fr, en, pl, uk, es, de)
 }
 
 /** Humeurs du jour, plusieurs possibles, notées à part des symptômes physiques. Libellés non genrés. */
@@ -142,6 +154,9 @@ enum class Mood(
     ;
 
     val label: String get() = tr(fr, en, pl, uk, es, de)
+
+    /** Le libellé dans les six langues : les anciens exports CSV portent celui de la langue du téléphone d'alors. */
+    val allLabels: List<String> get() = listOf(fr, en, pl, uk, es, de)
 }
 
 /** Statut précis de la pilule ou contraception orale pour la journée. */
@@ -160,6 +175,9 @@ enum class PillStatus(
     ;
 
     val label: String get() = tr(fr, en, pl, uk, es, de)
+
+    /** Le libellé dans les six langues : les anciens exports CSV portent celui de la langue du téléphone d'alors. */
+    val allLabels: List<String> get() = listOf(fr, en, pl, uk, es, de)
 }
 
 /** Catégories de médicaments ou traitements courants pris dans la journée. */
@@ -180,6 +198,9 @@ enum class MedicationKind(
     ;
 
     val label: String get() = tr(fr, en, pl, uk, es, de)
+
+    /** Le libellé dans les six langues : les anciens exports CSV portent celui de la langue du téléphone d'alors. */
+    val allLabels: List<String> get() = listOf(fr, en, pl, uk, es, de)
 }
 
 /** Activité sexuelle notée dans l'intimité, sans aucun jugement ni transmission cloud. */
@@ -197,6 +218,9 @@ enum class IntimacyKind(
     ;
 
     val label: String get() = tr(fr, en, pl, uk, es, de)
+
+    /** Le libellé dans les six langues : les anciens exports CSV portent celui de la langue du téléphone d'alors. */
+    val allLabels: List<String> get() = listOf(fr, en, pl, uk, es, de)
 }
 
 /** Niveau de désir ressenti au cours du cycle. */
@@ -214,6 +238,9 @@ enum class Libido(
     ;
 
     val label: String get() = tr(fr, en, pl, uk, es, de)
+
+    /** Le libellé dans les six langues : les anciens exports CSV portent celui de la langue du téléphone d'alors. */
+    val allLabels: List<String> get() = listOf(fr, en, pl, uk, es, de)
 }
 
 /** Ce que la personne a noté pour une journée. Tout est facultatif. */

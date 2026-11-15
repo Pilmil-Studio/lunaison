@@ -51,6 +51,6 @@ actual suspend fun LunaisonRepository.importAuto(bytes: ByteArray, password: Str
         val result = importPeriodCalendarJson(text)
         return ImportSummary(daysCount = result.dayLogs.size, cyclesCount = result.cyclesCount)
     }
-    val count = importCsv(text)
-    return ImportSummary(daysCount = count, cyclesCount = 0)
+    val report = importCsvReport(text)
+    return ImportSummary(daysCount = report.imported, cyclesCount = 0, skippedCount = report.skipped)
 }
