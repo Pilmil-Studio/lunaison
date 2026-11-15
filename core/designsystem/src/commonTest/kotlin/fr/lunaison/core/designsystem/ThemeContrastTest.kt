@@ -27,6 +27,10 @@ class ThemeContrastTest {
         "onSurfaceVariant/background" to (c.onSurfaceVariant to c.background),
         "primary/surface" to (c.primary to c.surface),
         "secondary/background" to (c.secondary to c.background),
+        "onError/error" to (c.onError to c.error),
+        "error/surface" to (c.error to c.surface),
+        "error/background" to (c.error to c.background),
+        "onErrorContainer/errorContainer" to (c.onErrorContainer to c.errorContainer),
     )
 
     private fun stateAndBorderPairs(c: ColorScheme) = listOf(

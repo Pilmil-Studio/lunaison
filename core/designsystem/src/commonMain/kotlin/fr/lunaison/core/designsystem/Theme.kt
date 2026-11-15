@@ -30,6 +30,13 @@ object LunaColors {
     val Paper = Color(0xFFFFFCFA)
     val Ink = Color(0xFF2A1F2D)
     val InkMuted = Color(0xFF5E5162)
+    /** Terre cuite sobre : réservée à l'effacement et à l'erreur de code PIN, toujours avec un texte. */
+    val Error = Color(0xFF9C3B2B)
+    val OnError = Color(0xFFFFFBF8)
+    val ErrorContainer = Color(0xFFF6DCD6)
+    val ErrorNight = Color(0xFFF2A99B)
+    val OnErrorNight = Color(0xFF2A0F0A)
+    val ErrorContainerNight = Color(0xFF4A2A2C)
     val Line = Color(0xFFE7DCE0)
     val Outline = Color(0xFF85738A)
 
@@ -60,6 +67,10 @@ private val LightColors: ColorScheme = lightColorScheme(
     onSurfaceVariant = LunaColors.InkMuted,
     outline = LunaColors.Outline,
     outlineVariant = LunaColors.Line,
+    error = LunaColors.Error,
+    onError = LunaColors.OnError,
+    errorContainer = LunaColors.ErrorContainer,
+    onErrorContainer = LunaColors.Ink,
 )
 
 private val DarkColors: ColorScheme = darkColorScheme(
@@ -79,6 +90,10 @@ private val DarkColors: ColorScheme = darkColorScheme(
     onSurfaceVariant = LunaColors.TextNightMuted,
     outline = LunaColors.TextNightMuted,
     outlineVariant = LunaColors.NightContainer,
+    error = LunaColors.ErrorNight,
+    onError = LunaColors.OnErrorNight,
+    errorContainer = LunaColors.ErrorContainerNight,
+    onErrorContainer = LunaColors.TextNight,
 )
 
 private val SageLightColors: ColorScheme = lightColorScheme(
@@ -98,6 +113,10 @@ private val SageLightColors: ColorScheme = lightColorScheme(
     onSurfaceVariant = Color(0xFF495950),
     outline = Color(0xFF6F8277),
     outlineVariant = Color(0xFFD8E0DA),
+    error = LunaColors.Error,
+    onError = LunaColors.OnError,
+    errorContainer = LunaColors.ErrorContainer,
+    onErrorContainer = LunaColors.Ink,
 )
 
 private val SageDarkColors: ColorScheme = darkColorScheme(
@@ -117,6 +136,10 @@ private val SageDarkColors: ColorScheme = darkColorScheme(
     onSurfaceVariant = Color(0xFFB1C2B8),
     outline = Color(0xFFB1C2B8),
     outlineVariant = Color(0xFF24382E),
+    error = LunaColors.ErrorNight,
+    onError = LunaColors.OnErrorNight,
+    errorContainer = LunaColors.ErrorContainerNight,
+    onErrorContainer = LunaColors.TextNight,
 )
 
 private val OceanLightColors: ColorScheme = lightColorScheme(
@@ -136,6 +159,10 @@ private val OceanLightColors: ColorScheme = lightColorScheme(
     onSurfaceVariant = Color(0xFF495866),
     outline = Color(0xFF6F8391),
     outlineVariant = Color(0xFFD8E1E8),
+    error = LunaColors.Error,
+    onError = LunaColors.OnError,
+    errorContainer = LunaColors.ErrorContainer,
+    onErrorContainer = LunaColors.Ink,
 )
 
 private val OceanDarkColors: ColorScheme = darkColorScheme(
@@ -155,6 +182,10 @@ private val OceanDarkColors: ColorScheme = darkColorScheme(
     onSurfaceVariant = Color(0xFFB0C0CE),
     outline = Color(0xFFB0C0CE),
     outlineVariant = Color(0xFF213445),
+    error = LunaColors.ErrorNight,
+    onError = LunaColors.OnErrorNight,
+    errorContainer = LunaColors.ErrorContainerNight,
+    onErrorContainer = LunaColors.TextNight,
 )
 
 private val TerracottaLightColors: ColorScheme = lightColorScheme(
@@ -174,6 +205,10 @@ private val TerracottaLightColors: ColorScheme = lightColorScheme(
     onSurfaceVariant = Color(0xFF635049),
     outline = Color(0xFF937D76),
     outlineVariant = Color(0xFFE8DAD4),
+    error = LunaColors.Error,
+    onError = LunaColors.OnError,
+    errorContainer = LunaColors.ErrorContainer,
+    onErrorContainer = LunaColors.Ink,
 )
 
 private val TerracottaDarkColors: ColorScheme = darkColorScheme(
@@ -193,6 +228,10 @@ private val TerracottaDarkColors: ColorScheme = darkColorScheme(
     onSurfaceVariant = Color(0xFFC7B4AC),
     outline = Color(0xFFC7B4AC),
     outlineVariant = Color(0xFF3D261E),
+    error = LunaColors.ErrorNight,
+    onError = LunaColors.OnErrorNight,
+    errorContainer = LunaColors.ErrorContainerNight,
+    onErrorContainer = LunaColors.TextNight,
 )
 
 /** Tous les jeux de couleurs, pour le test de contraste (WCAG 2) : nom, clair ou sombre, jeu. */

@@ -740,7 +740,7 @@ private fun PhaseHormonesCard(phase: Phase, onArticle: (String) -> Unit = {}) {
         if (expanded) {
             Text(tr("Forces & atouts de cette phase :", "Strengths & advantages:", pl = "Mocne strony tej fazy:", uk = "Сильні сторони цієї фази:", es = "Fortalezas de esta fase:", de = "Stärken dieser Phase:"), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
             profile.strengths.forEach { Bullet(it) }
-            Text(tr("Défis & ce qui peut gêner :", "Possible challenges:", pl = "Możliwe trudności:", uk = "Можливі труднощі:", es = "Posibles dificultades:", de = "Mögliche Herausforderungen:"), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.error)
+            Text(tr("Défis & ce qui peut gêner :", "Possible challenges:", pl = "Możliwe trudności:", uk = "Можливі труднощі:", es = "Posibles dificultades:", de = "Mögliche Herausforderungen:"), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
             profile.challenges.forEach { Bullet(it) }
             Text(tr("Ce qui vous soutient :", "What supports you:", pl = "Co Cię wspiera:", uk = "Що вас підтримує:", es = "Lo que te ayuda:", de = "Was dich unterstützt:"), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
             profile.supportAdvice.forEach { Bullet(it) }
