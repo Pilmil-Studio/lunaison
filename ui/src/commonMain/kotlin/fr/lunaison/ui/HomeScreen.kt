@@ -33,6 +33,14 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.material3.minimumInteractiveComponentSize
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
@@ -1020,24 +1028,49 @@ private fun RecentDaysStrip(
             .padding(vertical = 2.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        if (weekOffset > 0) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    tr("Il y a $weekOffset sem. (${Format.dayMonth(days.first())} – ${Format.dayMonth(days.last())})", "$weekOffset w. ago (${Format.dayMonth(days.first())} – ${Format.dayMonth(days.last())})", pl = "$weekOffset tyg. temu (${Format.dayMonth(days.first())} – ${Format.dayMonth(days.last())})", uk = "$weekOffset тиж. тому (${Format.dayMonth(days.first())} – ${Format.dayMonth(days.last())})", es = "Hace $weekOffset sem. (${Format.dayMonth(days.first())} – ${Format.dayMonth(days.last())})", de = "Vor $weekOffset Wo. (${Format.dayMonth(days.first())} – ${Format.dayMonth(days.last())})"),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = colors.primary,
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // Les boutons doublent le balayage, qui n'est pas possible à tous les doigts ni avec un lecteur d'écran.
+            IconButton(onClick = { if (weekOffset < 8) weekOffset++ }, enabled = weekOffset < 8) {
+                Icon(
+                    Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                    contentDescription = tr("Semaine précédente", "Previous week", pl = "Poprzedni tydzień", uk = "Попередній тиждень", es = "Semana anterior", de = "Vorherige Woche"),
                 )
-                Text(
-                    tr("Aujourd'hui", "Today", pl = "Dzisiaj", uk = "Сьогодні", es = "Hoy", de = "Heute"),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = colors.secondary,
-                    modifier = Modifier.clickable { weekOffset = 0 },
+            }
+            Text(
+                if (weekOffset == 0) {
+                    tr("7 derniers jours", "Last 7 days", pl = "Ostatnie 7 dni", uk = "Останні 7 днів", es = "Últimos 7 días", de = "Letzte 7 Tage")
+                } else {
+                    "${Format.dayMonth(days.first())} – ${Format.dayMonth(days.last())}"
+                },
+                style = MaterialTheme.typography.labelMedium,
+                color = colors.primary,
+                modifier = Modifier.weight(1f).semantics { liveRegion = LiveRegionMode.Polite },
+                textAlign = TextAlign.Center,
+            )
+            if (weekOffset > 0) {
+                Box(
+                    modifier = Modifier
+                        .heightIn(min = 48.dp)
+                        .widthIn(min = 48.dp)
+                        .clickable(role = Role.Button) { weekOffset = 0 },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        tr("Aujourd'hui", "Today", pl = "Dzisiaj", uk = "Сьогодні", es = "Hoy", de = "Heute"),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = colors.secondary,
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                    )
+                }
+            }
+            IconButton(onClick = { if (weekOffset > 0) weekOffset-- }, enabled = weekOffset > 0) {
+                Icon(
+                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = tr("Semaine suivante", "Next week", pl = "Następny tydzień", uk = "Наступний тиждень", es = "Semana siguiente", de = "Nächste Woche"),
                 )
             }
         }
@@ -1074,7 +1107,8 @@ private fun RecentDaysStrip(
                     modifier = Modifier
                         .weight(1f)
                         .heightIn(min = 52.dp)
-                        .semantics { contentDescription = Format.weekday(date) },
+                        .minimumInteractiveComponentSize()
+                        .semantics { contentDescription = dayDescription(date, hasBleeding, !log.isEmpty) },
                 ) {
                     Column(
                         modifier = Modifier.padding(vertical = 5.dp),
@@ -1091,16 +1125,17 @@ private fun RecentDaysStrip(
                             style = MaterialTheme.typography.titleSmall,
                             color = contentColor,
                         )
+                        // Deux formes, pas seulement deux couleurs : disque = règles, carré = journée notée.
                         Box(
                             modifier = Modifier
-                                .size(5.dp)
+                                .size(7.dp)
                                 .background(
                                     color = when {
                                         hasBleeding -> colors.secondary
                                         hasOtherLog -> colors.primary
                                         else -> Color.Transparent
                                     },
-                                    shape = CircleShape,
+                                    shape = if (hasBleeding) CircleShape else RoundedCornerShape(1.dp),
                                 ),
                         )
                     }
@@ -1108,4 +1143,12 @@ private fun RecentDaysStrip(
             }
         }
     }
+}
+
+/** « Mardi 18 novembre, règles, journée notée » : ce que le ruban montre, dit en toutes lettres. */
+internal fun dayDescription(date: LocalDate, bleeding: Boolean, logged: Boolean): String {
+    val parts = mutableListOf(Format.weekday(date))
+    if (bleeding) parts += tr("règles", "period", pl = "miesiączka", uk = "місячні", es = "regla", de = "Periode")
+    if (logged) parts += tr("journée notée", "day logged", pl = "dzień zapisany", uk = "день записано", es = "día anotado", de = "Tag eingetragen")
+    return parts.joinToString(", ")
 }
