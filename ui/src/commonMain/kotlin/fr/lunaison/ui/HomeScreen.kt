@@ -73,6 +73,8 @@ import fr.lunaison.core.designsystem.LunaButtonStyle
 import fr.lunaison.core.designsystem.LunaCard
 import fr.lunaison.core.designsystem.SectionTitle
 import fr.lunaison.core.model.DayLog
+import fr.lunaison.core.model.Pain
+import fr.lunaison.core.model.daysTo
 import kotlinx.datetime.LocalDate
 import fr.lunaison.core.model.tr
 import fr.lunaison.core.model.isAfter
@@ -168,6 +170,31 @@ fun HomeScreen(
             onDayClick = { date -> onLog(date, false) },
         )
 
+        val lastLoggedDate = remember(state.logs, state.today) {
+            state.logs.filter { !it.isEmpty && !it.date.isAfter(state.today) }.maxOfOrNull { it.date }
+        }
+        val daysSinceLastLog = lastLoggedDate?.daysTo(state.today)
+        if (!paused && todayLog.isEmpty && daysSinceLastLog != null && daysSinceLastLog >= 10) {
+            LunaCard {
+                Text(
+                    tr("Ravie de vous revoir", "Good to see you again", pl = "Miło Cię znowu widzieć", uk = "Раді знову вас бачити", es = "Me alegra verte de nuevo", de = "Schön, dich wiederzusehen"),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
+                    tr(
+                        "Aucune saisie depuis quelques jours — c'est tout à fait normal. Notez simplement vos dernières règles si vous souhaitez recalibrer vos repères.",
+                        "No entries for a few days — that's completely fine. Just log your last period if you'd like to recalibrate your estimates.",
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    TextButton(onClick = onCalendar) {
+                        Text(tr("Mettre à jour au calendrier", "Update in calendar"))
+                    }
+                }
+            }
+        }
+
         when {
             paused -> LunaCard(container = MaterialTheme.colorScheme.primaryContainer) {
                 Text(
@@ -218,6 +245,23 @@ fun HomeScreen(
             icon = Icons.Filled.Edit,
         )
         if (!todayLog.isEmpty) TodaySummary(todayLog, state.settings.reminders.medicationLabel)
+        if (todayLog.pain == Pain.SEVERE) {
+            LunaCard(container = MaterialTheme.colorScheme.secondaryContainer) {
+                Text(
+                    tr("Journée difficile", "Tough day", pl = "Trudny dzień", uk = "Важкий день", es = "Día difícil", de = "Schwieriger Tag"),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+                Text(
+                    tr(
+                        "Prenez soin de vous aujourd'hui. Vous pouvez souffler un instant ou prévenir un proche.",
+                        "Take care of yourself today. You can take a breathing break or let someone close know.",
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+            }
+        }
 
         // Ce qui demande une attention (retard, alerte, récap) passe avant le partage et le contenu éducatif.
         if (!paused && (cycle as? CycleState.Known)?.possiblePregnancyHint == true) {
@@ -387,18 +431,57 @@ fun HomeScreen(
             }
         }
 
-        DiscoverGuideCard(today = state.today, onArticle = onArticle)
+        DiscoverGuideCard(state = state, onArticle = onArticle)
     }
 }
 
 @Composable
-private fun DiscoverGuideCard(today: LocalDate, onArticle: (String) -> Unit) {
+private fun DiscoverGuideCard(state: AppState, onArticle: (String) -> Unit) {
+    val todayLog = state.logFor(state.today)
+    val recentStrongPain = state.logs.takeLast(14).count { it.pain == Pain.MODERATE || it.pain == Pain.SEVERE } >= 3
+    val knownPhase = (state.cycle as? CycleState.Known)?.phase
+
+    val customCard: Triple<String, String, String>? = when {
+        recentStrongPain -> Triple(
+            "endometriose",
+            tr("Comprendre l'endométriose", "Understanding endometriosis"),
+            tr("Repères sur les douleurs pelviennes intenses et quand en parler à un soignant.", "Key facts on intense pelvic pain and when to talk to a clinician."),
+        )
+        state.settings.irregularCyclesMode -> Triple(
+            "perimenopause",
+            tr("Cycles irréguliers et périménopause", "Irregular cycles and perimenopause"),
+            tr("Pourquoi les cycles varient et comment lire les signaux hormonaux.", "Why cycles vary and how to read hormonal shifts."),
+        )
+        else -> null
+    }
+
+    if (customCard != null) {
+        val (id, title, summary) = customCard
+        LunaCard(modifier = Modifier.clickable { onArticle(id) }) {
+            Text(
+                tr("Lecture recommandée", "Recommended reading"),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.secondary,
+            )
+            Text(title, style = MaterialTheme.typography.titleMedium)
+            Text(summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        return
+    }
+
+    val contextualId = when {
+        todayLog.pain == Pain.MODERATE || todayLog.pain == Pain.SEVERE -> "douleurs"
+        knownPhase == Phase.LUTEAL -> "spm"
+        knownPhase == Phase.MENSTRUAL -> "protections"
+        else -> null
+    }
     val featuredIds = listOf("cycle", "protections", "douleurs", "spm", "alimentation", "entourage")
-    val pickedId = featuredIds[((today.toEpochDays() % featuredIds.size) + featuredIds.size).toInt() % featuredIds.size]
+    val pickedId = contextualId ?: featuredIds[((state.today.toEpochDays() % featuredIds.size) + featuredIds.size).toInt() % featuredIds.size]
     val article = Articles.byId(pickedId) ?: return
     LunaCard(modifier = Modifier.clickable { onArticle(article.id) }) {
         Text(
-            tr("À découvrir", "Good to know", pl = "Warto wiedzieć", uk = "Варто знати", es = "Para descubrir", de = "Gut zu wissen"),
+            if (contextualId != null) tr("Lecture recommandée", "Recommended reading")
+            else tr("À découvrir", "Good to know", pl = "Warto wiedzieć", uk = "Варто знати", es = "Para descubrir", de = "Gut zu wissen"),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.secondary,
         )
@@ -666,7 +749,15 @@ private fun AlertCard(alert: AlertKind, onRead: () -> Unit, onDismiss: () -> Uni
 private fun PhaseCard(state: AppState, cycle: CycleState.Known, onArticle: (String) -> Unit) {
     val guide = PhaseGuides.forPhase(cycle.phase)
     val pattern = PhasePatterns.compute(state.logs, cycle, cycle.phase)
-    val tip = DailyTip.pick(guide, state.today, state.logs.firstOrNull { it.date == state.today })
+    var tipOffset by rememberSaveable(cycle.phase, state.today) { mutableStateOf(0) }
+    val seenTips = remember(cycle.phase, state.today) { androidx.compose.runtime.mutableStateListOf<String>() }
+    val tip = DailyTip.pick(
+        guide = guide,
+        date = state.today,
+        today = state.logs.firstOrNull { it.date == state.today },
+        offset = tipOffset,
+        excludeTexts = seenTips.toSet(),
+    )
     SectionTitle(tr("Ce qui se passe en ce moment", "What is happening right now", pl = "Co się teraz dzieje", uk = "Що відбувається зараз", es = "Lo que está pasando ahora", de = "Was gerade passiert"))
     // Ce qui est propre à la personne passe avant les conseils généraux.
     if (!pattern.isEmpty) {
@@ -690,7 +781,22 @@ private fun PhaseCard(state: AppState, cycle: CycleState.Known, onArticle: (Stri
             Text(tr("Le conseil du jour", "Tip of the day", pl = "Wskazówka dnia", uk = "Порада дня", es = "Consejo del día", de = "Tipp des Tages"), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
             Text(tip.text, style = MaterialTheme.typography.bodyMedium)
         }
-        TextButton(onClick = { onArticle(guide.articleId) }) { Text(tr("En savoir plus", "Learn more", pl = "Dowiedz się więcej", uk = "Докладніше", es = "Saber más", de = "Mehr erfahren")) }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            if (tip != null && guide.tips.size > 1) {
+                TextButton(
+                    onClick = {
+                        if (tip.fr !in seenTips) {
+                            if (seenTips.size >= 4) seenTips.removeAt(0)
+                            seenTips.add(tip.fr)
+                        }
+                        tipOffset += 1
+                    },
+                ) {
+                    Text(tr("Autre repère", "Another tip"))
+                }
+            }
+            TextButton(onClick = { onArticle(guide.articleId) }) { Text(tr("En savoir plus", "Learn more", pl = "Dowiedz się więcej", uk = "Докладніше", es = "Saber más", de = "Mehr erfahren")) }
+        }
     }
     state.anticipation?.let { coming ->
         Muted(InsightTexts.anticipationLine(coming))

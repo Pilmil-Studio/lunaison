@@ -34,7 +34,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
@@ -44,6 +43,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import fr.lunaison.core.cycle.CycleState
 import fr.lunaison.core.data.AppSettings
+import fr.lunaison.core.data.BackupRestoreSummary
 import fr.lunaison.core.data.ImportSummary
 import fr.lunaison.core.data.LunaisonRepository
 import fr.lunaison.core.model.Baseline
@@ -199,6 +199,12 @@ interface Actions {
     fun updateSettings(transform: (AppSettings) -> AppSettings)
     fun eraseAll()
     suspend fun exportCsv(): String
+
+    /** Document JSON de la sauvegarde complète (sans le code PIN). */
+    suspend fun exportBackup(): String = ""
+
+    /** Remplace toutes les données par celles du document ; lève [fr.lunaison.core.data.BackupFormatException] sans rien modifier s'il est refusé. */
+    suspend fun restoreBackup(json: String): BackupRestoreSummary = BackupRestoreSummary(0, false)
     suspend fun importCsv(content: String): Int = 0
     suspend fun importAuto(bytes: ByteArray, password: String? = null): ImportSummary = ImportSummary(0, 0)
 }
@@ -218,6 +224,8 @@ class RepositoryActions(private val repository: LunaisonRepository, private val 
     }
 
     override suspend fun exportCsv(): String = repository.exportCsv()
+    override suspend fun exportBackup(): String = repository.exportBackupJson()
+    override suspend fun restoreBackup(json: String): BackupRestoreSummary = repository.restoreBackupJson(json)
     override suspend fun importCsv(content: String): Int = repository.importCsv(content)
     override suspend fun importAuto(bytes: ByteArray, password: String?): ImportSummary =
         repository.importAuto(bytes, password)
@@ -363,7 +371,7 @@ private fun MainScaffold(
 
 private fun NavHostController.openTab(route: String) {
     navigate(route) {
-        popUpTo(graph.findStartDestination().id) { saveState = true }
+        popUpTo(graph.startDestinationRoute ?: Tab.HOME.route) { saveState = true }
         launchSingleTop = true
         restoreState = true
     }

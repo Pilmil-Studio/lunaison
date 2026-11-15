@@ -101,6 +101,23 @@ fun LogScreen(
             }
         }
 
+        val yesterdayLog = remember(date, state.logs) { state.logFor(date.minusDays(1)) }
+        if (!yesterdayLog.isEmpty && draft.isEmpty) {
+            LunaButton(
+                tr("Reprendre comme hier", "Same as yesterday", pl = "Tak jak wczoraj", uk = "Так само, як учора", es = "Igual que ayer", de = "Wie gestern"),
+                onClick = {
+                    draft = draft.copy(
+                        flow = yesterdayLog.flow,
+                        pain = yesterdayLog.pain,
+                        symptoms = yesterdayLog.symptoms,
+                        moods = yesterdayLog.moods,
+                        pillStatus = yesterdayLog.pillStatus,
+                    )
+                },
+                style = LunaButtonStyle.Outlined,
+            )
+        }
+
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             SectionTitle(tr("Règles", "Period", pl = "Miesiączka", uk = "Місячні", es = "Regla", de = "Periode"))
             ChoiceChips(
