@@ -3,8 +3,13 @@
 package fr.lunaison.ui
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -12,6 +17,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.viewinterop.UIKitView
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import fr.lunaison.core.cycle.HealthReport
@@ -20,13 +26,14 @@ import fr.lunaison.core.cycle.Prediction
 import fr.lunaison.core.data.AppSettings
 import fr.lunaison.core.data.Partner
 import fr.lunaison.core.data.PartnerChannel
+import fr.lunaison.core.data.PinThrottleState
 import fr.lunaison.core.data.isBackupExcluded
 import fr.lunaison.core.data.setBackupExcluded
 import fr.lunaison.core.model.DayLog
 import fr.lunaison.core.model.PartnerSnapshot
 import fr.lunaison.core.model.minusDays
 import fr.lunaison.core.model.tr
-import fr.lunaison.core.data.PinThrottleState
+import fr.pilmil.core.platform.backup.IosBackupVault
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
@@ -71,6 +78,7 @@ import platform.Foundation.NSFileManager
 import platform.Foundation.NSTemporaryDirectory
 import platform.Foundation.NSURL
 import platform.Foundation.create
+import platform.Foundation.dataWithContentsOfURL
 import platform.UIKit.NSFontAttributeName
 import platform.UIKit.NSForegroundColorAttributeName
 import platform.UIKit.UIActivityViewController
@@ -81,7 +89,11 @@ import platform.UIKit.UIAlertControllerStyleAlert
 import platform.UIKit.UIApplication
 import platform.UIKit.UIApplicationOpenSettingsURLString
 import platform.UIKit.UIColor
+import platform.UIKit.UIDocumentPickerDelegateProtocol
+import platform.UIKit.UIDocumentPickerViewController
 import platform.UIKit.UIFont
+import platform.UniformTypeIdentifiers.UTTypeData
+import platform.UniformTypeIdentifiers.UTTypeItem
 import platform.UIKit.UIGraphicsPDFRenderer
 import platform.UIKit.UIGraphicsPDFRendererFormat
 import platform.UIKit.UIView
@@ -281,10 +293,219 @@ actual suspend fun shareHealthReportPdf(
     onMain { presentShareSheet(listOf(NSURL.fileURLWithPath(path))) }
 }
 
-actual val importAvailable: Boolean = false
+actual val importAvailable: Boolean = true
 
 @Composable
-actual fun ImportDialogs(showSource: Boolean, onDismiss: () -> Unit, actions: Actions, onResult: (String) -> Unit) = Unit
+actual fun ImportDialogs(showSource: Boolean, onDismiss: () -> Unit, actions: Actions, onResult: (String) -> Unit) {
+    val scope = rememberCoroutineScope()
+    var pendingBytes by remember { mutableStateOf<ByteArray?>(null) }
+    var passwordInput by remember { mutableStateOf("") }
+    var passwordError by remember { mutableStateOf<String?>(null) }
+    var activePickerDelegate by remember { mutableStateOf<NSObject?>(null) }
+
+    LaunchedEffect(showSource) {
+        if (!showSource) return@LaunchedEffect
+        val picker = UIDocumentPickerViewController(
+            forOpeningContentTypes = listOf(UTTypeData, UTTypeItem),
+        )
+        picker.allowsMultipleSelection = false
+        val delegate = object : NSObject(), UIDocumentPickerDelegateProtocol {
+            override fun documentPicker(
+                controller: UIDocumentPickerViewController,
+                didPickDocumentsAtURLs: List<*>,
+            ) {
+                activePickerDelegate = null
+                val url = didPickDocumentsAtURLs.firstOrNull() as? NSURL
+                if (url == null) {
+                    onDismiss()
+                    return
+                }
+                val accessed = url.startAccessingSecurityScopedResource()
+                val bytes = try {
+                    NSData.dataWithContentsOfURL(url)?.toByteArray()
+                } finally {
+                    if (accessed) url.stopAccessingSecurityScopedResource()
+                }
+                if (bytes == null || bytes.isEmpty()) {
+                    onResult("Fichier vide ou illisible.")
+                    onDismiss()
+                    return
+                }
+                val magic = "PILMIL".encodeToByteArray()
+                val isPilmil = bytes.size >= magic.size && magic.indices.all { bytes[it] == magic[it] }
+                if (isPilmil) {
+                    passwordInput = ""
+                    passwordError = null
+                    pendingBytes = bytes
+                    onDismiss()
+                } else {
+                    onDismiss()
+                    scope.launch {
+                        runCatching { actions.importAuto(bytes, null) }
+                            .onSuccess { summary ->
+                                onResult("${summary.daysCount} journée(s) restaurée(s).")
+                            }
+                            .onFailure { err ->
+                                onResult("Restauration impossible : ${err.message ?: "format non reconnu"}")
+                            }
+                    }
+                }
+            }
+
+            override fun documentPickerWasCancelled(controller: UIDocumentPickerViewController) {
+                activePickerDelegate = null
+                onDismiss()
+            }
+        }
+        activePickerDelegate = delegate
+        picker.delegate = delegate
+        val presenter = topViewController()
+        if (presenter != null) {
+            presenter.presentViewController(picker, animated = true, completion = null)
+        } else {
+            activePickerDelegate = null
+            onDismiss()
+        }
+    }
+
+    val bytesToDecrypt = pendingBytes
+    if (bytesToDecrypt != null) {
+        AlertDialog(
+            onDismissRequest = { pendingBytes = null },
+            title = { Text("Mot de passe de la sauvegarde") },
+            text = {
+                androidx.compose.foundation.layout.Column {
+                    Text("Entrez le mot de passe choisi lors de la sauvegarde :")
+                    OutlinedTextField(
+                        value = passwordInput,
+                        onValueChange = {
+                            passwordInput = it
+                            passwordError = null
+                        },
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                    )
+                    passwordError?.let { Text(it) }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val pwd = passwordInput.trim()
+                        if (pwd.isEmpty()) {
+                            passwordError = "Entrez votre mot de passe."
+                            return@TextButton
+                        }
+                        pendingBytes = null
+                        scope.launch {
+                            runCatching { actions.importAuto(bytesToDecrypt, pwd) }
+                                .onSuccess { summary ->
+                                    onResult("${summary.daysCount} journée(s) restaurée(s).")
+                                }
+                                .onFailure { err ->
+                                    onResult("Restauration impossible : ${err.message ?: "mot de passe incorrect"}")
+                                }
+                        }
+                    },
+                ) { Text("Restaurer") }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingBytes = null }) { Text("Annuler") }
+            },
+        )
+    }
+}
+
+actual val encryptedBackupAvailable: Boolean = true
+
+@Composable
+actual fun EncryptedBackupButton(
+    label: String,
+    fileName: String,
+    onProducePayload: suspend () -> String,
+    onResult: (String) -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    var showPasswordDialog by remember { mutableStateOf(false) }
+    var password by remember { mutableStateOf("") }
+    var errorMsg by remember { mutableStateOf<String?>(null) }
+
+    LunaButton(
+        text = label,
+        onClick = {
+            password = ""
+            errorMsg = null
+            showPasswordDialog = true
+        },
+        style = LunaButtonStyle.Outlined,
+    )
+
+    if (showPasswordDialog) {
+        AlertDialog(
+            onDismissRequest = { showPasswordDialog = false },
+            title = { Text("Protéger la sauvegarde") },
+            text = {
+                androidx.compose.foundation.layout.Column {
+                    Text("Choisissez un mot de passe pour chiffrer vos données avant de les enregistrer ou transférer :")
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = {
+                            password = it
+                            errorMsg = null
+                        },
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                    )
+                    errorMsg?.let { Text(it) }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val pwd = password.trim()
+                        if (pwd.length < 4) {
+                            errorMsg = "Choisissez au moins 4 caractères."
+                            return@TextButton
+                        }
+                        showPasswordDialog = false
+                        scope.launch {
+                            runCatching {
+                                val payload = onProducePayload()
+                                val encrypted = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+                                    IosBackupVault().encrypt(payload, pwd.toCharArray())
+                                }
+                                val path = NSTemporaryDirectory() + fileName
+                                NSFileManager.defaultManager.createFileAtPath(
+                                    path,
+                                    contents = encrypted.toNSData(),
+                                    attributes = null,
+                                )
+                                onMain { presentShareSheet(listOf(NSURL.fileURLWithPath(path))) }
+                            }.onSuccess {
+                                onResult("Sauvegarde prête à être enregistrée ou partagée.")
+                            }.onFailure { err ->
+                                onResult("Erreur lors de la sauvegarde : ${err.message ?: "inconnue"}")
+                            }
+                        }
+                    },
+                ) { Text("Sauvegarder") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPasswordDialog = false }) { Text("Annuler") }
+            },
+        )
+    }
+}
+
+private fun NSData.toByteArray(): ByteArray {
+    val size = length.toInt()
+    if (size <= 0) return ByteArray(0)
+    val out = ByteArray(size)
+    out.usePinned { pinned ->
+        platform.posix.memcpy(pinned.addressOf(0), bytes, length)
+    }
+    return out
+}
 
 actual val cloudBackupControllable: Boolean = true
 

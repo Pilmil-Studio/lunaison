@@ -29,6 +29,9 @@ import fr.lunaison.core.cycle.Prediction
 import fr.lunaison.core.data.AppSettings
 import fr.lunaison.core.data.PinThrottleState
 import fr.lunaison.core.model.DayLog
+import androidx.compose.ui.unit.dp
+import fr.lunaison.core.designsystem.LunaButton
+import fr.lunaison.core.designsystem.LunaButtonStyle
 import fr.lunaison.core.model.tr
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -124,11 +127,115 @@ actual fun rememberFileExporter(mimeType: String, content: suspend () -> String)
         if (uri != null) {
             scope.launch {
                 val text = produce()
-                context.contentResolver.openOutputStream(uri)?.use { it.write(text.toByteArray()) }
+                withContext(Dispatchers.IO) {
+                    context.contentResolver.openOutputStream(uri)?.use { it.write(text.toByteArray()) }
+                }
             }
         }
     }
     return { fileName -> launcher.launch(fileName) }
+}
+
+actual val encryptedBackupAvailable: Boolean = true
+
+@Composable
+actual fun EncryptedBackupButton(
+    label: String,
+    fileName: String,
+    onProducePayload: suspend () -> String,
+    onResult: (String) -> Unit,
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val produce by rememberUpdatedState(onProducePayload)
+    val notify by rememberUpdatedState(onResult)
+    var showDialog by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    var passphrase by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("") }
+    var confirm by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("") }
+    var pendingPassphrase by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<CharArray?>(null) }
+
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
+        val pwd = pendingPassphrase
+        pendingPassphrase = null
+        if (uri != null && pwd != null) {
+            scope.launch {
+                try {
+                    val payload = produce()
+                    val encrypted = withContext(Dispatchers.Default) {
+                        fr.pilmil.core.platform.backup.AndroidBackupVault().encrypt(payload, pwd)
+                    }
+                    withContext(Dispatchers.IO) {
+                        context.contentResolver.openOutputStream(uri)?.use { it.write(encrypted) }
+                    }
+                    notify(tr("Sauvegarde chiffrée (.pilmil) enregistrée.", "Encrypted backup (.pilmil) saved."))
+                } catch (e: Exception) {
+                    notify(tr("Erreur : ${e.localizedMessage}", "Error: ${e.localizedMessage}"))
+                } finally {
+                    pwd.fill('\u0000')
+                }
+            }
+        }
+    }
+
+    LunaButton(label, onClick = {
+        passphrase = ""
+        confirm = ""
+        showDialog = true
+    }, style = LunaButtonStyle.Outlined)
+
+    if (showDialog) {
+        val mismatch = confirm.isNotEmpty() && passphrase != confirm
+        val valid = passphrase.isNotEmpty() && passphrase == confirm
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { androidx.compose.material3.Text(tr("Mot de passe de la sauvegarde", "Backup password")) },
+            text = {
+                androidx.compose.foundation.layout.Column(
+                    verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+                ) {
+                    androidx.compose.material3.Text(
+                        tr(
+                            "Ce mot de passe chiffrera votre fichier .pilmil (AES-256-GCM). Conservez-le précieusement : il est impossible de le récupérer sans.",
+                            "This password will encrypt your .pilmil file (AES-256-GCM). Keep it safe: it cannot be recovered without it.",
+                        ),
+                        style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                    )
+                    androidx.compose.material3.OutlinedTextField(
+                        value = passphrase,
+                        onValueChange = { passphrase = it },
+                        label = { androidx.compose.material3.Text(tr("Mot de passe", "Password")) },
+                        singleLine = true,
+                        visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                    )
+                    androidx.compose.material3.OutlinedTextField(
+                        value = confirm,
+                        onValueChange = { confirm = it },
+                        label = { androidx.compose.material3.Text(tr("Confirmer", "Confirm")) },
+                        singleLine = true,
+                        isError = mismatch,
+                        visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                    )
+                }
+            },
+            confirmButton = {
+                androidx.compose.material3.TextButton(
+                    enabled = valid,
+                    onClick = {
+                        pendingPassphrase = passphrase.toCharArray()
+                        passphrase = ""
+                        confirm = ""
+                        showDialog = false
+                        launcher.launch(fileName)
+                    },
+                ) { androidx.compose.material3.Text(tr("Exporter", "Export")) }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { showDialog = false }) {
+                    androidx.compose.material3.Text(tr("Annuler", "Cancel"))
+                }
+            },
+        )
+    }
 }
 
 @Composable

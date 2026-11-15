@@ -91,8 +91,6 @@ fun SettingsScreen(
         if (!notifications.allowed) notifications.request()
     }
 
-    val exportCsv = rememberFileExporter("text/csv") { actions.exportCsv() }
-
     Page {
         PageTitle(tr("Réglages", "Settings", pl = "Ustawienia", uk = "Налаштування", es = "Ajustes", de = "Einstellungen"))
 
@@ -310,21 +308,34 @@ fun SettingsScreen(
                 Text(tr("Tout est enregistré sur ce téléphone, nulle part ailleurs. Lunaison n'a pas accès à Internet et ne fait pas de sauvegarde dans le nuage.", "Everything is saved on this phone, nowhere else. Lunaison has no Internet access and makes no cloud backup.", pl = "Wszystko jest zapisane na tym telefonie i nigdzie indziej. Lunaison nie ma dostępu do internetu i nie tworzy kopii zapasowych w chmurze.", uk = "Усе зберігається на цьому телефоні й ніде більше. Lunaison не має доступу до інтернету й не створює резервних копій у хмарі.", es = "Todo se guarda en este teléfono, en ningún otro sitio. Lunaison no tiene acceso a Internet y no hace copias de seguridad en la nube.", de = "Alles wird auf diesem Telefon gespeichert, nirgendwo sonst. Lunaison hat keinen Internetzugriff und erstellt keine Cloud-Sicherung."), style = MaterialTheme.typography.bodyMedium)
             }
             LunaButton(tr("Bilan de santé pour un soignant", "Health report for a clinician", pl = "Raport medyczny dla personelu medycznego", uk = "Медичний звіт для медичного працівника", es = "Informe médico para el profesional sanitario", de = "Arztbericht für medizinisches Fachpersonal"), onClick = onHealthReport, style = LunaButtonStyle.Outlined)
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                LunaButton(
-                    tr("Exporter (CSV)", "Export (CSV)", pl = "Eksportuj (CSV)", uk = "Експортувати (CSV)", es = "Exportar (CSV)", de = "Exportieren (CSV)"),
-                    onClick = { exportCsv("lunaison.csv") },
-                    style = LunaButtonStyle.Outlined,
-                    modifier = Modifier.weight(1f),
+            if (encryptedBackupAvailable) {
+                EncryptedBackupButton(
+                    label = tr(
+                        "Sauvegarder mes données",
+                        "Back up my data",
+                        pl = "Utwórz kopię zapasową",
+                        uk = "Створити резервну копію",
+                        es = "Hacer copia de seguridad",
+                        de = "Meine Daten sichern",
+                    ),
+                    fileName = "lunaison.pilmil",
+                    onProducePayload = { actions.exportCsv() },
+                    onResult = { importResultMessage = it },
                 )
-                if (importAvailable) {
-                    LunaButton(
-                        tr("Importer", "Import", pl = "Importuj", uk = "Імпортувати", es = "Importar", de = "Importieren"),
-                        onClick = { showImportSourceDialog = true },
-                        style = LunaButtonStyle.Outlined,
-                        modifier = Modifier.weight(1f),
-                    )
-                }
+            }
+            if (importAvailable) {
+                LunaButton(
+                    tr(
+                        "Restaurer une sauvegarde",
+                        "Restore a backup",
+                        pl = "Przywróć kopię zapasową",
+                        uk = "Відновити резервну копію",
+                        es = "Restaurar una copia",
+                        de = "Sicherung wiederherstellen",
+                    ),
+                    onClick = { showImportSourceDialog = true },
+                    style = LunaButtonStyle.Outlined,
+                )
             }
             importResultMessage?.let { msg ->
                 Muted(msg)

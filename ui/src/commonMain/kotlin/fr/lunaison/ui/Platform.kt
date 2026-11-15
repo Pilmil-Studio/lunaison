@@ -87,6 +87,17 @@ expect val importAvailable: Boolean
 @Composable
 expect fun ImportDialogs(showSource: Boolean, onDismiss: () -> Unit, actions: Actions, onResult: (String) -> Unit)
 
+/** L'export chiffré .pilmil est disponible sur la plateforme (Android). */
+expect val encryptedBackupAvailable: Boolean
+
+@Composable
+expect fun EncryptedBackupButton(
+    label: String,
+    fileName: String,
+    onProducePayload: suspend () -> String,
+    onResult: (String) -> Unit,
+)
+
 /** La sauvegarde iCloud de l'iPhone inclut les données ; la personne peut l'exclure (iOS seulement). */
 expect val cloudBackupControllable: Boolean
 

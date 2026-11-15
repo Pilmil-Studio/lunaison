@@ -169,16 +169,7 @@ class LunaisonRepository(private val dao: LunaisonDao) {
 
     /** Export lisible par un tableur. Rien ne quitte le téléphone sans que la personne choisisse où l'enregistrer. */
     suspend fun exportCsv(): String = buildString {
-        appendLine(
-            tr(
-                fr = "date;flux;douleur;symptomes;humeurs;traitement;glaire;temperature;pilule;medicaments;poids;intimite;libido;note",
-                en = "date;flow;pain;symptoms;moods;medication;mucus;temperature;pill;medications;weight;intimacy;libido;note",
-                pl = "data;krwawienie;bol;objawy;nastroje;leczenie;sluz;temperatura;tabletka;leki;waga;intymnosc;libido;notatka",
-                uk = "дата;виділення;біль;симптоми;настрій;лікування;слиз;температура;таблетка;ліки;вага;інтимність;лібідо;нотатка",
-                es = "fecha;flujo;dolor;sintomas;estados de animo;tratamiento;moco;temperatura;pildora;medicamentos;peso;intimidad;libido;nota",
-                de = "datum;blutung;schmerz;symptome;stimmung;behandlung;zervixschleim;temperatur;pille;medikamente;gewicht;intimitaet;libido;notiz",
-            ),
-        )
+        appendLine("date;flow;pain;symptoms;moods;medication;mucus;temperature;pill;medications;weight;intimacy;libido;note")
         logsOnce().forEach { log ->
             appendLine(
                 listOf(
@@ -187,7 +178,7 @@ class LunaisonRepository(private val dao: LunaisonDao) {
                     log.pain?.label.orEmpty(),
                     log.symptoms.joinToString(", ") { it.label },
                     log.moods.joinToString(", ") { it.label },
-                    if (log.medicationTaken || log.pillStatus == PillStatus.TAKEN) tr(fr = "oui", en = "yes", pl = "tak", uk = "так", es = "sí", de = "ja") else "",
+                    if (log.medicationTaken || log.pillStatus == PillStatus.TAKEN) "yes" else "",
                     log.mucus?.label.orEmpty(),
                     log.basalTemperature?.let { it.toOneDecimal() }.orEmpty(),
                     log.pillStatus?.label.orEmpty(),
@@ -195,7 +186,7 @@ class LunaisonRepository(private val dao: LunaisonDao) {
                     log.weight?.let { it.toOneDecimal() }.orEmpty(),
                     log.intimacy.joinToString(", ") { it.label },
                     log.libido?.label.orEmpty(),
-                    log.note.replace(";", ",").replace("\n", " "),
+                    sanitizeCsvNote(log.note),
                 ).joinToString(";"),
             )
         }
@@ -263,6 +254,16 @@ class LunaisonRepository(private val dao: LunaisonDao) {
 
 interface LunaisonRepositoryProvider {
     val repository: LunaisonRepository
+}
+
+private fun sanitizeCsvNote(raw: String): String {
+    val cleaned = raw.replace(";", ",").replace("\r", " ").replace("\n", " ")
+    val trimmed = cleaned.trimStart()
+    return if (trimmed.isNotEmpty() && trimmed.first() in charArrayOf('=', '+', '-', '@')) {
+        "'$cleaned"
+    } else {
+        cleaned
+    }
 }
 
 private inline fun <reified T : Enum<T>> String?.toEnumOrNull(): T? =
