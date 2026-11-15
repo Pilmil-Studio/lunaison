@@ -33,6 +33,9 @@ kotlin {
             api(libs.compose.icons.core)
             implementation(compose.components.resources)
         }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+        }
     }
 }
 

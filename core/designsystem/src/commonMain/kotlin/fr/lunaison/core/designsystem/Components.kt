@@ -117,7 +117,7 @@ fun LunaCard(
     }
 }
 
-/** Pastilles à choix, une ou plusieurs selon l'usage. La sélection est signalée par la couleur du conteneur, avec taille stable. */
+/** Pastilles à choix, une ou plusieurs selon l'usage. La sélection ne repose pas sur la couleur seule : coche visible et bordure de 2 dp (1 dp, contrastée, sinon). */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun <T> ChoiceChips(
@@ -126,7 +126,7 @@ fun <T> ChoiceChips(
     isSelected: (T) -> Boolean,
     onToggle: (T) -> Unit,
     modifier: Modifier = Modifier,
-    showCheckmark: Boolean = false,
+    showCheckmark: Boolean = true,
 ) {
     FlowRow(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         options.forEach { option ->
@@ -140,6 +140,14 @@ fun <T> ChoiceChips(
                 } else {
                     null
                 },
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = selected,
+                    borderColor = MaterialTheme.colorScheme.outline,
+                    selectedBorderColor = MaterialTheme.colorScheme.primary,
+                    borderWidth = 1.dp,
+                    selectedBorderWidth = 2.dp,
+                ),
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                     selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,

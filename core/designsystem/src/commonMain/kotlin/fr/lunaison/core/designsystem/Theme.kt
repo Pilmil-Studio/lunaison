@@ -31,7 +31,7 @@ object LunaColors {
     val Ink = Color(0xFF2A1F2D)
     val InkMuted = Color(0xFF5E5162)
     val Line = Color(0xFFE7DCE0)
-    val Outline = Color(0xFFB9A8B6)
+    val Outline = Color(0xFF85738A)
 
     val Night = Color(0xFF1A1220)
     val NightSurface = Color(0xFF241A2B)
@@ -96,7 +96,7 @@ private val SageLightColors: ColorScheme = lightColorScheme(
     onSurface = Color(0xFF1E2923),
     surfaceVariant = Color(0xFFDCE9E1),
     onSurfaceVariant = Color(0xFF495950),
-    outline = Color(0xFF96A69D),
+    outline = Color(0xFF6F8277),
     outlineVariant = Color(0xFFD8E0DA),
 )
 
@@ -134,7 +134,7 @@ private val OceanLightColors: ColorScheme = lightColorScheme(
     onSurface = Color(0xFF1B2630),
     surfaceVariant = Color(0xFFD9E7F2),
     onSurfaceVariant = Color(0xFF495866),
-    outline = Color(0xFF98A8B5),
+    outline = Color(0xFF6F8391),
     outlineVariant = Color(0xFFD8E1E8),
 )
 
@@ -172,7 +172,7 @@ private val TerracottaLightColors: ColorScheme = lightColorScheme(
     onSurface = Color(0xFF2B201C),
     surfaceVariant = Color(0xFFF5DFD6),
     onSurfaceVariant = Color(0xFF635049),
-    outline = Color(0xFFB8A29A),
+    outline = Color(0xFF937D76),
     outlineVariant = Color(0xFFE8DAD4),
 )
 
@@ -193,6 +193,14 @@ private val TerracottaDarkColors: ColorScheme = darkColorScheme(
     onSurfaceVariant = Color(0xFFC7B4AC),
     outline = Color(0xFFC7B4AC),
     outlineVariant = Color(0xFF3D261E),
+)
+
+/** Tous les jeux de couleurs, pour le test de contraste (WCAG 2) : nom, clair ou sombre, jeu. */
+internal val AllColorSchemes: List<Triple<String, Boolean, ColorScheme>> = listOf(
+    Triple("PLUM", false, LightColors), Triple("PLUM", true, DarkColors),
+    Triple("SAGE", false, SageLightColors), Triple("SAGE", true, SageDarkColors),
+    Triple("OCEAN", false, OceanLightColors), Triple("OCEAN", true, OceanDarkColors),
+    Triple("TERRACOTTA", false, TerracottaLightColors), Triple("TERRACOTTA", true, TerracottaDarkColors),
 )
 
 /** Atkinson Hyperlegible Next (Braille Institute, licence SIL OFL 1.1, voir FONT-LICENSE.txt). */
