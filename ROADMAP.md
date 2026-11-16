@@ -14,7 +14,7 @@
 
 ## 3. Qualité de code & sécurité
 - **Prioritaire** : chiffrement complet de la base locale Room au repos (SQLCipher) en complément du verrou PIN (`PinThrottle`) et de la sauvegarde `.pilmil`.
-- Sauvegarde système Android configurable par application (`-Ppilmil.allowAutoBackup=false` par défaut, règles `data_extraction_rules.xml` excluant le cloud).
+- Sauvegarde Android : activée dans le manifeste, et c'est l'agent de sauvegarde qui applique le choix de la personne. La copie dans le compte Google est désactivée par défaut, activable dans les réglages et jamais faite sans chiffrement de bout en bout ; le transfert direct vers un nouveau téléphone reste permis.
 - Renforcement des tests unitaires sur les parcours critiques (verrou PIN, temporisation `PinThrottle`, import/export, calculs de cycle) et suivi `lintDebug` en CI.
 - À faire : ajouter `ktlint` / `detekt` et déplacer les tests sans `java.util.Locale` vers `commonTest`.
 
