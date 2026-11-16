@@ -36,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import fr.lunaison.core.designsystem.LunaButton
 import fr.lunaison.core.designsystem.LunaButtonStyle
 import fr.lunaison.core.model.tr
+import fr.lunaison.ui.backup.BackupPolicy
+import fr.lunaison.ui.backup.CloudBackupConsent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -557,12 +559,10 @@ private fun sharePdf(context: Context, file: File) {
 
 actual val importAvailable: Boolean = true
 
-// Android : la sauvegarde automatique est désactivée dans le manifeste, rien à régler.
-actual val cloudBackupControllable: Boolean = false
+// Android : copie dans le compte Google désactivée par défaut, activable à partir d'Android 12 (voir LunaisonBackupAgent).
+actual val cloudBackupControllable: Boolean = BackupPolicy.settingAvailable(Build.VERSION.SDK_INT)
 
-actual fun isCloudBackupEnabled(): Boolean = false
-
-actual fun setCloudBackupEnabled(enabled: Boolean) = Unit
+actual val cloudBackupOptIn: Boolean = true
 
 // Android : WorkManager observe déjà le dépôt dans LunaisonApplication.
 actual fun syncReminders(settings: AppSettings, prediction: Prediction?) = Unit
@@ -592,4 +592,17 @@ actual fun rememberPinThrottleStore(): PinThrottleStore {
             }
         }
     }
+}
+
+// Le dossier peut être absent hors d'un vrai téléphone (captures d'écran) : la copie est alors désactivée.
+actual fun isCloudBackupEnabled(context: PlatformContext): Boolean =
+    context.noBackupFilesDir?.let { CloudBackupConsent(it).enabled } ?: false
+
+// Hors d'un vrai téléphone (captures d'écran), le service du verrouillage peut manquer : le réglage est alors indisponible.
+actual fun cloudBackupReady(context: PlatformContext): Boolean = runCatching {
+    (context.getSystemService(Context.KEYGUARD_SERVICE) as? android.app.KeyguardManager)?.isDeviceSecure == true
+}.getOrDefault(false)
+
+actual fun setCloudBackupEnabled(context: PlatformContext, enabled: Boolean) {
+    context.noBackupFilesDir?.let { CloudBackupConsent(it).enabled = enabled }
 }
