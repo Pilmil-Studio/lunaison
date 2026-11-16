@@ -6,6 +6,8 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.Dispatchers
 import platform.Foundation.NSApplicationSupportDirectory
 import platform.Foundation.NSFileManager
+import platform.Foundation.NSFileProtectionComplete
+import platform.Foundation.NSFileProtectionKey
 import platform.Foundation.NSNumber
 import platform.Foundation.NSURL
 import platform.Foundation.NSURLIsExcludedFromBackupKey
@@ -59,9 +61,26 @@ private fun applyBackupPolicy(directory: String) {
     )
 }
 
+/**
+ * Protection des données d'iOS : les fichiers de la base ne sont lisibles que lorsque l'iPhone est
+ * déverrouillé (classe « Complete », chiffrée avec une clé dérivée du code de l'appareil). Appliquée au
+ * dossier (les fichiers -wal et -shm créés ensuite en héritent) et aux fichiers déjà présents.
+ * Ce n'est pas un chiffrement propre à l'appli comme SQLCipher sur Android : voir documentation/chiffrement.md.
+ */
+@OptIn(ExperimentalForeignApi::class)
+private fun applyFileProtection(directory: String) {
+    val manager = NSFileManager.defaultManager
+    val attributes = mapOf<Any?, Any?>(NSFileProtectionKey to NSFileProtectionComplete)
+    manager.setAttributes(attributes, ofItemAtPath = directory, error = null)
+    manager.contentsOfDirectoryAtPath(directory, error = null)?.forEach { name ->
+        manager.setAttributes(attributes, ofItemAtPath = "$directory/$name", error = null)
+    }
+}
+
 fun LunaisonDatabase.Companion.create(): LunaisonDatabase {
     val directory = databaseDirectory()
     applyBackupPolicy(directory)
+    applyFileProtection(directory)
     return Room.databaseBuilder<LunaisonDatabase>(name = "$directory/lunaison.db")
         .withMigrations()
         .setDriver(BundledSQLiteDriver())
