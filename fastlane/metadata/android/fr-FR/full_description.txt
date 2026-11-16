@@ -1,4 +1,6 @@
-Lunaison est une application de suivi du cycle menstruel et des symptômes intimes, conçue pour toutes les personnes menstruées (adolescentes, adultes, péri-ménopause).
+Lunaison est une application de suivi du cycle menstruel et des symptômes intimes, conçue pour toutes les personnes menstruées (adolescentes, adultes, péri-ménopause). Lunaison n'est ni un dispositif médical ni une méthode de contraception.
+
+Aucun compte, aucune donnée envoyée, pas de permission Internet : tout reste sur votre téléphone. Le code est ouvert. La date des prochaines règles est estimée à partir de la médiane de vos derniers cycles et affichée sous forme de fourchette, pas de date unique.
 
 Libre (MPL-2.0), gratuite, sans publicité, sans inscription et 100 % hors-ligne : Lunaison ne dispose d'aucune permission réseau dans son manifeste Android. Vos données gynécologiques et intimes sont stockées exclusivement sur votre téléphone et ne sont jamais transmises à aucun serveur.
 
@@ -9,7 +11,7 @@ CALENDRIER ET SUIVI PHYSIOLOGIQUE
 • Moteur de corrélation symptomatique : détection objective des régularités entre vos phases cycliques et vos symptômes récurrents.
 
 PÉDAGOGIE MÉDICALE ET ÉDUCATION
-• Fiches courtes, rigoureuses et sourcées (ACOG, HAS, CNGOF, Inserm) pour comprendre son corps sans métaphores infantilisantes.
+• Fiches courtes, rigoureuses et sourcées (ACOG, ESHRE, FIGO, Inserm) pour comprendre son corps sans métaphores infantilisantes.
 • Repères physiologiques clairs sur la variabilité naturelle du cycle chez l'adolescente (21 à 45 jours selon l'ACOG 2015).
 • Guide d'information et signaux d'alerte sur l'endométriose et les douleurs invalidantes.
 

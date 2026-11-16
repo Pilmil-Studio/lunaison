@@ -1,0 +1,1 @@
+• Correcciones de la edición para iOS (informe PDF, selector de contactos). En Android no cambia nada.

@@ -1,0 +1,2 @@
+• Écran d'accueil que l'on fait défiler d'un geste, avec plus de relief.
+• Moins de rappels répétitifs sur l'accueil.

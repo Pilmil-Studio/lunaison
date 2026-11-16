@@ -1,0 +1,1 @@
+• Fixes specific to the iOS edition. Nothing changes on Android.

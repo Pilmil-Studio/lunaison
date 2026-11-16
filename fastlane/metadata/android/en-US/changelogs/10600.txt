@@ -1,0 +1,4 @@
+• New welcome screen at first launch: import, lock, reminders and settings, all optional.
+• NFC sharing is removed. Sharing is still possible by QR code and SMS.
+• Safer Period Calendar import: archive size is limited, with separate messages for a corrupted archive and a wrong password.
+• Fixed the migration of some dates and times.

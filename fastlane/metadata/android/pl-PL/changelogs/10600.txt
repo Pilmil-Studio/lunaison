@@ -1,0 +1,4 @@
+• Nowy ekran powitalny przy pierwszym uruchomieniu: import, blokada, przypomnienia i ustawienia, wszystko opcjonalne.
+• Usunięto udostępnianie przez NFC. Nadal można udostępniać kodem QR i SMS-em.
+• Bezpieczniejszy import z Period Calendar: ograniczony rozmiar archiwum oraz osobne komunikaty dla uszkodzonego archiwum i błędnego hasła.
+• Poprawiono migrację niektórych dat i godzin.
