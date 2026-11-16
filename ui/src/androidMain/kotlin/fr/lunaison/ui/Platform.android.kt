@@ -594,11 +594,13 @@ actual fun rememberPinThrottleStore(): PinThrottleStore {
     }
 }
 
-actual fun isCloudBackupEnabled(context: PlatformContext): Boolean = CloudBackupConsent(context.noBackupFilesDir).enabled
+// Le dossier peut être absent hors d'un vrai téléphone (captures d'écran) : la copie est alors désactivée.
+actual fun isCloudBackupEnabled(context: PlatformContext): Boolean =
+    context.noBackupFilesDir?.let { CloudBackupConsent(it).enabled } ?: false
 
 actual fun cloudBackupReady(context: PlatformContext): Boolean =
     (context.getSystemService(Context.KEYGUARD_SERVICE) as? android.app.KeyguardManager)?.isDeviceSecure == true
 
 actual fun setCloudBackupEnabled(context: PlatformContext, enabled: Boolean) {
-    CloudBackupConsent(context.noBackupFilesDir).enabled = enabled
+    context.noBackupFilesDir?.let { CloudBackupConsent(it).enabled = enabled }
 }
