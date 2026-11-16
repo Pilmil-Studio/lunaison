@@ -8,16 +8,20 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.shape.CircleShape
@@ -65,6 +69,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import fr.lunaison.core.content.Articles
 import fr.lunaison.core.content.DailyTip
@@ -377,7 +382,7 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.weight(1f, fill = false)) {
                     pages.forEachIndexed { idx, label ->
                         val selected = pagerState.currentPage == idx
                         // Rôle Tab et cible de 48 dp : un lecteur d'écran annonce « onglet, sélectionné ».
@@ -555,10 +560,10 @@ private fun CycleCard(cycle: CycleState.Known, showFertility: Boolean, showPregn
     val phaseName = Format.phaseName(cycle.phase)
     LunaCard(container = MaterialTheme.colorScheme.primaryContainer) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primary, modifier = Modifier.size(84.dp)) {
+            Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primary, modifier = Modifier.defaultMinSize(minWidth = 84.dp, minHeight = 84.dp)) {
                 Box(
                     contentAlignment = Alignment.Center,
-                    modifier = Modifier.clearAndSetSemantics { contentDescription = tr("Jour ${cycle.dayOfCycle} du cycle", "Cycle day ${cycle.dayOfCycle}", pl = "Dzień cyklu ${cycle.dayOfCycle}", uk = "День циклу ${cycle.dayOfCycle}", es = "Día ${cycle.dayOfCycle} del ciclo", de = "Zyklustag ${cycle.dayOfCycle}") },
+                    modifier = Modifier.padding(8.dp).clearAndSetSemantics { contentDescription = tr("Jour ${cycle.dayOfCycle} du cycle", "Cycle day ${cycle.dayOfCycle}", pl = "Dzień cyklu ${cycle.dayOfCycle}", uk = "День циклу ${cycle.dayOfCycle}", es = "Día ${cycle.dayOfCycle} del ciclo", de = "Zyklustag ${cycle.dayOfCycle}") },
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(tr("Jour", "Day", pl = "Dzień", uk = "День", es = "Día", de = "Tag"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimary)
@@ -635,17 +640,23 @@ private fun UpcomingForecastCard(cycle: CycleState.Known) {
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        LazyRow(
+        // Largeur identique pour les 7 jours (elle suit la taille de police), hauteur commune : la rangée reste alignée et aucun texte n'est coupé.
+        val itemWidth = (140 * LocalDensity.current.fontScale.coerceIn(1f, 2f)).dp
+        Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp)
+                .height(IntrinsicSize.Max)
+                .horizontalScroll(rememberScrollState()),
         ) {
-            items(forecasts.size) { idx ->
-                val f = forecasts[idx]
+            forecasts.forEach { f ->
                 Surface(
                     shape = RoundedCornerShape(12.dp),
                     color = if (f.inLikelyPeriod) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant,
                     modifier = Modifier
-                        .widthIn(min = 118.dp)
+                        .width(itemWidth)
+                        .fillMaxHeight()
                         .semantics(mergeDescendants = true) {
                             contentDescription = forecastDescription(f.date, f.dayOfCycle, f.inLikelyPeriod, Format.phaseName(f.phase))
                         },
