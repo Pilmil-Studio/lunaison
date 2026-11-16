@@ -631,7 +631,7 @@ private fun UpcomingForecastCard(cycle: CycleState.Known) {
     SectionTitle(tr("Dans les 7 prochains jours", "In the next 7 days", pl = "W ciągu najbliższych 7 dni", uk = "Протягом наступних 7 днів", es = "En los próximos 7 días", de = "In den nächsten 7 Tagen"))
     LunaCard {
         Text(
-            tr("Aperçu prévisionnel jour par jour :", "Day-by-day forecast overview:", pl = "Prognoza dzień po dniu:", uk = "Прогноз день за днем:", es = "Previsión día a día:", de = "Vorschau Tag für Tag:"),
+            tr("Phases estimées à partir de vos cycles notés ; elles peuvent varier.", "Phases estimated from the cycles you logged; they may vary.", pl = "Fazy szacowane na podstawie zapisanych cykli; mogą się zmieniać.", uk = "Фази оцінено за записаними циклами; вони можуть відрізнятися.", es = "Fases estimadas a partir de los ciclos anotados; pueden variar.", de = "Phasen geschätzt aus den eingetragenen Zyklen; sie können abweichen."),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -647,7 +647,7 @@ private fun UpcomingForecastCard(cycle: CycleState.Known) {
                     modifier = Modifier
                         .widthIn(min = 118.dp)
                         .semantics(mergeDescendants = true) {
-                            contentDescription = forecastDescription(f.date, f.dayOfCycle, f.inLikelyPeriod, Format.phaseName(f.phase), f.odds.label)
+                            contentDescription = forecastDescription(f.date, f.dayOfCycle, f.inLikelyPeriod, Format.phaseName(f.phase))
                         },
                 ) {
                     Column(
@@ -657,19 +657,13 @@ private fun UpcomingForecastCard(cycle: CycleState.Known) {
                     ) {
                         Text(Format.dayOfWeek(f.date), style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center)
                         Text(Format.dayMonth(f.date), style = MaterialTheme.typography.labelMedium, textAlign = TextAlign.Center)
-                        Text("J${f.dayOfCycle}", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
-                        Text(Format.phaseName(f.phase), style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center)
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-                        ) {
-                            Text(
-                                f.odds.label,
-                                style = MaterialTheme.typography.labelSmall,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                textAlign = TextAlign.Center,
-                            )
-                        }
+                        Text(
+                            tr("Jour ${f.dayOfCycle} du cycle", "Cycle day ${f.dayOfCycle}", pl = "Dzień cyklu ${f.dayOfCycle}", uk = "День циклу ${f.dayOfCycle}", es = "Día ${f.dayOfCycle} del ciclo", de = "Zyklustag ${f.dayOfCycle}"),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            textAlign = TextAlign.Center,
+                        )
+                        Text(forecastStateLabel(f.inLikelyPeriod, Format.phaseName(f.phase)), style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center)
                     }
                 }
             }
@@ -1116,9 +1110,13 @@ internal fun dayDescription(date: LocalDate, bleeding: Boolean, logged: Boolean)
     return parts.joinToString(", ")
 }
 
+/** Libellé affiché sur la carte de prévision : « Règles probables » les jours de règles attendues, sinon le nom de la phase. */
+internal fun forecastStateLabel(likelyPeriod: Boolean, phaseName: String): String =
+    if (likelyPeriod) tr("Règles probables", "Period likely", pl = "Miesiączka prawdopodobna", uk = "Імовірні місячні", es = "Regla probable", de = "Periode wahrscheinlich") else phaseName
+
 /** « Mardi 17 novembre, jour 12, règles probables » : une seule phrase par carte de prévision. */
-internal fun forecastDescription(date: LocalDate, dayOfCycle: Int, likelyPeriod: Boolean, phaseName: String, odds: String): String {
+internal fun forecastDescription(date: LocalDate, dayOfCycle: Int, likelyPeriod: Boolean, phaseName: String): String {
     val state = if (likelyPeriod) tr("règles probables", "period likely", pl = "miesiączka prawdopodobna", uk = "імовірні місячні", es = "regla probable", de = "Periode wahrscheinlich") else phaseName
     val day = tr("jour $dayOfCycle", "day $dayOfCycle", pl = "dzień $dayOfCycle", uk = "день $dayOfCycle", es = "día $dayOfCycle", de = "Tag $dayOfCycle")
-    return listOf(Format.weekday(date), day, state, odds).filter { it.isNotBlank() }.joinToString(", ")
+    return listOf(Format.weekday(date), day, state).filter { it.isNotBlank() }.joinToString(", ")
 }
