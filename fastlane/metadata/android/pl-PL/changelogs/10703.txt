@@ -1,0 +1,1 @@
+• Poprawki wersji na iOS (raport PDF, wybór kontaktu). Na Androidzie nic się nie zmienia.

@@ -2,6 +2,8 @@
 
 État au 10 novembre 2026. Aucune version iOS n'est publiée ni prévue tant que la question du compte Apple Developer (nom légal affiché, 99 €/an) n'est pas réglée. Cette page décrit ce qui est prêt côté technique.
 
+**À faire avant publication iOS : mettre à jour la politique de confidentialité.** La page `docs/confidentialite.html` (et sa version anglaise) dit « pas de sauvegarde dans le nuage », ce qui est exact sur Android mais faux sur iOS dès que la sauvegarde iCloud est incluse par défaut (voir plus bas). Une copie Google facultative à l'étude aurait le même effet. La page n'est pas modifiée tant que seule la version Android est publiée.
+
 ## Ce qui est fait
 
 Tout le code de l'appli, hors entrée système, est en Kotlin Multiplatform et compile pour Android et pour iOS (simulateur et appareil) :

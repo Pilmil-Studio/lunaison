@@ -1,0 +1,2 @@
+• Ekran główny, który można przesuwać gestem, z większą głębią wizualną.
+• Mniej powtarzających się przypomnień na ekranie głównym.

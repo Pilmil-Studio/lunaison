@@ -1,0 +1,5 @@
+• New guides: symptothermal method, transitions, missed pill, perimenopause.
+• "Learn" with categories, mini-diagrams and a "Discover" card; tips no longer repeat.
+• Encrypted .pilmil backup and CSV export that is identical across languages.
+• Stronger PIN code: the lockout persists after repeated attempts.
+• Reminders computed in the phone's time zone.
