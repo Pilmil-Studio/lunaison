@@ -598,8 +598,10 @@ actual fun rememberPinThrottleStore(): PinThrottleStore {
 actual fun isCloudBackupEnabled(context: PlatformContext): Boolean =
     context.noBackupFilesDir?.let { CloudBackupConsent(it).enabled } ?: false
 
-actual fun cloudBackupReady(context: PlatformContext): Boolean =
+// Hors d'un vrai téléphone (captures d'écran), le service du verrouillage peut manquer : le réglage est alors indisponible.
+actual fun cloudBackupReady(context: PlatformContext): Boolean = runCatching {
     (context.getSystemService(Context.KEYGUARD_SERVICE) as? android.app.KeyguardManager)?.isDeviceSecure == true
+}.getOrDefault(false)
 
 actual fun setCloudBackupEnabled(context: PlatformContext, enabled: Boolean) {
     context.noBackupFilesDir?.let { CloudBackupConsent(it).enabled = enabled }
