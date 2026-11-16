@@ -464,12 +464,12 @@ private fun NaturalDetailsCard() {
         )
         Text(
             tr(
-                fr = "Les calculs de durée habituelle, la fenêtre fertile estimée, les analyses de phases et le suivi de la glaire cervicale ou de la température s'appliquent pleinement à votre profil.",
-                en = "Usual duration calculations, estimated fertile windows, phase patterns and mucus/temperature tracking fully apply to your biological profile.",
-                pl = "Obliczenia typowej długości, szacowane dni płodne, analizy faz oraz śledzenie śluzu szyjkowego lub temperatury w pełni dotyczą Twojego profilu.",
-                uk = "Розрахунки звичної тривалості, орієнтовне фертильне вікно, аналіз фаз і відстеження цервікального слизу чи температури повною мірою стосуються вашого профілю.",
-                es = "Los cálculos de duración habitual, la ventana fértil estimada, los análisis de fases y el seguimiento del moco cervical o de la temperatura se aplican plenamente a tu perfil.",
-                de = "Die Berechnung der üblichen Dauer, das geschätzte fruchtbare Fenster, die Phasenanalysen und die Beobachtung von Zervixschleim oder Temperatur gelten uneingeschränkt für dein Profil.",
+                fr = "Les calculs de durée habituelle, les analyses de phases et le suivi de la glaire cervicale ou de la température s'appliquent pleinement à votre profil.",
+                en = "Usual duration calculations, phase patterns and mucus/temperature tracking fully apply to your biological profile.",
+                pl = "Obliczenia typowej długości, analizy faz oraz śledzenie śluzu szyjkowego lub temperatury w pełni dotyczą Twojego profilu.",
+                uk = "Розрахунки звичної тривалості, аналіз фаз і відстеження цервікального слизу чи температури повною мірою стосуються вашого профілю.",
+                es = "Los cálculos de duración habitual, los análisis de fases y el seguimiento del moco cervical o de la temperatura se aplican plenamente a tu perfil.",
+                de = "Die Berechnung der üblichen Dauer, die Phasenanalysen und die Beobachtung von Zervixschleim oder Temperatur gelten uneingeschränkt für dein Profil.",
             ),
             style = MaterialTheme.typography.bodyMedium,
         )

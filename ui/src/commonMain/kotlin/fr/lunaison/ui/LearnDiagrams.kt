@@ -200,7 +200,7 @@ internal fun CycleVisualGuide() {
                 texture = tr("Glaire crémeuse, blanchâtre ou collante.", "Creamy, whitish or sticky mucus.", pl = "Śluz kremowy, białawy lub lepki.", uk = "Слиз кремоподібний, білуватий або липкий.", es = "Moco cremoso, blanquecino o pegajoso.", de = "Cremiger, weißlicher oder klebriger Schleim."),
             )
             MucusStageRow(
-                stage = tr("Période fertile & ovulation", "Fertile window & ovulation", pl = "Okres płodny i owulacja", uk = "Фертильний період і овуляція", es = "Periodo fértil y ovulación", de = "Fruchtbare Zeit und Eisprung"),
+                stage = tr("Autour de l'ovulation", "Around ovulation", pl = "Wokół owulacji", uk = "Навколо овуляції", es = "Alrededor de la ovulación", de = "Rund um den Eisprung"),
                 texture = tr("Glaire abondante, transparente et étirable entre deux doigts (comme du blanc d'œuf cru). Elle aide les spermatozoïdes.", "Abundant, clear and stretchy between two fingers (like raw egg white). It helps sperm.", pl = "Śluz obfity, przezroczysty i ciągnący się między dwoma palcami (jak surowe białko jaja). Pomaga plemnikom.", uk = "Слиз рясний, прозорий і тягучий між двома пальцями (як сирий яєчний білок). Він допомагає сперматозоїдам.", es = "Moco abundante, transparente y elástico entre dos dedos (como clara de huevo cruda). Ayuda a los espermatozoides.", de = "Reichlicher, durchsichtiger Schleim, der sich zwischen zwei Fingern ziehen lässt (wie rohes Eiweiß). Er unterstützt die Spermien."),
             )
             MucusStageRow(
