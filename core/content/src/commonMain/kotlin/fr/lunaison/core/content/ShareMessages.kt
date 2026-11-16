@@ -208,12 +208,12 @@ object ShareMessages {
             ),
             supportTips = listOf(
                 tr(
-                    fr = "C'est la fenêtre fertile du cycle : utile à savoir selon vos projets communs.",
-                    en = "This is the fertile window of the cycle: useful to know depending on your shared plans.",
-                    pl = "To płodne okno cyklu: warto o tym wiedzieć, zależnie od wspólnych planów.",
-                    uk = "Це фертильне вікно циклу: корисно знати залежно від ваших спільних планів.",
-                    es = "Es la ventana fértil del ciclo: conviene saberlo según los proyectos en común.",
-                    de = "Das ist das fruchtbare Fenster des Zyklus: je nach euren gemeinsamen Plänen gut zu wissen.",
+                    fr = "Les ressentis varient d'une personne à l'autre : le plus simple est de demander ce qui aiderait.",
+                    en = "How this phase feels varies from person to person: the simplest thing is to ask what would help.",
+                    pl = "Odczucia w tej fazie są różne u różnych osób: najprościej zapytać, co by pomogło.",
+                    uk = "Відчуття в цій фазі в усіх різні: найпростіше запитати, що допомогло б.",
+                    es = "Las sensaciones de esta fase cambian de una persona a otra: lo más sencillo es preguntar qué ayudaría.",
+                    de = "Wie sich diese Phase anfühlt, ist von Person zu Person verschieden: Am einfachsten ist es, zu fragen, was helfen würde.",
                 ),
                 tr(
                     fr = "Si une douleur pelvienne ou un mal de tête survient, un peu de repos aide.",
