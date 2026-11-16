@@ -680,7 +680,7 @@ private fun PhaseHormonesCard(phase: Phase, onArticle: (String) -> Unit = {}) {
             }
         }
         if (expanded) {
-            Text(tr("Forces & atouts de cette phase :", "Strengths & advantages:", pl = "Mocne strony tej fazy:", uk = "Сильні сторони цієї фази:", es = "Fortalezas de esta fase:", de = "Stärken dieser Phase:"), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+            Text(tr("Ce que certaines personnes observent :", "What some people notice:", pl = "Co zauważają niektóre osoby:", uk = "Що помічають деякі люди:", es = "Lo que observan algunas personas:", de = "Was manche Menschen beobachten:"), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
             profile.strengths.forEach { Bullet(it) }
             Text(tr("Défis & ce qui peut gêner :", "Possible challenges:", pl = "Możliwe trudności:", uk = "Можливі труднощі:", es = "Posibles dificultades:", de = "Mögliche Herausforderungen:"), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
             profile.challenges.forEach { Bullet(it) }
@@ -688,10 +688,10 @@ private fun PhaseHormonesCard(phase: Phase, onArticle: (String) -> Unit = {}) {
             profile.supportAdvice.forEach { Bullet(it) }
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            TextButton(onClick = { expanded = !expanded }) {
-                Text(if (expanded) tr("Moins de détails", "Show less", pl = "Mniej szczegółów", uk = "Менше деталей", es = "Menos detalles", de = "Weniger anzeigen") else tr("Atouts & conseils", "Strengths & advice", pl = "Mocne strony i porady", uk = "Сильні сторони й поради", es = "Fortalezas y consejos", de = "Stärken & Tipps"))
+            TextButton(onClick = { expanded = !expanded }, modifier = Modifier.weight(1f, fill = false)) {
+                Text(if (expanded) tr("Moins de détails", "Show less", pl = "Mniej szczegółów", uk = "Менше деталей", es = "Menos detalles", de = "Weniger anzeigen") else tr("Observations & conseils", "Observations & advice", pl = "Obserwacje i porady", uk = "Спостереження й поради", es = "Observaciones y consejos", de = "Beobachtungen & Tipps"))
             }
-            TextButton(onClick = { onArticle("cycle") }) {
+            TextButton(onClick = { onArticle("cycle") }, modifier = Modifier.weight(1f, fill = false)) {
                 Text(tr("Courbe des hormones", "Hormone curve", pl = "Krzywa hormonów", uk = "Крива гормонів", es = "Curva de hormonas", de = "Hormonkurve"))
             }
         }
