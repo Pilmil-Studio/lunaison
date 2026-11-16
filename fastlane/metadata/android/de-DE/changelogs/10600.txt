@@ -1,0 +1,4 @@
+• Neuer Willkommensbildschirm beim ersten Start: Import, Sperre, Erinnerungen und Einstellungen, alles optional.
+• Das Teilen per NFC entfällt. Teilen ist weiterhin per QR-Code und SMS möglich.
+• Sichererer Import aus Period Calendar: Archivgröße begrenzt, eigene Meldungen für beschädigte Archive und falsches Passwort.
+• Migration einiger Daten und Uhrzeiten korrigiert.

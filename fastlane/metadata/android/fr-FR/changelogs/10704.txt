@@ -1,0 +1,5 @@
+• Nouvelles fiches : symptothermie, transitions, oubli de pilule, périménopause.
+• « Comprendre » avec catégories, mini-schémas et carte « À découvrir » ; les conseils ne se répètent plus.
+• Sauvegarde chiffrée .pilmil et export CSV identique d'une langue à l'autre.
+• Code PIN renforcé : le verrouillage persiste après des essais répétés.
+• Rappels calculés dans le fuseau horaire du téléphone.
