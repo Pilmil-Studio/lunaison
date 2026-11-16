@@ -1,0 +1,3 @@
+• Ya no se muestra la probabilidad de embarazo.
+• La estimación de la ventana fértil está desactivada por defecto, solo disponible para personas adultas que la activan en los ajustes, y nunca se ofrece a menores de 18 años. A menudo es errónea y no sustituye a un método anticonceptivo.
+• Textos más prudentes en la pantalla de inicio y en las fichas, etiquetas más claras en la tarjeta de 7 días.

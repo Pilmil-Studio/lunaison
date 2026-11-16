@@ -1,0 +1,3 @@
+• The probability of pregnancy is no longer shown.
+• The fertile window estimate is off by default, available only to adults who turn it on in the settings, and never offered to anyone under 18. It is often wrong and does not replace contraception.
+• More cautious wording on the home screen and in the articles, clearer labels on the 7-day card.

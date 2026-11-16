@@ -1,0 +1,3 @@
+• Prawdopodobieństwo ciąży nie jest już wyświetlane.
+• Szacunek okna płodnego jest domyślnie wyłączony, dostępny tylko dla dorosłych, którzy włączą go w ustawieniach, i nigdy nie jest proponowany osobom poniżej 18 lat. Często się myli i nie zastępuje antykoncepcji.
+• Ostrożniejsze teksty na ekranie głównym i w artykułach, wyraźniejsze etykiety karty 7 dni.

@@ -1,0 +1,3 @@
+• Die Schwangerschaftswahrscheinlichkeit wird nicht mehr angezeigt.
+• Die Schätzung des fruchtbaren Fensters ist standardmäßig ausgeschaltet, nur für Erwachsene verfügbar, die sie in den Einstellungen aktivieren, und wird unter 18 Jahren nie angeboten. Sie liegt oft daneben und ersetzt keine Verhütung.
+• Vorsichtigere Texte auf dem Startbildschirm und in den Artikeln, klarere Beschriftungen auf der 7-Tage-Karte.

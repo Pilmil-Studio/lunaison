@@ -1,0 +1,3 @@
+• La probabilité de grossesse n'est plus affichée.
+• L'estimation de la fenêtre fertile est désactivée par défaut, réservée aux adultes qui l'activent dans les réglages, et jamais proposée aux moins de 18 ans. Elle est souvent fausse et ne remplace pas une contraception.
+• Textes de l'accueil et des fiches plus prudents, libellés de la carte des 7 jours plus clairs.
