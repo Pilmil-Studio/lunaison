@@ -77,7 +77,7 @@ fun OnboardingScreen(
     val notifications = rememberNotificationAccess(onAnswered = { notificationsAsked = true })
     val notificationsOn = notifications.allowed
 
-    fun baseline() = OnboardingFlow.finalBaseline(current ?: Baseline(AgeGroup.ADULT), ageGroup, lastStart?.let { LocalDate.parse(it) }, usualLength, periodLength)
+    fun baseline() = OnboardingFlow.finalBaseline(current ?: Baseline(AgeGroup.UNDER_18), ageGroup, lastStart?.let { LocalDate.parse(it) }, usualLength, periodLength)
     fun goNext() {
         OnboardingFlow.next(step, hasHistory)?.let { stepIndex = it.ordinal }
     }

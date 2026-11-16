@@ -125,6 +125,7 @@ fun HomeScreen(
                 cycle = followedCycle,
                 onRescan = { showPartnerScanner = true },
                 onRemove = { actions.updateSettings { it.copy(followedPartner = null) } },
+                showFertilityWindow = state.settings.isAdult,
             )
             val guide = remember(followedCycle.phase) { ShareMessages.partnerGuide(followedCycle.phase) }
             SectionTitle(tr("Comprendre sa phase actuelle", "Understand their current phase", pl = "Zrozum jej obecną fazę", uk = "Зрозуміти поточну фазу партнерки", es = "Entender su fase actual", de = "Die aktuelle Phase verstehen"))
@@ -235,9 +236,8 @@ fun HomeScreen(
             }
             cycle is CycleState.Known -> CycleCard(
                 cycle,
-                showFertility = state.settings.showFertility,
-                // Probabilité de grossesse : seulement si la personne a choisi d'afficher la fertilité, et majeure.
-                showPregnancyOdds = state.settings.showFertility && state.settings.isAdult,
+                // Fenêtre fertile estimée : adultes seulement, et seulement si la personne l'a activée.
+                showFertility = state.settings.showFertility && state.settings.isAdult,
                 onArticle = onArticle,
             )
         }
@@ -341,6 +341,7 @@ fun HomeScreen(
                     cycle = followedCycle,
                     onRescan = { showPartnerScanner = true },
                     onRemove = { actions.updateSettings { it.copy(followedPartner = null) } },
+                    showFertilityWindow = state.settings.isAdult,
                 )
             } else {
                 LunaButton(
@@ -556,7 +557,7 @@ private fun RecapCard(recap: CycleRecap, onInsights: () -> Unit, onDismiss: () -
 }
 
 @Composable
-private fun CycleCard(cycle: CycleState.Known, showFertility: Boolean, showPregnancyOdds: Boolean, onArticle: (String) -> Unit) {
+private fun CycleCard(cycle: CycleState.Known, showFertility: Boolean, onArticle: (String) -> Unit) {
     val phaseName = Format.phaseName(cycle.phase)
     LunaCard(container = MaterialTheme.colorScheme.primaryContainer) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -586,35 +587,8 @@ private fun CycleCard(cycle: CycleState.Known, showFertility: Boolean, showPregn
             }
         }
 
-        // Probabilités estimées de grossesse au jour le jour
-        if (showPregnancyOdds) Surface(
-            shape = RoundedCornerShape(12.dp),
-            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        tr("Chances de grossesse :", "Pregnancy likelihood:", pl = "Szansa na ciążę:", uk = "Імовірність вагітності:", es = "Probabilidad de embarazo:", de = "Schwangerschaftswahrscheinlichkeit:"),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                    Text(
-                        cycle.todayPregnancyOdds.label,
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                }
-                Text(
-                    cycle.todayPregnancyOdds.description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-            }
-        }
-
-        // Affichée en permanence dès que la fenêtre fertile ou la probabilité est visible, quel que soit le nombre de cycles.
-        if (showFertility || showPregnancyOdds) {
+        // Affichée en permanence dès que la fenêtre fertile est visible, quel que soit le nombre de cycles.
+        if (showFertility) {
             Text(
                 tr("Repère de calendrier : ne remplace pas une contraception.", "Calendar estimate: does not replace contraception.", pl = "Szacunek kalendarzowy: nie zastępuje antykoncepcji.", uk = "Календарна оцінка: не замінює контрацепцію.", es = "Estimación de calendario: no sustituye a un anticonceptivo.", de = "Kalenderschätzung: ersetzt keine Verhütung."),
                 style = MaterialTheme.typography.bodySmall,

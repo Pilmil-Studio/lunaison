@@ -83,6 +83,7 @@ fun SettingsScreen(
     val settings = state.settings
     val reminders = settings.reminders
     var confirmErase by rememberSaveable { mutableStateOf(false) }
+    var confirmFertility by rememberSaveable { mutableStateOf(false) }
     var showPinSetup by rememberSaveable { mutableStateOf(false) }
     var showImportSourceDialog by rememberSaveable { mutableStateOf(false) }
     var importResultMessage by rememberSaveable { mutableStateOf<String?>(null) }
@@ -202,16 +203,19 @@ fun SettingsScreen(
                 onToggle = { group ->
                     actions.updateSettings {
                         // Le partage est réservé aux adultes : on l'efface si la tranche change.
-                        it.copy(baseline = it.baseline.copy(ageGroup = group), partner = if (group == AgeGroup.ADULT) it.partner else null)
+                        it.copy(baseline = it.baseline.copy(ageGroup = group), partner = if (group == AgeGroup.ADULT) it.partner else null, showFertility = it.showFertility && group == AgeGroup.ADULT)
                     }
                 },
             )
             Muted(tr("Elle règle les repères de cycle normal et l'accès au partage.", "It sets the normal cycle ranges and access to sharing.", pl = "Określa typowe zakresy cyklu i dostęp do udostępniania.", uk = "Вона визначає звичні межі циклу та доступ до обміну.", es = "Define los intervalos habituales del ciclo y el acceso a compartir.", de = "Sie legt die üblichen Zyklusbereiche und den Zugang zum Teilen fest."))
-            SwitchRow(
-                tr("Afficher la fenêtre fertile estimée", "Show estimated fertile window", pl = "Pokaż szacowane dni płodne", uk = "Показувати орієнтовне фертильне вікно", es = "Mostrar la ventana fértil estimada", de = "Geschätztes fruchtbares Fenster anzeigen"),
-                checked = settings.showFertility,
-                onChange = { on -> actions.updateSettings { it.copy(showFertility = on) } },
-            )
+            // Réglage réservé aux adultes, désactivé par défaut ; l'activation passe par un avertissement.
+            if (settings.isAdult) {
+                SwitchRow(
+                    tr("Afficher la fenêtre fertile estimée", "Show estimated fertile window", pl = "Pokaż szacowane dni płodne", uk = "Показувати орієнтовне фертильне вікно", es = "Mostrar la ventana fértil estimada", de = "Geschätztes fruchtbares Fenster anzeigen"),
+                    checked = settings.showFertility,
+                    onChange = { on -> if (on) confirmFertility = true else actions.updateSettings { it.copy(showFertility = false) } },
+                )
+            }
             SwitchRow(
                 tr("Suivre les signes d'ovulation (glaire cervicale, température)", "Track ovulation signs (cervical mucus, temperature)", pl = "Śledź oznaki owulacji (śluz szyjkowy, temperatura)", uk = "Стежити за ознаками овуляції (цервікальний слиз, температура)", es = "Seguir los signos de ovulación (moco cervical, temperatura)", de = "Eisprungzeichen verfolgen (Zervixschleim, Temperatur)"),
                 checked = settings.trackOvulationSigns,
@@ -509,6 +513,21 @@ fun SettingsScreen(
         actions = actions,
         onResult = { importResultMessage = it },
     )
+
+    if (confirmFertility) {
+        AlertDialog(
+            onDismissRequest = { confirmFertility = false },
+            title = { Text(tr("Afficher la fenêtre fertile ?", "Show the fertile window?", pl = "Pokazać dni płodne?", uk = "Показувати фертильне вікно?", es = "¿Mostrar la ventana fértil?", de = "Fruchtbares Fenster anzeigen?")) },
+            text = { Text(tr("Cette estimation vient d'un calendrier : elle est souvent fausse, surtout si vos cycles sont irréguliers. Elle ne protège pas d'une grossesse et ne remplace pas une contraception.", "This estimate comes from a calendar: it is often wrong, especially if your cycles are irregular. It does not protect against pregnancy and does not replace contraception.", pl = "To szacunek kalendarzowy: często jest błędny, zwłaszcza przy nieregularnych cyklach. Nie chroni przed ciążą i nie zastępuje antykoncepcji.", uk = "Це календарна оцінка: вона часто буває хибною, особливо за нерегулярних циклів. Вона не захищає від вагітності й не замінює контрацепцію.", es = "Es una estimación de calendario: suele fallar, sobre todo si los ciclos son irregulares. No protege de un embarazo ni sustituye a un anticonceptivo.", de = "Das ist eine Kalenderschätzung: Sie ist oft falsch, besonders bei unregelmäßigen Zyklen. Sie schützt nicht vor einer Schwangerschaft und ersetzt keine Verhütung.")) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmFertility = false
+                    actions.updateSettings { it.copy(showFertility = true) }
+                }) { Text(tr("Activer", "Turn on", pl = "Włącz", uk = "Увімкнути", es = "Activar", de = "Aktivieren")) }
+            },
+            dismissButton = { TextButton(onClick = { confirmFertility = false }) { Text(tr("Annuler", "Cancel", pl = "Anuluj", uk = "Скасувати", es = "Cancelar", de = "Abbrechen")) } },
+        )
+    }
 
     if (confirmErase) {
         AlertDialog(
