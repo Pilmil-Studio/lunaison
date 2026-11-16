@@ -1,0 +1,1 @@
+• Corrections de l'édition iOS (bilan PDF, choix d'un contact). Rien ne change sur Android.

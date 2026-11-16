@@ -1,0 +1,4 @@
+• Nueva pantalla de bienvenida en el primer inicio: importación, bloqueo, recordatorios y ajustes, todo opcional.
+• Se elimina el uso compartido por NFC. Se puede seguir compartiendo por código QR y SMS.
+• Importación de Period Calendar más segura: tamaño de archivo limitado y mensajes distintos para un archivo dañado y una contraseña incorrecta.
+• Corregida la migración de algunas fechas y horas.

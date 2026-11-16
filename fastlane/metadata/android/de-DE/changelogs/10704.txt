@@ -1,0 +1,5 @@
+• Neue Artikel: Symptothermale Methode, Übergänge, vergessene Pille, Perimenopause.
+• „Wissen“ mit Kategorien, Mini-Schemata und Karte „Entdecken“; Tipps wiederholen sich nicht mehr.
+• Verschlüsselte .pilmil-Sicherung und CSV-Export, der in allen Sprachen gleich ist.
+• Stärkerer PIN-Schutz: Die Sperre bleibt nach wiederholten Versuchen bestehen.
+• Erinnerungen in der Zeitzone des Telefons berechnet.

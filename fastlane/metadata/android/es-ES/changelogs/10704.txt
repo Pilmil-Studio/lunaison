@@ -1,0 +1,5 @@
+• Nuevas fichas: sintotérmico, transiciones, olvido de la píldora, perimenopausia.
+• «Aprender» con categorías, miniesquemas y tarjeta «Descubrir»; los consejos ya no se repiten.
+• Copia cifrada .pilmil y exportación CSV idéntica en todos los idiomas.
+• PIN reforzado: el bloqueo persiste tras intentos repetidos.
+• Recordatorios calculados en la zona horaria del teléfono.

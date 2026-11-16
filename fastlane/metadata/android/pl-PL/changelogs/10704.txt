@@ -1,0 +1,5 @@
+• Nowe artykuły: metoda objawowo-termiczna, okresy przejściowe, pominięta tabletka, perimenopauza.
+• „Wiedza” z kategoriami, minischematami i kartą „Odkryj”; wskazówki już się nie powtarzają.
+• Szyfrowana kopia .pilmil i eksport CSV taki sam w każdym języku.
+• Mocniejszy kod PIN: blokada utrzymuje się po powtarzanych próbach.
+• Przypomnienia liczone w strefie czasowej telefonu.

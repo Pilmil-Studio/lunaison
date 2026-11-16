@@ -1,0 +1,1 @@
+• Korrekturen nur für die iOS-Ausgabe. Unter Android ändert sich nichts.

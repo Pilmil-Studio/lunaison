@@ -1,4 +1,6 @@
-Lunaison is an intimate menstrual cycle and symptom tracker designed for everyone experiencing cycles, from teenagers to adults and peri-menopause.
+Lunaison is an intimate menstrual cycle and symptom tracker designed for everyone experiencing cycles, from teenagers to adults and peri-menopause. Lunaison is neither a medical device nor a method of contraception.
+
+No account, no data sent, no Internet permission: everything stays on your phone. The code is open. Your next period is estimated from the median of your recent cycles and shown as a date range, not a single date.
 
 Fully open-source (MPL-2.0), free, ad-free, account-free, and 100% offline: Lunaison requires zero network permissions in its Android manifest. Your private reproductive health data is stored strictly on your device and is never uploaded anywhere.
 
@@ -9,7 +11,7 @@ CYCLE TRACKING AND PHYSIOLOGY
 • Symptom correlation engine: objective pattern detection connecting cycle phases with recurring symptoms.
 
 EVIDENCE-BASED EDUCATION
-• Concise, referenced articles (ACOG, ESRH, Inserm) explaining physiology without condescending metaphors.
+• Concise, referenced articles (ACOG, ESHRE, FIGO, Inserm) explaining physiology without condescending metaphors.
 • Adolescent cycle variability guidelines (21 to 45 days according to ACOG 2015).
 • Comprehensive guide on endometriosis, chronic pelvic pain, and red flag symptoms.
 

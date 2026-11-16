@@ -1,0 +1,4 @@
+• Nouvel accueil au premier lancement : import, verrouillage, rappels et réglages, tous facultatifs.
+• Le partage par NFC est retiré. Le partage reste possible par QR code et SMS.
+• Import Period Calendar plus sûr : taille des archives limitée, message distinct pour une archive corrompue et pour un mauvais mot de passe.
+• Correction de la migration de certaines dates et heures.
