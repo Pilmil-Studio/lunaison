@@ -29,6 +29,7 @@ import fr.lunaison.core.cycle.CycleInsights
 import fr.lunaison.core.cycle.CycleState
 import fr.lunaison.core.designsystem.ChoiceChips
 import fr.lunaison.core.designsystem.LunaButton
+import fr.lunaison.core.designsystem.LunaButtonStyle
 import fr.lunaison.core.designsystem.LunaCard
 import fr.lunaison.core.designsystem.SectionTitle
 import fr.lunaison.core.model.IntimacyKind
@@ -85,6 +86,21 @@ fun HealthReportScreen(
     val scope = rememberCoroutineScope()
     var exportError by remember { mutableStateOf<String?>(null) }
     var exporting by remember { mutableStateOf(false) }
+    // « Télécharger » : enregistre le PDF dans un dossier choisi, en plus du partage (absent quand le partage le propose déjà).
+    val savePdf = rememberHealthReportPdfSaver { success ->
+        if (success) {
+            showToast(context, tr(fr = "PDF enregistré.", en = "PDF saved.", pl = "Zapisano PDF.", uk = "PDF збережено.", es = "PDF guardado.", de = "PDF gespeichert."))
+        } else {
+            exportError = tr(
+                fr = "Impossible d'enregistrer le PDF.",
+                en = "Could not save the PDF.",
+                pl = "Nie udało się zapisać pliku PDF.",
+                uk = "Не вдалося зберегти PDF.",
+                es = "No se pudo guardar el PDF.",
+                de = "Das PDF konnte nicht gespeichert werden.",
+            )
+        }
+    }
 
     val logsLast90Days = remember(state.logs, state.today) {
         state.logs.filter { !it.date.isBefore(state.today.minusDays(90)) }
@@ -536,6 +552,17 @@ fun HealthReportScreen(
                     icon = Icons.Filled.Share,
                     enabled = !exporting,
                 )
+                if (savePdf != null) {
+                    LunaButton(
+                        tr(fr = "Télécharger le PDF", en = "Download the PDF", pl = "Pobierz PDF", uk = "Завантажити PDF", es = "Descargar el PDF", de = "PDF herunterladen"),
+                        onClick = {
+                            exportError = null
+                            savePdf(report, state.settings.reminders.medicationLabel, logsLast90Days, selectedSections)
+                        },
+                        style = LunaButtonStyle.Outlined,
+                        enabled = !exporting,
+                    )
+                }
             }
         }
     }

@@ -82,6 +82,16 @@ expect suspend fun shareHealthReportPdf(
     sections: Set<ReportSection>,
 )
 
+/**
+ * Enregistre le PDF du bilan dans un fichier choisi par la personne (« Télécharger »).
+ * `null` quand le partage du système propose déjà l'enregistrement (iOS : « Enregistrer dans Fichiers »).
+ * [onDone] n'est appelé que si un emplacement a été choisi.
+ */
+@Composable
+expect fun rememberHealthReportPdfSaver(
+    onDone: (success: Boolean) -> Unit,
+): ((report: HealthReport, medicationLabel: String, logs: List<DayLog>, sections: Set<ReportSection>) -> Unit)?
+
 /** L'import depuis une autre appli de suivi est proposé (Android seulement). */
 expect val importAvailable: Boolean
 

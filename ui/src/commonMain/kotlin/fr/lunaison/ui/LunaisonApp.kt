@@ -26,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
@@ -73,6 +74,24 @@ private enum class Tab(
     ;
 
     val label: String get() = tr(fr, en, pl, uk, es, de)
+}
+
+/**
+ * Libellé d'onglet toujours sur une seule ligne : si le mot ne tient pas (écran étroit, grande taille de police),
+ * la police rétrécit par paliers au lieu de renvoyer la dernière lettre à la ligne.
+ */
+@Composable
+private fun TabLabel(text: String) {
+    val base = MaterialTheme.typography.labelMedium
+    var scale by remember(text) { mutableStateOf(1f) }
+    Text(
+        text,
+        style = base.copy(fontSize = base.fontSize * scale),
+        maxLines = 1,
+        softWrap = false,
+        overflow = TextOverflow.Ellipsis,
+        onTextLayout = { if (it.hasVisualOverflow && scale > 0.7f) scale -= 0.05f },
+    )
 }
 
 @Composable
@@ -283,7 +302,7 @@ private fun MainScaffold(
                             selected = route == tab.route,
                             onClick = { navController.openTab(tab.route) },
                             icon = { Icon(tab.icon, contentDescription = null) },
-                            label = { Text(tab.label, style = MaterialTheme.typography.labelMedium) },
+                            label = { TabLabel(tab.label) },
                             alwaysShowLabel = true,
                         )
                     }
