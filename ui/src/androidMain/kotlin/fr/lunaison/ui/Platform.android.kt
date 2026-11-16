@@ -472,6 +472,57 @@ actual suspend fun shareHealthReportPdf(
     sharePdf(context, file)
 }
 
+/** Données du bilan gardées le temps que la personne choisisse où enregistrer le fichier. */
+private class PendingReport(
+    val report: HealthReport,
+    val medicationLabel: String,
+    val logs: List<DayLog>,
+    val sections: Set<ReportSection>,
+)
+
+@Composable
+actual fun rememberHealthReportPdfSaver(
+    onDone: (success: Boolean) -> Unit,
+): ((report: HealthReport, medicationLabel: String, logs: List<DayLog>, sections: Set<ReportSection>) -> Unit)? {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val done by rememberUpdatedState(onDone)
+    var pending by remember { mutableStateOf<PendingReport?>(null) }
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/pdf")) { uri ->
+        val request = pending
+        pending = null
+        if (uri != null && request != null) {
+            scope.launch {
+                val success = withContext(Dispatchers.IO) {
+                    try {
+                        val document = buildReportDocument(request.report, request.medicationLabel, request.logs, request.sections)
+                        val file = HealthReportPdf.export(context, document)
+                        val output = context.contentResolver.openOutputStream(uri)
+                        if (output == null) {
+                            false
+                        } else {
+                            output.use { out -> file.inputStream().use { it.copyTo(out) } }
+                            true
+                        }
+                    } catch (_: Exception) {
+                        false
+                    }
+                }
+                done(success)
+            }
+        }
+    }
+    return { report, medicationLabel, logs, sections ->
+        pending = PendingReport(report, medicationLabel, logs, sections)
+        try {
+            launcher.launch(HealthReportPdf.FILE_NAME)
+        } catch (_: ActivityNotFoundException) {
+            pending = null
+            done(false)
+        }
+    }
+}
+
 /** Ouvre le sélecteur de partage pour le PDF, lu par les autres applis via le FileProvider de Lunaison. */
 private fun sharePdf(context: Context, file: File) {
     val uri = FileProvider.getUriForFile(context, "${context.packageName}.fichiers", file)

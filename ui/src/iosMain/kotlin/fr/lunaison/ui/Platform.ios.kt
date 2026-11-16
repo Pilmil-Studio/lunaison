@@ -293,6 +293,12 @@ actual suspend fun shareHealthReportPdf(
     onMain { presentShareSheet(listOf(NSURL.fileURLWithPath(path))) }
 }
 
+// iOS : la feuille de partage propose déjà « Enregistrer dans Fichiers », pas de second bouton.
+@Composable
+actual fun rememberHealthReportPdfSaver(
+    onDone: (success: Boolean) -> Unit,
+): ((report: HealthReport, medicationLabel: String, logs: List<DayLog>, sections: Set<ReportSection>) -> Unit)? = null
+
 actual val importAvailable: Boolean = true
 
 @Composable
