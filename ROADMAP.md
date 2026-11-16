@@ -13,7 +13,7 @@
 - Maintien des captures d'écran Paparazzi à jour pour les fiches stores (6 langues).
 
 ## 3. Qualité de code & sécurité
-- **Prioritaire** : chiffrement complet de la base locale Room au repos (SQLCipher) en complément du verrou PIN (`PinThrottle`) et de la sauvegarde `.pilmil`.
+- **En cours** (branche `chiffrement-base`) : base Room chiffrée au repos par SQLCipher sur Android, conversion des bases existantes, protection de fichier sur iOS ([documentation/chiffrement.md](documentation/chiffrement.md)). Reste : message proposant la restauration `.pilmil` quand une base illisible est mise de côté, pilote chiffré pour iOS.
 - Sauvegarde système Android configurable par application (`-Ppilmil.allowAutoBackup=false` par défaut, règles `data_extraction_rules.xml` excluant le cloud).
 - Renforcement des tests unitaires sur les parcours critiques (verrou PIN, temporisation `PinThrottle`, import/export, calculs de cycle) et suivi `lintDebug` en CI.
 - À faire : ajouter `ktlint` / `detekt` et déplacer les tests sans `java.util.Locale` vers `commonTest`.

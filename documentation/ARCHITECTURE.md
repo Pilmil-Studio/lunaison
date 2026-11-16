@@ -21,7 +21,7 @@ Dans `app/src/main/AndroidManifest.xml` :
   - `POST_NOTIFICATIONS` : rappels locaux discrets.
   - `CAMERA` (`android:required="false"`) : scan du QR Code partenaire uniquement.
 - **Aucune permission `INTERNET`** : aucune connexion réseau possible.
-- **`android:allowBackup="false"`** par défaut et `data_extraction_rules.xml` bloquant toute sauvegarde cloud (tout en autorisant le transfert local appareil à appareil).
+- **`android:allowBackup="false"`** par défaut et `data_extraction_rules.xml` bloquant toute sauvegarde cloud (le transfert local appareil à appareil n'emporte plus la base chiffrée ni sa clé, voir `chiffrement.md`).
 - **`<queries>`** : `com.whatsapp`, `com.whatsapp.w4b`, `org.thoughtcrime.securesms` (Signal) et `smsto` pour le partage explicite vers messagerie.
 
 ---

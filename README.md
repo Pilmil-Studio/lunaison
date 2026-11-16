@@ -66,7 +66,7 @@ L'appli reste au strict nécessaire. Ce qu'elle ne dit pas elle-même, d'où vie
 ## Vie privée
 
 - Aucune permission Internet, aucun SDK tiers, aucun compte.
-- **Sauvegarde dans le nuage désactivée par défaut** (`pilmil-core`) : les données de santé ne passent par aucun serveur. Sont disponibles le transfert direct vers un nouveau téléphone, l'export et l'import **CSV Lunaison** (en-tête et valeurs identiques dans toutes les langues), et, sur Android seulement, la **sauvegarde chiffrée complète `.pilmil`** (AES-256-GCM, mot de passe de votre choix : journal et réglages, sans le code PIN) avec restauration qui remplace les données du téléphone et l'**import direct des archives de l'application Calendrier des règles**, traités 100 % localement.
+- **Sauvegarde dans le nuage désactivée par défaut** (`pilmil-core`) : les données de santé ne passent par aucun serveur. La base Android est chiffrée au repos (SQLCipher, clé protégée par le Keystore, voir [documentation/chiffrement.md](documentation/chiffrement.md)) et ne part dans aucun transfert direct. Sont disponibles l'export et l'import **CSV Lunaison** (en-tête et valeurs identiques dans toutes les langues), et, sur Android seulement, la **sauvegarde chiffrée complète `.pilmil`** (AES-256-GCM, mot de passe de votre choix : journal et réglages, sans le code PIN) avec restauration qui remplace les données du téléphone et l'**import direct des archives de l'application Calendrier des règles**, traités 100 % localement.
 - **Verrouillage par code PIN** avec temporisation anti-bruteforce (`PinThrottle`) et masquage dans les applications récentes.
 - Le sélecteur de contacts du système donne accès au seul contact choisi, sans autorisation sur le carnet d'adresses.
 - Effacement complet en un geste.

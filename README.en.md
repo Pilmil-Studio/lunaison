@@ -66,7 +66,7 @@ The app sticks to what is necessary. What it does not say itself, where its refe
 ## Privacy
 
 - No Internet permission, no third-party SDK, no account.
-- Cloud backup turned off by default (`pilmil-core`): health data never passes through any server. Direct device-to-device transfer is supported, along with CSV export and import (same header and values in every language), and, on Android only, a **full encrypted `.pilmil` backup** (AES-256-GCM, a password you choose: log and settings, without the PIN code) with a restore that replaces the phone's data, and **direct import of password-protected Period Calendar archives**, processed 100% locally.
+- Cloud backup turned off by default (`pilmil-core`): health data never passes through any server. On Android the database is encrypted at rest (SQLCipher, key protected by the Keystore, see [documentation/chiffrement.md](documentation/chiffrement.md)) and is left out of device-to-device transfer. Available: CSV export and import (same header and values in every language), and, on Android only, a **full encrypted `.pilmil` backup** (AES-256-GCM, a password you choose: log and settings, without the PIN code) with a restore that replaces the phone's data, and **direct import of password-protected Period Calendar archives**, processed 100% locally.
 - Optional 4-digit PIN lock with anti-bruteforce throttling (`PinThrottle`) and hidden preview in recent apps.
 - The system contact picker gives access only to the chosen contact, with no permission on the address book.
 - Complete erasure in one tap.

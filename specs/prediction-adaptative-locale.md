@@ -10,7 +10,7 @@
 La quasi-totalité des applications commerciales de suivi menstruel justifient la création d'un compte et l'envoi des données vers des serveurs distants par la promesse d'une « IA de prédiction ». Dans **Lunaison**, démontrer qu'une modélisation locale rigoureuse fonctionne **sans quitter le coffre chiffré par code PIN** répond directement à ce besoin :
 - **Zéro permission réseau** (`INTERNET` absent du manifeste) ;
 - **Zéro télémétrie, zéro compte** ;
-- Données et paramètres appris conservés exclusivement sur le téléphone, dans la base locale (non chiffrée à ce jour, l'accès à l'appli pouvant être protégé par un code PIN), et inclus dans l'export `.pilmil` chiffré si l'utilisatrice sauvegarde son coffre).
+- Données et paramètres appris conservés exclusivement sur le téléphone, dans la base locale (chiffrée au repos sur Android, voir documentation/chiffrement.md ; l'accès à l'appli peut en plus être protégé par un code PIN), et inclus dans l'export `.pilmil` chiffré si l'utilisatrice sauvegarde son coffre).
 
 ---
 
@@ -37,4 +37,4 @@ Au lieu d'afficher une date unique faussement exacte :
 
 - **Implémentation** : moteur déterministe en Kotlin pur dans `:shared` (zéro dépendance externe lourde, exécution < 1 ms, testable par tests unitaires).
 - **Persistance** : les paramètres personnalisés peuvent être recalculés à la volée depuis l'historique local, sans même nécessiter de fichier séparé non chiffré.
-- **Portabilité** : fonctionne à l'identique sur Android et iOS (via Kotlin Multiplatform) et reste compatible avec le transfert direct pair-à-pair et la sauvegarde `.pilmil`.
+- **Portabilité** : fonctionne à l'identique sur Android et iOS (via Kotlin Multiplatform) et reste compatible avec la sauvegarde `.pilmil`.
