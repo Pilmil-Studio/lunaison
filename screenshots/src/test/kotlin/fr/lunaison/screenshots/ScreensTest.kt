@@ -94,7 +94,7 @@ object Sample {
     val periodToday: LocalDate = LocalDate.of(2026, 10, 9)
 }
 
-private object NoActions : Actions {
+internal object NoActions : Actions {
     override fun save(log: DayLog) = Unit
     override fun updateSettings(transform: (AppSettings) -> AppSettings) = Unit
     override fun eraseAll() = Unit
