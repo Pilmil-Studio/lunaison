@@ -480,9 +480,11 @@ private fun NSData.toByteArray(): ByteArray {
 
 actual val cloudBackupControllable: Boolean = true
 
-actual fun isCloudBackupEnabled(): Boolean = !isBackupExcluded()
+actual val cloudBackupOptIn: Boolean = false
 
-actual fun setCloudBackupEnabled(enabled: Boolean) = setBackupExcluded(!enabled)
+actual fun isCloudBackupEnabled(context: PlatformContext): Boolean = !isBackupExcluded()
+
+actual fun setCloudBackupEnabled(context: PlatformContext, enabled: Boolean) = setBackupExcluded(!enabled)
 
 actual fun encodeQr(content: String): QrMatrix? {
     val filter = CIFilter.filterWithName("CIQRCodeGenerator") ?: return null

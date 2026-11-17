@@ -155,12 +155,19 @@ expect suspend fun readRestoreOffer(context: PlatformContext): RestoreOffer?
 /** La personne a restauré ou commencé à zéro : le message sur la base mise de côté disparaît. */
 expect fun acknowledgeRestoreOffer(context: PlatformContext)
 
-/** La sauvegarde iCloud de l'iPhone inclut les données ; la personne peut l'exclure (iOS seulement). */
+/**
+ * Réglage de la copie dans le nuage de la plateforme.
+ * iOS : la sauvegarde iCloud inclut les données par défaut, la personne peut les exclure.
+ * Android : la copie dans le compte Google est désactivée par défaut, la personne peut l'activer (Android 12 et plus).
+ */
 expect val cloudBackupControllable: Boolean
 
-expect fun isCloudBackupEnabled(): Boolean
+/** Vrai quand la copie n'existe que sur choix explicite de la personne (Android). */
+expect val cloudBackupOptIn: Boolean
 
-expect fun setCloudBackupEnabled(enabled: Boolean)
+expect fun isCloudBackupEnabled(context: PlatformContext): Boolean
+
+expect fun setCloudBackupEnabled(context: PlatformContext, enabled: Boolean)
 
 /** Matrice de modules d'un QR Code (vrai = module sombre). */
 class QrMatrix(val width: Int, val height: Int, private val modules: BooleanArray) {

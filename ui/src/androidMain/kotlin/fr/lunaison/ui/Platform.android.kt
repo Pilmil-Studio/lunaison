@@ -43,6 +43,8 @@ import fr.lunaison.ui.backup.AutoBackupStatus
 import fr.lunaison.ui.backup.PrivateCopyFile
 import fr.lunaison.ui.backup.RestoreOffer
 import fr.lunaison.ui.backup.RestoreReason
+import fr.lunaison.ui.backup.BackupPolicy
+import fr.lunaison.ui.backup.CloudBackupConsent
 import kotlinx.datetime.LocalDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -596,12 +598,10 @@ private fun sharePdf(context: Context, file: File) {
 
 actual val importAvailable: Boolean = true
 
-// Android : la sauvegarde automatique est désactivée dans le manifeste, rien à régler.
-actual val cloudBackupControllable: Boolean = false
+// Android : copie dans le compte Google désactivée par défaut, activable à partir d'Android 12 (voir LunaisonBackupAgent).
+actual val cloudBackupControllable: Boolean = BackupPolicy.settingAvailable(Build.VERSION.SDK_INT)
 
-actual fun isCloudBackupEnabled(): Boolean = false
-
-actual fun setCloudBackupEnabled(enabled: Boolean) = Unit
+actual val cloudBackupOptIn: Boolean = true
 
 // Android : WorkManager observe déjà le dépôt dans LunaisonApplication.
 actual fun syncReminders(settings: AppSettings, prediction: Prediction?) = Unit
@@ -655,4 +655,12 @@ actual suspend fun readRestoreOffer(context: PlatformContext): RestoreOffer? = w
 
 actual fun acknowledgeRestoreOffer(context: PlatformContext) {
     if (DatabaseRecovery.keyLostNoticePending(context)) DatabaseRecovery.acknowledgeKeyLost(context)
+}
+
+// Le dossier peut être absent hors d'un vrai téléphone (captures d'écran) : la copie est alors désactivée.
+actual fun isCloudBackupEnabled(context: PlatformContext): Boolean =
+    context.noBackupFilesDir?.let { CloudBackupConsent(it).enabled } ?: false
+
+actual fun setCloudBackupEnabled(context: PlatformContext, enabled: Boolean) {
+    context.noBackupFilesDir?.let { CloudBackupConsent(it).enabled = enabled }
 }

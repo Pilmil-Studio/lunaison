@@ -22,10 +22,16 @@
         </intent>
     </queries>
 
-    <!-- Pas de sauvegarde dans le nuage. La base chiffrée ne part dans aucun transfert (voir data_extraction_rules et documentation/chiffrement.md). -->
+    <!--
+        Sauvegarde système : seul le dernier fichier .pilmil chiffré par la phrase secrète (dossier privé « sauvegarde-privee »)
+        peut partir, jamais la base ni les clés. Copie dans le compte Google désactivée par défaut et à la demande
+        (voir LunaisonBackupAgent et data_extraction_rules.xml). Le transfert direct vers un nouveau téléphone reste permis.
+    -->
     <application
         android:name=".LunaisonApplication"
         android:allowBackup="${allowAutoBackup}"
+        android:backupAgent=".LunaisonBackupAgent"
+        android:fullBackupOnly="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="false"
         android:icon="@mipmap/ic_launcher"

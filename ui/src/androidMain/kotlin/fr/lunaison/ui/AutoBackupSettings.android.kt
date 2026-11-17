@@ -1,10 +1,16 @@
 package fr.lunaison.ui
 
+import android.app.KeyguardManager
+import android.content.Context
 import android.net.Uri
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -12,6 +18,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -23,6 +30,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -33,6 +42,8 @@ import fr.lunaison.core.designsystem.LunaButtonStyle
 import fr.lunaison.core.model.tr
 import fr.lunaison.ui.backup.AutoBackup
 import fr.lunaison.ui.backup.AutoBackupStatus
+import fr.lunaison.ui.backup.BackupPolicy
+import fr.lunaison.ui.backup.CloudCopyBlocker
 import fr.lunaison.ui.backup.PassphraseRules
 import fr.lunaison.ui.backup.PassphraseStrength
 import fr.lunaison.ui.backup.RunResult
@@ -157,6 +168,7 @@ actual fun AutoBackupSettings() {
                 },
                 style = LunaButtonStyle.Outlined,
             )
+            CloudCopySetting(passphraseSet = false, refresh = refresh)
         }
         is AutoBackupStatus.Configured -> {
             Text(
@@ -238,6 +250,7 @@ actual fun AutoBackupSettings() {
                 style = LunaButtonStyle.Quiet,
                 enabled = !working,
             )
+            CloudCopySetting(passphraseSet = true, refresh = refresh)
         }
     }
     message?.let { Muted(it) }
@@ -436,5 +449,86 @@ actual fun AutoBackupSettings() {
             },
         )
         null -> Unit
+    }
+}
+
+private fun deviceHasScreenLock(context: Context): Boolean = runCatching {
+    (context.getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager)?.isDeviceSecure == true
+}.getOrDefault(false)
+
+/**
+ * Copie dans le compte Google, sur demande : seul le dernier fichier .pilmil chiffré par la phrase secrète est
+ * concerné (jamais la base ni les clés). Activable seulement si une phrase est définie et si le téléphone a un
+ * verrouillage d'écran ; masquée avant Android 12.
+ */
+@Composable
+private fun CloudCopySetting(passphraseSet: Boolean, refresh: Int) {
+    val context = LocalContext.current
+    if (!BackupPolicy.settingAvailable(Build.VERSION.SDK_INT)) return
+    var enabled by remember(refresh) { mutableStateOf(isCloudBackupEnabled(context)) }
+    val blocker = BackupPolicy.blocker(Build.VERSION.SDK_INT, deviceHasScreenLock(context), passphraseSet)
+    if (blocker == CloudCopyBlocker.NO_PASSPHRASE) {
+        Muted(
+            tr(
+                "La copie dans votre compte Google est disponible une fois la sauvegarde automatique configurée : elle emporte le fichier chiffré par votre phrase secrète.",
+                "Copying to your Google account is available once automatic backup is set up: the copy carries the file encrypted with your secret phrase.",
+                pl = "Kopia na koncie Google jest dostępna po skonfigurowaniu automatycznej kopii: obejmuje plik zaszyfrowany Twoją tajną frazą.",
+                uk = "Копіювання в акаунт Google доступне після налаштування автоматичної копії: копіюється файл, зашифрований вашою таємною фразою.",
+                es = "La copia en tu cuenta de Google está disponible cuando la copia automática esté configurada: lleva el archivo cifrado con tu frase secreta.",
+                de = "Die Kopie in dein Google-Konto ist verfügbar, sobald die automatische Sicherung eingerichtet ist: Sie enthält die mit deiner geheimen Phrase verschlüsselte Datei.",
+            ),
+        )
+        return
+    }
+    Text(
+        tr(
+            "Copie dans votre compte Google : désactivée par défaut. Si vous l'activez, Android copie dans votre compte Google uniquement le dernier fichier de sauvegarde, déjà chiffré par votre phrase secrète : jamais la base ni les clés. Android chiffre en plus cette copie avec le code de verrouillage de votre téléphone. Sur un nouveau téléphone, Lunaison retrouve ce fichier, mais il faudra votre phrase secrète pour le rouvrir. Désactiver le réglage n'efface pas une copie déjà envoyée.",
+            "Copy to your Google account: off by default. If you turn it on, Android copies to your Google account only the latest backup file, already encrypted with your secret phrase: never the database or the keys. Android also encrypts this copy with your phone's lock code. On a new phone, Lunaison finds this file, but your secret phrase is needed to open it. Turning the setting off does not delete a copy already sent.",
+            pl = "Kopia na koncie Google: domyślnie wyłączona. Po włączeniu Android kopiuje na Twoje konto Google tylko ostatni plik kopii, już zaszyfrowany Twoją tajną frazą: nigdy bazy ani kluczy. Android dodatkowo szyfruje tę kopię kodem blokady telefonu. Na nowym telefonie Lunaison znajdzie ten plik, ale do jego otwarcia potrzebna będzie Twoja tajna fraza. Wyłączenie ustawienia nie usuwa kopii, która została już wysłana.",
+            uk = "Копія в акаунті Google: вимкнено за замовчуванням. Якщо ввімкнути, Android копіює у ваш акаунт Google лише останній файл копії, уже зашифрований вашою таємною фразою: ніколи не базу й не ключі. Android додатково шифрує цю копію кодом блокування телефону. На новому телефоні Lunaison знайде цей файл, але щоб його відкрити, знадобиться ваша таємна фраза. Вимкнення налаштування не видаляє копію, яку вже надіслано.",
+            es = "Copia en tu cuenta de Google: desactivada por defecto. Si la activas, Android copia en tu cuenta de Google solo el último archivo de copia, ya cifrado con tu frase secreta: nunca la base de datos ni las claves. Android cifra además esta copia con el código de bloqueo de tu teléfono. En un teléfono nuevo, Lunaison encuentra este archivo, pero hará falta tu frase secreta para abrirlo. Desactivar el ajuste no borra una copia ya enviada.",
+            de = "Kopie in dein Google-Konto: standardmäßig aus. Wenn du sie einschaltest, kopiert Android nur die letzte Sicherungsdatei in dein Google-Konto, bereits mit deiner geheimen Phrase verschlüsselt: nie die Datenbank und nie die Schlüssel. Android verschlüsselt diese Kopie zusätzlich mit dem Sperrcode deines Handys. Auf einem neuen Handy findet Lunaison diese Datei, aber zum Öffnen braucht es deine geheime Phrase. Das Ausschalten löscht keine bereits gesendete Kopie.",
+        ),
+        style = MaterialTheme.typography.bodyMedium,
+    )
+    if (blocker == CloudCopyBlocker.NO_SCREEN_LOCK) {
+        Muted(
+            tr(
+                "Indisponible tant que votre téléphone n'a pas de verrouillage d'écran : sans lui, Android ne chiffre pas la copie.",
+                "Unavailable until your phone has a screen lock: without it, Android does not encrypt the copy.",
+                pl = "Niedostępne, dopóki telefon nie ma blokady ekranu: bez niej Android nie szyfruje kopii.",
+                uk = "Недоступно, доки на телефоні немає блокування екрана: без нього Android не шифрує копію.",
+                es = "No disponible hasta que tu teléfono tenga bloqueo de pantalla: sin él, Android no cifra la copia.",
+                de = "Nicht verfügbar, solange dein Handy keine Displaysperre hat: Ohne sie verschlüsselt Android die Kopie nicht.",
+            ),
+        )
+    }
+    val usable = blocker == null
+    val label = tr(
+        "Copier dans mon compte Google",
+        "Copy to my Google account",
+        pl = "Kopiuj na moje konto Google",
+        uk = "Копіювати в мій акаунт Google",
+        es = "Copiar en mi cuenta de Google",
+        de = "In mein Google-Konto kopieren",
+    )
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .heightIn(min = 56.dp)
+            .toggleable(
+                value = enabled && usable,
+                enabled = usable,
+                role = Role.Switch,
+                onValueChange = {
+                    enabled = it
+                    setCloudBackupEnabled(context, it)
+                },
+            ),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+        Switch(checked = enabled && usable, onCheckedChange = null, enabled = usable)
     }
 }

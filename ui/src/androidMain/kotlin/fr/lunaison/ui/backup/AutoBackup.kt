@@ -217,6 +217,8 @@ object AutoBackup {
         runCatching { BackupPassphraseStore(app).clear() }
         config.clearBackupState()
         runCatching { privateCopy(app).delete() }
+        // Sans phrase, la copie dans le compte Google n'a plus rien à emporter : le réglage est remis à « désactivé ».
+        app.noBackupFilesDir?.let { CloudBackupConsent(it).enabled = false }
         Unit
     }
 
