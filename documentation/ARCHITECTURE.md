@@ -21,7 +21,7 @@ Dans `app/src/main/AndroidManifest.xml` :
   - `POST_NOTIFICATIONS` : rappels locaux discrets.
   - `CAMERA` (`android:required="false"`) : scan du QR Code partenaire uniquement.
 - **Aucune permission `INTERNET`** : aucune connexion réseau possible.
-- **`android:allowBackup="false"`** par défaut et `data_extraction_rules.xml` bloquant toute sauvegarde cloud (le transfert local appareil à appareil n'emporte plus la base chiffrée ni sa clé, voir `chiffrement.md`).
+- **`android:allowBackup`** actif (`true` par défaut) avec `LunaisonBackupAgent` et `data_extraction_rules.xml` : seul le dossier privé `sauvegarde-privee` (le dernier `.pilmil`, déjà chiffré par la phrase secrète) peut être copié, ni la base chiffrée ni les clés. La copie dans le compte Google est désactivée par défaut, à la demande, et refusée sans chiffrement de bout en bout (voir `chiffrement.md`).
 - **`<queries>`** : `com.whatsapp`, `com.whatsapp.w4b`, `org.thoughtcrime.securesms` (Signal) et `smsto` pour le partage explicite vers messagerie.
 
 ---

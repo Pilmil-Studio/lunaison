@@ -41,7 +41,7 @@ L'accueil se déroule en **5 étapes** :
 - **Rappels** : alerte avant les règles (0 à 7 j), rappel de notation, rappel pilule/traitement.
 - **Mon cycle** : tranche d'âge, affichage fenêtre fertile, suivi symptothermique (glaire + température basale), **mode cycles naturellement irréguliers** (SOPK, périménopause, arrêt de pilule), mise en pause des prévisions (grossesse/allaitement/contraception continue).
 - **Apparence et sécurité** : 4 thèmes (*Prune*, *Sauge*, *Océan*, *Terracotta*) et gestion du code PIN.
-- **Données** : accès au bilan soignant, export CSV (`lunaison.csv`), **sauvegarde chiffrée (`.pilmil`)**, import de sauvegardes (`.pilmil`, CSV, ZIP chiffré), et suppression totale irréversible.
+- **Données** : accès au bilan soignant, export CSV (`lunaison.csv`), **sauvegarde chiffrée (`.pilmil`)**, **sauvegarde automatique** vers un dossier de votre choix (phrase secrète, jamais envoyée nulle part), import de sauvegardes (`.pilmil`, CSV, ZIP chiffré), et suppression totale irréversible.
 
 ---
 
