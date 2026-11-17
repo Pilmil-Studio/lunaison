@@ -8,6 +8,8 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -266,7 +268,12 @@ private fun DayCell(date: LocalDate, today: LocalDate, mark: DayMark, logged: Bo
 @Composable
 private fun Legend() {
     val colors = MaterialTheme.colorScheme
-    Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+    @OptIn(ExperimentalLayoutApi::class)
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
         LegendItem(tr("Règles", "Period", pl = "Miesiączka", uk = "Менструація", es = "Regla", de = "Periode")) { Surface(color = colors.secondary, shape = CircleShape, modifier = Modifier.size(16.dp)) {} }
         LegendItem(tr("Traces", "Spotting", pl = "Plamienie", uk = "Мажучі виділення", es = "Manchado", de = "Schmierblutung")) { Surface(color = colors.secondaryContainer, shape = CircleShape, modifier = Modifier.size(16.dp)) {} }
         LegendItem(tr("Prévues", "Predicted", pl = "Prognozowane", uk = "Прогнозовані", es = "Previstas", de = "Vorhergesagt")) {

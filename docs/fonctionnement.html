@@ -180,7 +180,7 @@
             </tr>
             <tr>
               <td><strong>4. Ovulation et phases du cycle</strong></td>
-              <td>Ovulation estimée à <code>prochaines_règles - 13 jours</code> (<code>LUTEAL_DAYS = 13</code>), entourée d'une fenêtre d'ovulation de <code>&plusmn;2 jours</code> (<code>OVULATION_WINDOW = 2</code>). Fenêtre fertile facultative : de <code>ovulation - 5 j</code> à <code>ovulation + 1 j</code>.</td>
+              <td>Ovulation estimée à <code>prochaines_règles - 13 jours</code> (<code>LUTEAL_DAYS = 13</code>), entourée d'une fenêtre d'ovulation de <code>&plusmn;2 jours</code> (<code>OVULATION_WINDOW = 2</code>). Estimation de la fenêtre fertile, de <code>ovulation - 5 j</code> à <code>ovulation + 1 j</code>. Une estimation de la fenêtre fertile existe pour les adultes qui l'activent dans les réglages. Elle est désactivée par défaut, n'est jamais proposée aux moins de 18 ans, est souvent fausse et ne remplace pas une contraception.</td>
               <td><a href="https://github.com/Pilmil-Studio/lunaison/blob/main/core/cycle/src/main/kotlin/fr/lunaison/core/cycle/CycleAnalyzer.kt"><code>CycleAnalyzer.kt</code></a></td>
             </tr>
             <tr>
