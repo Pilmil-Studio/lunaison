@@ -6,7 +6,7 @@ import androidx.room.Room
 import java.io.File
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 
-private const val DATABASE_NAME = "lunaison.db"
+internal const val DATABASE_NAME = "lunaison.db"
 private const val LOG_TAG = "Lunaison"
 
 /**

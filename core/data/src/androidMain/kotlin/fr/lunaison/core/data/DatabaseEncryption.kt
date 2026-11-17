@@ -104,6 +104,9 @@ internal class DatabaseFiles(val main: File) {
     val pending = File(main.path + "-chiffrement")
     val previous = File(main.path + "-ancienne")
 
+    /** Posé quand une base chiffrée arrive sans sa clé : l'appli propose alors de restaurer un fichier `.pilmil`. */
+    val keyLostMarker = File(main.path + "-cle-perdue")
+
     fun observe(): MigrationState {
         var kind = kindOf(main)
         // Fichier principal vide mais journal WAL rempli : les données sont dans le journal, en clair.
@@ -144,6 +147,10 @@ internal class DatabaseFiles(val main: File) {
 
     /** Base chiffrée qu'aucune clé ne permet plus d'ouvrir : mise de côté, jamais effacée. */
     fun quarantineMain(): File = setAside(main, "illisible")
+
+    fun markKeyLost() {
+        keyLostMarker.writeText("1")
+    }
 
     /** Ancienne base en clair d'origine inconnue : renommée, jamais effacée. */
     fun setAsidePrevious(): File = setAside(previous, "conservee")
@@ -293,6 +300,8 @@ internal class DatabaseEncryptor(
             keys.existing()?.let { return PreparedDatabase.Encrypted(it) }
             val moved = files.quarantineMain()
             log("Clé de la base introuvable : base illisible mise de côté (${moved.name})")
+            // Sans effet sur la suite si le repère ne s'écrit pas : l'appli démarre de toute façon sur une base neuve.
+            runCatching { files.markKeyLost() }
             return PreparedDatabase.Encrypted(keys.create())
         }
         // Pas encore de base : des journaux orphelins n'ont rien à apporter à une base neuve.

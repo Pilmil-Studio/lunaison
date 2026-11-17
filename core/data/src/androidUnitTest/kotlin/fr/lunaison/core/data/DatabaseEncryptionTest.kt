@@ -220,6 +220,14 @@ class DatabaseEncryptorTest {
         assertFalse(files.main.exists())
         val kept = dir.listFiles().orEmpty().single { it.name.startsWith("lunaison.db-illisible-") }
         assertContentEquals(foreign, kept.readBytes())
+        // L'appli le sait : elle proposera de restaurer un fichier .pilmil au lieu de démarrer en silence sur une base vide.
+        assertTrue(files.keyLostMarker.exists())
+    }
+
+    @Test
+    fun `installation neuve ou base convertie sans repere de cle perdue`() {
+        assertIs<PreparedDatabase.Encrypted>(encryptor.prepare())
+        assertFalse(files.keyLostMarker.exists())
     }
 
     @Test

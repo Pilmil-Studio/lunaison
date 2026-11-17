@@ -19,7 +19,10 @@ import javax.crypto.spec.GCMParameterSpec
  * le téléphone et ne part dans aucune sauvegarde. Elle n'exige pas le déverrouillage de l'écran, pour
  * que les rappels et le widget continuent de lire la base.
  */
-internal class AndroidKeystoreKeyWrapper(private val alias: String = KEY_ALIAS) : KeyWrapper {
+internal class AndroidKeystoreKeyWrapper(
+    private val alias: String = KEY_ALIAS,
+    private val aad: ByteArray = AAD,
+) : KeyWrapper {
 
     private fun keyStore(): KeyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
 
@@ -28,7 +31,7 @@ internal class AndroidKeystoreKeyWrapper(private val alias: String = KEY_ALIAS) 
     override fun wrap(plain: ByteArray): ByteArray {
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, secretKey() ?: generateKey())
-        cipher.updateAAD(AAD)
+        cipher.updateAAD(aad)
         val iv = cipher.iv
         check(iv.size == IV_BYTES) { "Vecteur d'initialisation inattendu" }
         return byteArrayOf(FORMAT_VERSION) + iv + cipher.doFinal(plain)
@@ -43,7 +46,7 @@ internal class AndroidKeystoreKeyWrapper(private val alias: String = KEY_ALIAS) 
         } ?: return null
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(TAG_BITS, wrapped, 1, IV_BYTES))
-        cipher.updateAAD(AAD)
+        cipher.updateAAD(aad)
         return try {
             cipher.doFinal(wrapped, 1 + IV_BYTES, wrapped.size - 1 - IV_BYTES)
         } catch (e: AEADBadTagException) {
@@ -71,7 +74,7 @@ internal class AndroidKeystoreKeyWrapper(private val alias: String = KEY_ALIAS) 
         return generator.generateKey()
     }
 
-    private companion object {
+    internal companion object {
         const val ANDROID_KEYSTORE = "AndroidKeyStore"
         const val KEY_ALIAS = "lunaison_cle_enveloppe_base"
         const val TRANSFORMATION = "AES/GCM/NoPadding"
@@ -88,31 +91,35 @@ internal class AndroidKeystoreKeyWrapper(private val alias: String = KEY_ALIAS) 
  * tout transfert (voir data_extraction_rules.xml) : sur un autre téléphone, il serait de toute façon
  * illisible sans la clé d'enveloppe du Keystore.
  */
-internal class PreferencesWrappedKeyStore(context: Context) : WrappedKeyStore {
-    private val prefs = context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+internal class PreferencesWrappedKeyStore(
+    context: Context,
+    prefsName: String = PREFS_NAME,
+    private val entry: String = ENTRY,
+) : WrappedKeyStore {
+    private val prefs = context.applicationContext.getSharedPreferences(prefsName, Context.MODE_PRIVATE)
 
     override fun read(): ByteArray? {
-        val encoded = prefs.getString(ENTRY, null) ?: return null
+        val encoded = prefs.getString(entry, null) ?: return null
         return runCatching { Base64.decode(encoded, Base64.NO_WRAP) }.getOrNull()
     }
 
     // Écriture synchrone : la clé doit être sur le disque avant que la base chiffrée n'existe.
     @SuppressLint("ApplySharedPref")
     override fun write(value: ByteArray) {
-        check(prefs.edit().putString(ENTRY, Base64.encodeToString(value, Base64.NO_WRAP)).commit()) {
+        check(prefs.edit().putString(entry, Base64.encodeToString(value, Base64.NO_WRAP)).commit()) {
             "Enregistrement de la clé impossible"
         }
     }
 
     @SuppressLint("ApplySharedPref")
     override fun clear() {
-        prefs.edit().remove(ENTRY).commit()
+        prefs.edit().remove(entry).commit()
     }
 
     companion object {
         /** Nom du fichier de préférences, repris dans data_extraction_rules.xml. */
         const val PREFS_NAME = "lunaison_cle_base"
-        private const val ENTRY = "cle_enveloppee"
+        const val ENTRY = "cle_enveloppee"
     }
 }
 
