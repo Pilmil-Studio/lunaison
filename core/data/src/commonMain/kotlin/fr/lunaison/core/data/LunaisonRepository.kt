@@ -55,7 +55,7 @@ data class Partner(val name: String, val phone: String?, val channel: PartnerCha
 
 data class AppSettings(
     val onboarded: Boolean = false,
-    val baseline: Baseline = Baseline(AgeGroup.ADULT),
+    val baseline: Baseline = Baseline(AgeGroup.UNDER_18),
     val reminders: ReminderSettings = ReminderSettings(),
     val partner: Partner? = null,
     /** Signaux masqués par la personne, avec la date du masquage : ils reviennent au bout de 60 jours. */
@@ -64,7 +64,7 @@ data class AppSettings(
     val recapSeen: LocalDate? = null,
     /** Met en pause les prévisions et les signaux (grossesse, allaitement, contraception continue). */
     val pausePredictions: Boolean = false,
-    /** Affiche la fenêtre fertile estimée et les chances de concevoir. */
+    /** Affiche la fenêtre fertile estimée (adultes seulement, désactivé par défaut). */
     val showFertility: Boolean = false,
     /** Palette de couleurs choisie. */
     val themePalette: ThemePalette = ThemePalette.PLUM,
@@ -379,7 +379,7 @@ internal fun DayLog.toEntity() = DayLogEntity(
 internal fun SettingsEntity.toModel() = AppSettings(
     onboarded = onboarded,
     baseline = Baseline(
-        ageGroup = ageGroup.toEnumOrNull<AgeGroup>() ?: AgeGroup.ADULT,
+        ageGroup = ageGroup.toEnumOrNull<AgeGroup>() ?: AgeGroup.UNDER_18,
         lastPeriodStart = lastPeriodStart?.let { LocalDate.parse(it) },
         usualCycleLength = usualCycleLength,
         usualPeriodLength = usualPeriodLength,

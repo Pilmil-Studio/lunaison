@@ -1,3 +1,5 @@
+• Ya no se muestra la probabilidad de embarazo.
+• Ventana fértil: desactivada por defecto, solo para adultos que la activan, nunca para menores de 18 años.
 • Fichas de las fases: puntos fuertes y retos reformulados según el nivel de evidencia.
 • Restauración: una copia sin ajustes conserva los del teléfono y su código PIN.
 • Opciones: marca y borde más visibles, contrastes comprobados.

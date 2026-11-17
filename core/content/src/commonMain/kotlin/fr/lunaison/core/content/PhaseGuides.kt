@@ -92,9 +92,13 @@ object PhaseGuides {
         whatHappensDe = "Die Gebärmutterschleimhaut wird abgestoßen und die Hormone sind auf dem Tiefststand. Müdigkeit und Schmerzen sind in den ersten Tagen häufig.",
         tips = listOf(
             Tip(
-                "La chaleur sur le bas du ventre soulage autant qu'un anti-inflammatoire dans les études. Attention aux brûlures : jamais de chaleur trop forte directement sur la peau.",
-                "In studies, heat on the lower belly relieves pain as well as an anti-inflammatory. Watch out for burns: never put very strong heat directly on the skin.",
+                "La chaleur sur le bas du ventre peut soulager les douleurs de règles. Attention aux brûlures : jamais de chaleur trop forte directement sur la peau.",
+                "Heat on the lower belly may ease period pain. Watch out for burns: never put very strong heat directly on the skin.",
                 listOf(Sources.HEAT_2018),
+                pl = "Ciepło na dolną część brzucha może łagodzić bóle miesiączkowe. Uważaj na oparzenia: nigdy nie przykładaj bardzo gorącego źródła bezpośrednio do skóry.",
+                uk = "Тепло на низ живота може полегшити менструальний біль. Остерігайтеся опіків: ніколи не прикладайте дуже гаряче джерело безпосередньо до шкіри.",
+                es = "El calor en la parte baja del vientre puede aliviar el dolor menstrual. Cuidado con las quemaduras: nunca apliques calor muy fuerte directamente sobre la piel.",
+                de = "Wärme auf dem Unterbauch kann Regelschmerzen lindern. Vorsicht vor Verbrennungen: Nie sehr starke Wärme direkt auf die Haut legen.",
                 pain = PAINFUL,
             ),
             Tip(
@@ -317,9 +321,13 @@ object PhaseGuides {
                 withoutStudy = true,
             ),
             Tip(
-                "Si une grossesse est possible, un test urinaire est en général fiable dès maintenant.",
-                "If a pregnancy is possible, a urine test is usually reliable from now on.",
+                "Si une grossesse est possible, un test urinaire peut être fait dès le premier jour de retard. Un résultat négatif est moins fiable : refaites le test après quelques jours.",
+                "If a pregnancy is possible, a urine test can be taken from the first day of a late period. A negative result is less reliable: repeat the test after a few days.",
                 withoutStudy = true,
+                pl = "Jeśli ciąża jest możliwa, test ciążowy z moczu można wykonać już od pierwszego dnia opóźnienia. Wynik ujemny jest mniej wiarygodny: powtórz test po kilku dniach.",
+                uk = "Якщо вагітність можлива, тест сечі можна зробити вже з першого дня затримки. Негативний результат менш надійний: повторіть тест через кілька днів.",
+                es = "Si un embarazo es posible, se puede hacer una prueba de orina desde el primer día de retraso. Un resultado negativo es menos fiable: repite la prueba pasados unos días.",
+                de = "Wenn eine Schwangerschaft möglich ist, kann ein Urintest ab dem ersten Tag der Verspätung gemacht werden. Ein negatives Ergebnis ist weniger zuverlässig: Wiederhole den Test nach einigen Tagen.",
             ),
             Tip(
                 "Sans règles depuis plus de trois mois, demandez un avis médical.",

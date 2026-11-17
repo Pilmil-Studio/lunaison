@@ -201,6 +201,8 @@ fun PartnerSnapshotCard(
     cycle: CycleState.Known,
     onRescan: (() -> Unit)? = null,
     onRemove: (() -> Unit)? = null,
+    /** Vrai seulement si la personne qui regarde est majeure : la fenêtre fertile du ou de la partenaire n'est jamais montrée aux moins de 18 ans. */
+    showFertilityWindow: Boolean = false,
 ) {
     var confirmRemove by rememberSaveable { mutableStateOf(false) }
     val guide = remember(cycle.phase) { ShareMessages.partnerGuide(cycle.phase) }
@@ -221,7 +223,7 @@ fun PartnerSnapshotCard(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
             )
-            if (snapshot.showFertility) {
+            if (snapshot.showFertility && showFertilityWindow) {
                 Text(
                     Format.fertileWindow(cycle),
                     style = MaterialTheme.typography.bodySmall,
