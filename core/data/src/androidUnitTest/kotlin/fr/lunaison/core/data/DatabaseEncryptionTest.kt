@@ -130,6 +130,21 @@ class DatabaseEncryptorTest {
     }
 
     @Test
+    fun `la conversion copie la base telle quelle et Room migre ensuite de 8 a 9`() {
+        writePlaintext(files.main, rows = 12)
+
+        val prepared = assertIs<PreparedDatabase.Encrypted>(encryptor.prepare())
+
+        // La conversion ne rejoue aucune migration : la version du schéma reste celle de la base d'origine (8).
+        val converted = engine.inspectEncrypted(files.main, sqlCipherRawKey(prepared.key))
+        assertEquals(8, converted.userVersion)
+        // Room trouve alors une base chiffrée en version 8 et enchaîne les migrations jusqu'à la version courante.
+        val chain = LunaisonDatabase.MIGRATIONS.filter { it.startVersion >= converted.userVersion }
+        assertEquals(listOf(8 to 9), chain.map { it.startVersion to it.endVersion })
+        assertEquals(9, LunaisonDatabase.MIGRATIONS.maxOf { it.endVersion })
+    }
+
+    @Test
     fun `deuxieme lancement sans nouvelle conversion`() {
         writePlaintext(files.main, rows = 3)
         val first = assertIs<PreparedDatabase.Encrypted>(encryptor.prepare()).key.copyOf()
