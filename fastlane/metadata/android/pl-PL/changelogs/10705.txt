@@ -1,3 +1,5 @@
+• Prawdopodobieństwo ciąży nie jest już wyświetlane.
+• Okno płodne: domyślnie wyłączone, tylko dla dorosłych, którzy je włączą, nigdy dla osób poniżej 18 lat.
 • Opisy faz: mocne strony i wyzwania sformułowane na nowo według poziomu dowodów.
 • Przywracanie: kopia bez ustawień zachowuje ustawienia telefonu i jego kod PIN.
 • Pola wyboru: wyraźniejszy znacznik i obramowanie, kontrasty przetestowane.

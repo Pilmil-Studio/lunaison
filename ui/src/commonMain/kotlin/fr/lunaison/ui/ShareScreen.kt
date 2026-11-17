@@ -327,6 +327,7 @@ private fun QrSyncSection(
             cycle = followedCycle,
             onRescan = { showScanner = true },
             onRemove = { actions.updateSettings { it.copy(followedPartner = null) } },
+            showFertilityWindow = state.settings.isAdult,
         )
     } else {
         LunaCard {

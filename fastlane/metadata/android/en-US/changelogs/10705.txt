@@ -1,3 +1,5 @@
+• The probability of pregnancy is no longer shown.
+• Fertile window: off by default, only for adults who turn it on, never offered to under-18s.
 • Phase guides: strengths and challenges reworded according to the level of evidence.
 • Restore: a backup without settings keeps the phone's settings and its PIN code.
 • Choice chips: more visible check mark and border, contrast tested.

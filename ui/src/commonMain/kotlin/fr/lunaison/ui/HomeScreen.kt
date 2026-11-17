@@ -8,16 +8,20 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.shape.CircleShape
@@ -65,6 +69,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import fr.lunaison.core.content.Articles
 import fr.lunaison.core.content.DailyTip
@@ -120,6 +125,7 @@ fun HomeScreen(
                 cycle = followedCycle,
                 onRescan = { showPartnerScanner = true },
                 onRemove = { actions.updateSettings { it.copy(followedPartner = null) } },
+                showFertilityWindow = state.settings.isAdult,
             )
             val guide = remember(followedCycle.phase) { ShareMessages.partnerGuide(followedCycle.phase) }
             SectionTitle(tr("Comprendre sa phase actuelle", "Understand their current phase", pl = "Zrozum jej obecną fazę", uk = "Зрозуміти поточну фазу партнерки", es = "Entender su fase actual", de = "Die aktuelle Phase verstehen"))
@@ -230,9 +236,8 @@ fun HomeScreen(
             }
             cycle is CycleState.Known -> CycleCard(
                 cycle,
-                showFertility = state.settings.showFertility,
-                // Probabilité de grossesse : seulement si la personne a choisi d'afficher la fertilité, et majeure.
-                showPregnancyOdds = state.settings.showFertility && state.settings.isAdult,
+                // Fenêtre fertile estimée : adultes seulement, et seulement si la personne l'a activée.
+                showFertility = state.settings.showFertility && state.settings.isAdult,
                 onArticle = onArticle,
             )
         }
@@ -336,6 +341,7 @@ fun HomeScreen(
                     cycle = followedCycle,
                     onRescan = { showPartnerScanner = true },
                     onRemove = { actions.updateSettings { it.copy(followedPartner = null) } },
+                    showFertilityWindow = state.settings.isAdult,
                 )
             } else {
                 LunaButton(
@@ -377,7 +383,7 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.weight(1f, fill = false)) {
                     pages.forEachIndexed { idx, label ->
                         val selected = pagerState.currentPage == idx
                         // Rôle Tab et cible de 48 dp : un lecteur d'écran annonce « onglet, sélectionné ».
@@ -551,14 +557,14 @@ private fun RecapCard(recap: CycleRecap, onInsights: () -> Unit, onDismiss: () -
 }
 
 @Composable
-private fun CycleCard(cycle: CycleState.Known, showFertility: Boolean, showPregnancyOdds: Boolean, onArticle: (String) -> Unit) {
+private fun CycleCard(cycle: CycleState.Known, showFertility: Boolean, onArticle: (String) -> Unit) {
     val phaseName = Format.phaseName(cycle.phase)
     LunaCard(container = MaterialTheme.colorScheme.primaryContainer) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primary, modifier = Modifier.size(84.dp)) {
+            Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primary, modifier = Modifier.defaultMinSize(minWidth = 84.dp, minHeight = 84.dp)) {
                 Box(
                     contentAlignment = Alignment.Center,
-                    modifier = Modifier.clearAndSetSemantics { contentDescription = tr("Jour ${cycle.dayOfCycle} du cycle", "Cycle day ${cycle.dayOfCycle}", pl = "Dzień cyklu ${cycle.dayOfCycle}", uk = "День циклу ${cycle.dayOfCycle}", es = "Día ${cycle.dayOfCycle} del ciclo", de = "Zyklustag ${cycle.dayOfCycle}") },
+                    modifier = Modifier.padding(8.dp).clearAndSetSemantics { contentDescription = tr("Jour ${cycle.dayOfCycle} du cycle", "Cycle day ${cycle.dayOfCycle}", pl = "Dzień cyklu ${cycle.dayOfCycle}", uk = "День циклу ${cycle.dayOfCycle}", es = "Día ${cycle.dayOfCycle} del ciclo", de = "Zyklustag ${cycle.dayOfCycle}") },
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(tr("Jour", "Day", pl = "Dzień", uk = "День", es = "Día", de = "Tag"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimary)
@@ -581,35 +587,8 @@ private fun CycleCard(cycle: CycleState.Known, showFertility: Boolean, showPregn
             }
         }
 
-        // Probabilités estimées de grossesse au jour le jour
-        if (showPregnancyOdds) Surface(
-            shape = RoundedCornerShape(12.dp),
-            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        tr("Chances de grossesse :", "Pregnancy likelihood:", pl = "Szansa na ciążę:", uk = "Імовірність вагітності:", es = "Probabilidad de embarazo:", de = "Schwangerschaftswahrscheinlichkeit:"),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                    Text(
-                        cycle.todayPregnancyOdds.label,
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                }
-                Text(
-                    cycle.todayPregnancyOdds.description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-            }
-        }
-
-        // Affichée en permanence dès que la fenêtre fertile ou la probabilité est visible, quel que soit le nombre de cycles.
-        if (showFertility || showPregnancyOdds) {
+        // Affichée en permanence dès que la fenêtre fertile est visible, quel que soit le nombre de cycles.
+        if (showFertility) {
             Text(
                 tr("Repère de calendrier : ne remplace pas une contraception.", "Calendar estimate: does not replace contraception.", pl = "Szacunek kalendarzowy: nie zastępuje antykoncepcji.", uk = "Календарна оцінка: не замінює контрацепцію.", es = "Estimación de calendario: no sustituye a un anticonceptivo.", de = "Kalenderschätzung: ersetzt keine Verhütung."),
                 style = MaterialTheme.typography.bodySmall,
@@ -631,23 +610,29 @@ private fun UpcomingForecastCard(cycle: CycleState.Known) {
     SectionTitle(tr("Dans les 7 prochains jours", "In the next 7 days", pl = "W ciągu najbliższych 7 dni", uk = "Протягом наступних 7 днів", es = "En los próximos 7 días", de = "In den nächsten 7 Tagen"))
     LunaCard {
         Text(
-            tr("Aperçu prévisionnel jour par jour :", "Day-by-day forecast overview:", pl = "Prognoza dzień po dniu:", uk = "Прогноз день за днем:", es = "Previsión día a día:", de = "Vorschau Tag für Tag:"),
+            tr("Phases estimées à partir de vos cycles notés ; elles peuvent varier.", "Phases estimated from the cycles you logged; they may vary.", pl = "Fazy szacowane na podstawie zapisanych cykli; mogą się zmieniać.", uk = "Фази оцінено за записаними циклами; вони можуть відрізнятися.", es = "Fases estimadas a partir de los ciclos anotados; pueden variar.", de = "Phasen geschätzt aus den eingetragenen Zyklen; sie können abweichen."),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        LazyRow(
+        // Largeur identique pour les 7 jours (elle suit la taille de police), hauteur commune : la rangée reste alignée et aucun texte n'est coupé.
+        val itemWidth = (140 * LocalDensity.current.fontScale.coerceIn(1f, 2f)).dp
+        Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp)
+                .height(IntrinsicSize.Max)
+                .horizontalScroll(rememberScrollState()),
         ) {
-            items(forecasts.size) { idx ->
-                val f = forecasts[idx]
+            forecasts.forEach { f ->
                 Surface(
                     shape = RoundedCornerShape(12.dp),
                     color = if (f.inLikelyPeriod) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant,
                     modifier = Modifier
-                        .widthIn(min = 118.dp)
+                        .width(itemWidth)
+                        .fillMaxHeight()
                         .semantics(mergeDescendants = true) {
-                            contentDescription = forecastDescription(f.date, f.dayOfCycle, f.inLikelyPeriod, Format.phaseName(f.phase), f.odds.label)
+                            contentDescription = forecastDescription(f.date, f.dayOfCycle, f.inLikelyPeriod, Format.phaseName(f.phase))
                         },
                 ) {
                     Column(
@@ -657,19 +642,13 @@ private fun UpcomingForecastCard(cycle: CycleState.Known) {
                     ) {
                         Text(Format.dayOfWeek(f.date), style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center)
                         Text(Format.dayMonth(f.date), style = MaterialTheme.typography.labelMedium, textAlign = TextAlign.Center)
-                        Text("J${f.dayOfCycle}", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
-                        Text(Format.phaseName(f.phase), style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center)
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-                        ) {
-                            Text(
-                                f.odds.label,
-                                style = MaterialTheme.typography.labelSmall,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                textAlign = TextAlign.Center,
-                            )
-                        }
+                        Text(
+                            tr("Jour ${f.dayOfCycle} du cycle", "Cycle day ${f.dayOfCycle}", pl = "Dzień cyklu ${f.dayOfCycle}", uk = "День циклу ${f.dayOfCycle}", es = "Día ${f.dayOfCycle} del ciclo", de = "Zyklustag ${f.dayOfCycle}"),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            textAlign = TextAlign.Center,
+                        )
+                        Text(forecastStateLabel(f.inLikelyPeriod, Format.phaseName(f.phase)), style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center)
                     }
                 }
             }
@@ -701,7 +680,7 @@ private fun PhaseHormonesCard(phase: Phase, onArticle: (String) -> Unit = {}) {
             }
         }
         if (expanded) {
-            Text(tr("Forces & atouts de cette phase :", "Strengths & advantages:", pl = "Mocne strony tej fazy:", uk = "Сильні сторони цієї фази:", es = "Fortalezas de esta fase:", de = "Stärken dieser Phase:"), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+            Text(tr("Ce que certaines personnes observent :", "What some people notice:", pl = "Co zauważają niektóre osoby:", uk = "Що помічають деякі люди:", es = "Lo que observan algunas personas:", de = "Was manche Menschen beobachten:"), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
             profile.strengths.forEach { Bullet(it) }
             Text(tr("Défis & ce qui peut gêner :", "Possible challenges:", pl = "Możliwe trudności:", uk = "Можливі труднощі:", es = "Posibles dificultades:", de = "Mögliche Herausforderungen:"), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
             profile.challenges.forEach { Bullet(it) }
@@ -709,10 +688,10 @@ private fun PhaseHormonesCard(phase: Phase, onArticle: (String) -> Unit = {}) {
             profile.supportAdvice.forEach { Bullet(it) }
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            TextButton(onClick = { expanded = !expanded }) {
-                Text(if (expanded) tr("Moins de détails", "Show less", pl = "Mniej szczegółów", uk = "Менше деталей", es = "Menos detalles", de = "Weniger anzeigen") else tr("Atouts & conseils", "Strengths & advice", pl = "Mocne strony i porady", uk = "Сильні сторони й поради", es = "Fortalezas y consejos", de = "Stärken & Tipps"))
+            TextButton(onClick = { expanded = !expanded }, modifier = Modifier.weight(1f, fill = false)) {
+                Text(if (expanded) tr("Moins de détails", "Show less", pl = "Mniej szczegółów", uk = "Менше деталей", es = "Menos detalles", de = "Weniger anzeigen") else tr("Observations & conseils", "Observations & advice", pl = "Obserwacje i porady", uk = "Спостереження й поради", es = "Observaciones y consejos", de = "Beobachtungen & Tipps"))
             }
-            TextButton(onClick = { onArticle("cycle") }) {
+            TextButton(onClick = { onArticle("cycle") }, modifier = Modifier.weight(1f, fill = false)) {
                 Text(tr("Courbe des hormones", "Hormone curve", pl = "Krzywa hormonów", uk = "Крива гормонів", es = "Curva de hormonas", de = "Hormonkurve"))
             }
         }
@@ -1116,9 +1095,13 @@ internal fun dayDescription(date: LocalDate, bleeding: Boolean, logged: Boolean)
     return parts.joinToString(", ")
 }
 
+/** Libellé affiché sur la carte de prévision : « Règles probables » les jours de règles attendues, sinon le nom de la phase. */
+internal fun forecastStateLabel(likelyPeriod: Boolean, phaseName: String): String =
+    if (likelyPeriod) tr("Règles probables", "Period likely", pl = "Miesiączka prawdopodobna", uk = "Імовірні місячні", es = "Regla probable", de = "Periode wahrscheinlich") else phaseName
+
 /** « Mardi 17 novembre, jour 12, règles probables » : une seule phrase par carte de prévision. */
-internal fun forecastDescription(date: LocalDate, dayOfCycle: Int, likelyPeriod: Boolean, phaseName: String, odds: String): String {
+internal fun forecastDescription(date: LocalDate, dayOfCycle: Int, likelyPeriod: Boolean, phaseName: String): String {
     val state = if (likelyPeriod) tr("règles probables", "period likely", pl = "miesiączka prawdopodobna", uk = "імовірні місячні", es = "regla probable", de = "Periode wahrscheinlich") else phaseName
     val day = tr("jour $dayOfCycle", "day $dayOfCycle", pl = "dzień $dayOfCycle", uk = "день $dayOfCycle", es = "día $dayOfCycle", de = "Tag $dayOfCycle")
-    return listOf(Format.weekday(date), day, state, odds).filter { it.isNotBlank() }.joinToString(", ")
+    return listOf(Format.weekday(date), day, state).filter { it.isNotBlank() }.joinToString(", ")
 }
