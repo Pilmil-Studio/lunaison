@@ -30,12 +30,22 @@ import fr.lunaison.core.data.AppSettings
 import fr.lunaison.core.data.BackupFailure
 import fr.lunaison.core.data.BackupFormatException
 import fr.lunaison.core.data.BackupRestoreSummary
+import fr.lunaison.core.data.DatabaseRecovery
 import fr.lunaison.core.data.PinThrottleState
 import fr.lunaison.core.model.DayLog
 import androidx.compose.ui.unit.dp
 import fr.lunaison.core.designsystem.LunaButton
 import fr.lunaison.core.designsystem.LunaButtonStyle
 import fr.lunaison.core.model.tr
+import fr.lunaison.ui.backup.AutoBackup
+import fr.lunaison.ui.backup.AutoBackupConfig
+import fr.lunaison.ui.backup.AutoBackupStatus
+import fr.lunaison.ui.backup.PrivateCopyFile
+import fr.lunaison.ui.backup.RestoreOffer
+import fr.lunaison.ui.backup.RestoreReason
+import fr.lunaison.ui.backup.BackupPolicy
+import fr.lunaison.ui.backup.CloudBackupConsent
+import kotlinx.datetime.LocalDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -255,6 +265,9 @@ actual fun RestoreBackupButton(
     label: String,
     onRestore: suspend (json: String) -> BackupRestoreSummary,
     onResult: (String) -> Unit,
+    preselected: ByteArray?,
+    replacesData: Boolean,
+    primary: Boolean,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -303,7 +316,18 @@ actual fun RestoreBackupButton(
         }
     }
 
-    LunaButton(label, onClick = { picker.launch(arrayOf("*/*")) }, style = LunaButtonStyle.Outlined)
+    LunaButton(
+        label,
+        onClick = {
+            if (preselected != null) {
+                close()
+                pendingBytes = preselected
+            } else {
+                picker.launch(arrayOf("*/*"))
+            }
+        },
+        style = if (primary) LunaButtonStyle.Primary else LunaButtonStyle.Outlined,
+    )
 
     val bytes = pendingBytes
     if (bytes != null) {
@@ -315,14 +339,25 @@ actual fun RestoreBackupButton(
                     verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
                 ) {
                     androidx.compose.material3.Text(
-                        tr(
-                            "Entrez le mot de passe de ce fichier .pilmil. La restauration remplace les données actuelles de ce téléphone (journal et réglages). Le code PIN de ce téléphone est conservé.",
-                            "Enter the password of this .pilmil file. Restoring replaces the current data on this phone (log and settings). This phone's PIN code is kept.",
-                            pl = "Wpisz hasło do tego pliku .pilmil. Przywrócenie zastępuje obecne dane na tym telefonie (dziennik i ustawienia). Kod PIN tego telefonu zostaje zachowany.",
-                            uk = "Введіть пароль до цього файлу .pilmil. Відновлення замінює поточні дані на цьому телефоні (щоденник і налаштування). PIN-код цього телефона зберігається.",
-                            es = "Introduce la contraseña de este archivo .pilmil. La restauración reemplaza los datos actuales de este teléfono (diario y ajustes). Se conserva el código PIN de este teléfono.",
-                            de = "Gib das Passwort dieser .pilmil-Datei ein. Die Wiederherstellung ersetzt die aktuellen Daten auf diesem Telefon (Tagebuch und Einstellungen). Der PIN-Code dieses Telefons bleibt erhalten.",
-                        ),
+                        if (replacesData) {
+                            tr(
+                                "Entrez le mot de passe (ou la phrase secrète) de ce fichier .pilmil. La restauration remplace les données actuelles de ce téléphone (journal et réglages). Le code PIN de ce téléphone est conservé.",
+                                "Enter the password (or secret phrase) of this .pilmil file. Restoring replaces the current data on this phone (log and settings). This phone's PIN code is kept.",
+                                pl = "Wpisz hasło (lub tajną frazę) do tego pliku .pilmil. Przywrócenie zastępuje obecne dane na tym telefonie (dziennik i ustawienia). Kod PIN tego telefonu zostaje zachowany.",
+                                uk = "Введіть пароль (або таємну фразу) до цього файлу .pilmil. Відновлення замінює поточні дані на цьому телефоні (щоденник і налаштування). PIN-код цього телефона зберігається.",
+                                es = "Introduce la contraseña (o la frase secreta) de este archivo .pilmil. La restauración reemplaza los datos actuales de este teléfono (diario y ajustes). Se conserva el código PIN de este teléfono.",
+                                de = "Gib das Passwort (oder die geheime Phrase) dieser .pilmil-Datei ein. Die Wiederherstellung ersetzt die aktuellen Daten auf diesem Telefon (Tagebuch und Einstellungen). Der PIN-Code dieses Telefons bleibt erhalten.",
+                            )
+                        } else {
+                            tr(
+                                "Entrez le mot de passe (ou la phrase secrète) de ce fichier .pilmil pour retrouver votre journal et vos réglages.",
+                                "Enter the password (or secret phrase) of this .pilmil file to get your log and settings back.",
+                                pl = "Wpisz hasło (lub tajną frazę) do tego pliku .pilmil, aby odzyskać dziennik i ustawienia.",
+                                uk = "Введіть пароль (або таємну фразу) до цього файлу .pilmil, щоб повернути щоденник і налаштування.",
+                                es = "Introduce la contraseña (o la frase secreta) de este archivo .pilmil para recuperar tu diario y tus ajustes.",
+                                de = "Gib das Passwort (oder die geheime Phrase) dieser .pilmil-Datei ein, um dein Tagebuch und deine Einstellungen zurückzuholen.",
+                            )
+                        },
                         style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
                     )
                     androidx.compose.material3.OutlinedTextField(
@@ -333,7 +368,7 @@ actual fun RestoreBackupButton(
                         isError = error != null,
                         visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
                     )
-                    androidx.compose.foundation.layout.Row(
+                    if (replacesData) androidx.compose.foundation.layout.Row(
                         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
                     ) {
                         androidx.compose.material3.Checkbox(checked = understood, onCheckedChange = { understood = it })
@@ -360,7 +395,7 @@ actual fun RestoreBackupButton(
             },
             confirmButton = {
                 androidx.compose.material3.TextButton(
-                    enabled = understood && passphrase.isNotEmpty() && !working,
+                    enabled = (understood || !replacesData) && passphrase.isNotEmpty() && !working,
                     onClick = {
                         working = true
                         val pwd = passphrase.toCharArray()
@@ -417,7 +452,13 @@ actual fun RestoreBackupButton(
                         }
                     },
                 ) {
-                    androidx.compose.material3.Text(tr("Remplacer les données", "Replace data", pl = "Zastąp dane", uk = "Замінити дані", es = "Reemplazar datos", de = "Daten ersetzen"))
+                    androidx.compose.material3.Text(
+                        if (replacesData) {
+                            tr("Remplacer les données", "Replace data", pl = "Zastąp dane", uk = "Замінити дані", es = "Reemplazar datos", de = "Daten ersetzen")
+                        } else {
+                            tr("Restaurer", "Restore", pl = "Przywróć", uk = "Відновити", es = "Restaurar", de = "Wiederherstellen")
+                        },
+                    )
                 }
             },
             dismissButton = {
@@ -557,12 +598,10 @@ private fun sharePdf(context: Context, file: File) {
 
 actual val importAvailable: Boolean = true
 
-// Android : la sauvegarde automatique est désactivée dans le manifeste, rien à régler.
-actual val cloudBackupControllable: Boolean = false
+// Android : copie dans le compte Google désactivée par défaut, activable à partir d'Android 12 (voir LunaisonBackupAgent).
+actual val cloudBackupControllable: Boolean = BackupPolicy.settingAvailable(Build.VERSION.SDK_INT)
 
-actual fun isCloudBackupEnabled(): Boolean = false
-
-actual fun setCloudBackupEnabled(enabled: Boolean) = Unit
+actual val cloudBackupOptIn: Boolean = true
 
 // Android : WorkManager observe déjà le dépôt dans LunaisonApplication.
 actual fun syncReminders(settings: AppSettings, prediction: Prediction?) = Unit
@@ -592,4 +631,36 @@ actual fun rememberPinThrottleStore(): PinThrottleStore {
             }
         }
     }
+}
+
+// Sauvegarde automatique vers un dossier choisi : Android seulement (voir documentation/chiffrement.md).
+actual val autoBackupAvailable: Boolean = true
+
+actual suspend fun readAutoBackupStatus(context: PlatformContext): AutoBackupStatus = AutoBackup.status(context)
+
+actual fun hideBackupCardUntil(context: PlatformContext, date: LocalDate) {
+    AutoBackupConfig(context).cardHiddenUntil = date
+}
+
+actual fun onAllDataErased(context: PlatformContext) = AutoBackup.onAllDataErased(context)
+
+actual suspend fun readRestoreOffer(context: PlatformContext): RestoreOffer? = withContext(Dispatchers.IO) {
+    val copy = runCatching { PrivateCopyFile(File(context.filesDir, PrivateCopyFile.DIRECTORY)).read() }.getOrNull()
+    when {
+        DatabaseRecovery.keyLostNoticePending(context) -> RestoreOffer(RestoreReason.DATABASE_UNREADABLE, copy)
+        copy != null -> RestoreOffer(RestoreReason.COPY_FOUND, copy)
+        else -> null
+    }
+}
+
+actual fun acknowledgeRestoreOffer(context: PlatformContext) {
+    if (DatabaseRecovery.keyLostNoticePending(context)) DatabaseRecovery.acknowledgeKeyLost(context)
+}
+
+// Le dossier peut être absent hors d'un vrai téléphone (captures d'écran) : la copie est alors désactivée.
+actual fun isCloudBackupEnabled(context: PlatformContext): Boolean =
+    context.noBackupFilesDir?.let { CloudBackupConsent(it).enabled } ?: false
+
+actual fun setCloudBackupEnabled(context: PlatformContext, enabled: Boolean) {
+    context.noBackupFilesDir?.let { CloudBackupConsent(it).enabled = enabled }
 }

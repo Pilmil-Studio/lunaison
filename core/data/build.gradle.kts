@@ -35,6 +35,8 @@ kotlin {
         }
         androidMain.dependencies {
             api(libs.kotlinx.coroutines.android)
+            // Chiffrement de la base au repos (moteur SQLite chiffré, bibliothèque native).
+            implementation(libs.sqlcipher.android)
         }
         iosMain.dependencies {
             // Moteur SQLite embarqué : iOS n'a pas d'équivalent de SupportSQLite.
@@ -60,4 +62,10 @@ dependencies {
     add("kspIosArm64", libs.androidx.room.compiler)
     add("kspIosSimulatorArm64", libs.androidx.room.compiler)
     add("kspIosX64", libs.androidx.room.compiler)
+}
+
+// Les tests JVM tournent en français, comme ceux des autres modules.
+tasks.withType<Test>().configureEach {
+    systemProperty("user.language", "fr")
+    systemProperty("user.country", "FR")
 }

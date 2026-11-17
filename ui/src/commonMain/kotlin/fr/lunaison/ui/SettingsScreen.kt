@@ -297,23 +297,38 @@ fun SettingsScreen(
         SectionTitle(tr("Mes données", "My data", pl = "Moje dane", uk = "Мої дані", es = "Mis datos", de = "Meine Daten"))
         LunaCard {
             if (cloudBackupControllable) {
-                var backupOn by remember { mutableStateOf(isCloudBackupEnabled()) }
-                Text(
-                    tr(
-                    fr = "Tout est enregistré sur cet iPhone. Lunaison n'a pas accès à Internet et n'envoie rien. Si la sauvegarde iCloud de votre iPhone est activée, vos données en font partie, sous le contrôle de votre compte Apple. Vous pouvez les en exclure ci-dessous.",
-                    en = "Everything is saved on this iPhone. Lunaison has no Internet access and sends nothing. If your iPhone's iCloud backup is on, your data is part of it, under the control of your Apple account. You can exclude it below.",
-                    pl = "Wszystko jest zapisane na tym iPhonie. Lunaison nie ma dostępu do internetu i niczego nie wysyła. Jeśli kopia zapasowa iCloud na Twoim iPhonie jest włączona, Twoje dane są w niej zawarte, pod kontrolą Twojego konta Apple. Możesz je z niej wyłączyć poniżej.",
-                    uk = "Усе зберігається на цьому iPhone. Lunaison не має доступу до інтернету й нічого не надсилає. Якщо резервне копіювання iCloud на вашому iPhone увімкнено, ваші дані входять до нього під контролем вашого облікового запису Apple. Нижче можна виключити їх із копії.",
-                    es = "Todo se guarda en este iPhone. Lunaison no tiene acceso a Internet y no envía nada. Si la copia de seguridad de iCloud de tu iPhone está activada, tus datos forman parte de ella, bajo el control de tu cuenta de Apple. Puedes excluirlos abajo.",
-                    de = "Alles wird auf diesem iPhone gespeichert. Lunaison hat keinen Internetzugriff und sendet nichts. Ist die iCloud-Sicherung deines iPhones aktiviert, sind deine Daten darin enthalten, unter der Kontrolle deines Apple-Kontos. Unten kannst du sie ausschließen.",
-                ),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                SwitchRow(
-                    tr("Inclure dans la sauvegarde iCloud", "Include in iCloud backup", pl = "Uwzględnij w kopii zapasowej iCloud", uk = "Включити в резервну копію iCloud", es = "Incluir en la copia de seguridad de iCloud", de = "In die iCloud-Sicherung aufnehmen"),
-                    checked = backupOn,
-                    onChange = { backupOn = it; setCloudBackupEnabled(it) },
-                )
+                val platformContext = rememberPlatformContext()
+                var backupOn by remember { mutableStateOf(isCloudBackupEnabled(platformContext)) }
+                if (cloudBackupOptIn) {
+                    Text(
+                        tr(
+                            fr = "Tout est enregistré sur ce téléphone. Lunaison n'a pas accès à Internet et n'envoie rien. Les options de sauvegarde sont dans la section « Sauvegarde automatique » ci-dessous.",
+                            en = "Everything is saved on this phone. Lunaison has no Internet access and sends nothing. The backup options are in the \"Automatic backup\" section below.",
+                            pl = "Wszystko jest zapisane na tym telefonie. Lunaison nie ma dostępu do internetu i niczego nie wysyła. Opcje kopii zapasowej są w sekcji „Automatyczna kopia zapasowa” poniżej.",
+                            uk = "Усе зберігається на цьому телефоні. Lunaison не має доступу до інтернету й нічого не надсилає. Параметри резервного копіювання містяться в розділі «Автоматична резервна копія» нижче.",
+                            es = "Todo se guarda en este teléfono. Lunaison no tiene acceso a Internet y no envía nada. Las opciones de copia están en la sección «Copia de seguridad automática» de abajo.",
+                            de = "Alles wird auf diesem Handy gespeichert. Lunaison hat keinen Internetzugriff und sendet nichts. Die Sicherungsoptionen findest du unten im Abschnitt „Automatische Sicherung“.",
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                } else {
+                    Text(
+                        tr(
+                        fr = "Tout est enregistré sur cet iPhone. Lunaison n'a pas accès à Internet et n'envoie rien. Si la sauvegarde iCloud de votre iPhone est activée, vos données en font partie, sous le contrôle de votre compte Apple. Vous pouvez les en exclure ci-dessous.",
+                        en = "Everything is saved on this iPhone. Lunaison has no Internet access and sends nothing. If your iPhone's iCloud backup is on, your data is part of it, under the control of your Apple account. You can exclude it below.",
+                        pl = "Wszystko jest zapisane na tym iPhonie. Lunaison nie ma dostępu do internetu i niczego nie wysyła. Jeśli kopia zapasowa iCloud na Twoim iPhonie jest włączona, Twoje dane są w niej zawarte, pod kontrolą Twojego konta Apple. Możesz je z niej wyłączyć poniżej.",
+                        uk = "Усе зберігається на цьому iPhone. Lunaison не має доступу до інтернету й нічого не надсилає. Якщо резервне копіювання iCloud на вашому iPhone увімкнено, ваші дані входять до нього під контролем вашого облікового запису Apple. Нижче можна виключити їх із копії.",
+                        es = "Todo se guarda en este iPhone. Lunaison no tiene acceso a Internet y no envía nada. Si la copia de seguridad de iCloud de tu iPhone está activada, tus datos forman parte de ella, bajo el control de tu cuenta de Apple. Puedes excluirlos abajo.",
+                        de = "Alles wird auf diesem iPhone gespeichert. Lunaison hat keinen Internetzugriff und sendet nichts. Ist die iCloud-Sicherung deines iPhones aktiviert, sind deine Daten darin enthalten, unter der Kontrolle deines Apple-Kontos. Unten kannst du sie ausschließen.",
+                    ),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    SwitchRow(
+                        tr("Inclure dans la sauvegarde iCloud", "Include in iCloud backup", pl = "Uwzględnij w kopii zapasowej iCloud", uk = "Включити в резервну копію iCloud", es = "Incluir en la copia de seguridad de iCloud", de = "In die iCloud-Sicherung aufnehmen"),
+                        checked = backupOn,
+                        onChange = { backupOn = it; setCloudBackupEnabled(platformContext, it) },
+                    )
+                }
             } else {
                 Text(tr("Tout est enregistré sur ce téléphone, nulle part ailleurs. Lunaison n'a pas accès à Internet et ne fait pas de sauvegarde dans le nuage.", "Everything is saved on this phone, nowhere else. Lunaison has no Internet access and makes no cloud backup.", pl = "Wszystko jest zapisane na tym telefonie i nigdzie indziej. Lunaison nie ma dostępu do internetu i nie tworzy kopii zapasowych w chmurze.", uk = "Усе зберігається на цьому телефоні й ніде більше. Lunaison не має доступу до інтернету й не створює резервних копій у хмарі.", es = "Todo se guarda en este teléfono, en ningún otro sitio. Lunaison no tiene acceso a Internet y no hace copias de seguridad en la nube.", de = "Alles wird auf diesem Telefon gespeichert, nirgendwo sonst. Lunaison hat keinen Internetzugriff und erstellt keine Cloud-Sicherung."), style = MaterialTheme.typography.bodyMedium)
             }
@@ -378,6 +393,22 @@ fun SettingsScreen(
                 Muted(msg)
             }
             LunaButton(tr("Tout effacer", "Erase everything", pl = "Usuń wszystko", uk = "Стерти все", es = "Borrar todo", de = "Alles löschen"), onClick = { confirmErase = true }, style = LunaButtonStyle.Quiet, icon = Icons.Filled.Delete)
+        }
+
+        if (autoBackupAvailable) {
+            SectionTitle(
+                tr(
+                    "Sauvegarde automatique",
+                    "Automatic backup",
+                    pl = "Automatyczna kopia zapasowa",
+                    uk = "Автоматична резервна копія",
+                    es = "Copia de seguridad automática",
+                    de = "Automatische Sicherung",
+                ),
+            )
+            LunaCard {
+                AutoBackupSettings()
+            }
         }
 
         SectionTitle(
@@ -533,11 +564,12 @@ fun SettingsScreen(
         AlertDialog(
             onDismissRequest = { confirmErase = false },
             title = { Text(tr("Tout effacer ?", "Erase everything?", pl = "Usunąć wszystko?", uk = "Стерти все?", es = "¿Borrar todo?", de = "Alles löschen?")) },
-            text = { Text(tr("Toutes vos journées et vos réglages seront supprimés de ce téléphone. Ce n'est pas réversible.", "All your days and settings will be deleted from this phone. This cannot be undone.", pl = "Wszystkie Twoje dni i ustawienia zostaną usunięte z tego telefonu. Tego nie można cofnąć.", uk = "Усі ваші дні та налаштування буде видалено з цього телефону. Це неможливо скасувати.", es = "Todos tus días y ajustes se eliminarán de este teléfono. No se puede deshacer.", de = "Alle deine Tage und Einstellungen werden von diesem Telefon gelöscht. Das lässt sich nicht rückgängig machen.")) },
+            text = { Text(tr("Toutes vos journées et vos réglages seront supprimés de ce téléphone. Ce n'est pas réversible.", "All your days and settings will be deleted from this phone. This cannot be undone.", pl = "Wszystkie Twoje dni i ustawienia zostaną usunięte z tego telefonu. Tego nie można cofnąć.", uk = "Усі ваші дні та налаштування буде видалено з цього телефону. Це неможливо скасувати.", es = "Todos tus días y ajustes se eliminarán de este teléfono. No se puede deshacer.", de = "Alle deine Tage und Einstellungen werden von diesem Telefon gelöscht. Das lässt sich nicht rückgängig machen.") + if (autoBackupAvailable) " " + tr("Les fichiers de sauvegarde déjà écrits hors de l'appli (dossier de sauvegarde automatique, exports) ne sont pas supprimés.", "Backup files already written outside the app (automatic backup folder, exports) are not deleted.", pl = "Pliki kopii zapisane już poza aplikacją (folder automatycznej kopii, eksporty) nie są usuwane.", uk = "Файли копій, уже записані поза застосунком (тека автоматичної копії, експорти), не видаляються.", es = "Los archivos de copia ya escritos fuera de la app (carpeta de copia automática, exportaciones) no se borran.", de = "Bereits außerhalb der App geschriebene Sicherungsdateien (Ordner der automatischen Sicherung, Exporte) werden nicht gelöscht.") else "") },
             confirmButton = {
                 TextButton(onClick = {
                     confirmErase = false
                     actions.eraseAll()
+                    onAllDataErased(context)
                 }) { Text(tr("Effacer", "Erase", pl = "Usuń", uk = "Стерти", es = "Borrar", de = "Löschen")) }
             },
             dismissButton = { TextButton(onClick = { confirmErase = false }) { Text(tr("Annuler", "Cancel", pl = "Anuluj", uk = "Скасувати", es = "Cancelar", de = "Abbrechen")) } },
@@ -546,18 +578,18 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun SwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+private fun SwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit, enabled: Boolean = true) {
     // Toute la ligne est l'interrupteur (56 dp) ; le Switch lui-même n'est pas annoncé une seconde fois.
     Row(
         Modifier
             .fillMaxWidth()
             .heightIn(min = 56.dp)
-            .toggleable(value = checked, role = Role.Switch, onValueChange = onChange),
+            .toggleable(value = checked, enabled = enabled, role = Role.Switch, onValueChange = onChange),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-        Switch(checked = checked, onCheckedChange = null)
+        Switch(checked = checked, onCheckedChange = null, enabled = enabled)
     }
 }
 

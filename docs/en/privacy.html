@@ -54,11 +54,18 @@
       <h2>What we receive</h2>
       <p>Nothing. Lunaison does not have permission to access the Internet: it technically cannot send anything. Nobody, not even the app's author, has access to your data.</p>
 
-      <h2>No cloud backup</h2>
-      <p>Lunaison excludes its data from Android backup and from transfer to a new phone. To keep it, use the spreadsheet export in the settings: you choose where to save the file.</p>
+      <h2>Backup: your choice, no server</h2>
+      <p>By default, Lunaison copies nothing off your phone. On Android, you can turn on an automatic backup in the settings: every day, if your data changed, the app writes a .pilmil file to a folder you pick with the system file picker (Lunaison has no general access to storage). The file is encrypted before it is written, with a secret phrase that you define. The phrase stays on your phone, protected by Android's key store, and is sent nowhere. If you forget it, nobody can open the backup again: not you, not the app's author, not anyone else. The last three files are kept. If the folder belongs to an online service you already use, that service syncs the file, under its own control.</p>
+      <p>Optionally, and off by default (Android 12 or later): let Android copy the latest backup file to your Google account. Only that file, already encrypted with your secret phrase, is concerned: never the database or the keys. Android also encrypts it with your phone's lock code. Turning the setting off does not delete a copy already sent, which you can remove from your Google account's backup. Direct phone-to-phone transfer, when you set up a new device, carries that same encrypted file and nothing else.</p>
 
       <h2>Switching phones or apps</h2>
-      <p>When switching phones or migrating away from proprietary trackers, Lunaison lets you directly import your historical data (including password-protected ZIP archives from the Period Calendar app or CSV files). Decryption and parsing happen strictly in your device's memory, without sending any byte to the Internet.</p>
+      <p>On Android, your log is stored in an encrypted database whose key is protected by the phone itself and cannot leave it, so the database is part of no copy. To get your log back on another phone there are three paths, all protected by a phrase or password that only you hold:</p>
+      <ul>
+        <li>the automatic backup file: on the new phone, choose "Restore a backup" when Lunaison opens, select the .pilmil file and enter the secret phrase;</li>
+        <li>if you turned it on, the copy made by Android: the new phone finds the file and Lunaison asks for the secret phrase to restore it;</li>
+        <li>an encrypted backup you create by hand in the settings, with a password you choose.</li>
+      </ul>
+      <p>When migrating away from proprietary trackers, Lunaison lets you directly import your historical data (including password-protected ZIP archives from the Period Calendar app or CSV files). Decryption and parsing happen strictly in your device's memory, without sending any byte to the Internet.</p>
 
       <h2>Sharing with a partner</h2>
       <p>Lunaison offers two serverless sharing modes under your sole control:</p>

@@ -12,9 +12,9 @@
 - Maintien des captures d'écran Paparazzi à jour pour les fiches stores (6 langues).
 
 ## 3. Qualité de code & sécurité
-- **Prioritaire** : chiffrement complet de la base locale Room au repos (SQLCipher) en complément du verrou PIN (`PinThrottle`) et de la sauvegarde `.pilmil`.
-- Sauvegarde système Android configurable par application (`-Ppilmil.allowAutoBackup=false` par défaut, règles `data_extraction_rules.xml` excluant le cloud).
-- Renforcement des tests unitaires sur les parcours critiques (verrou PIN, temporisation `PinThrottle`, import/export, calculs de cycle).
+- **En cours** (branche `chiffrement-base`) : base Room chiffrée au repos par SQLCipher sur Android, conversion des bases existantes, protection de fichier sur iOS, sauvegarde automatique du fichier `.pilmil` vers un dossier choisi, restauration au premier lancement, copie facultative de ce seul fichier dans le compte Google ([documentation/chiffrement.md](documentation/chiffrement.md)). Reste : sauvegarde automatique et pilote chiffré pour iOS.
+- Sauvegarde système Android : `allowBackup` actif, l'agent de sauvegarde applique le choix de la personne. Rien ne part dans le compte Google sans son accord, jamais sans chiffrement de bout en bout, et seul le dernier fichier `.pilmil` chiffré par sa phrase secrète est concerné (jamais la base ni les clés) ; le transfert direct vers un nouveau téléphone emporte ce même fichier.
+- Renforcement des tests unitaires sur les parcours critiques (verrou PIN, temporisation `PinThrottle`, import/export, calculs de cycle) et suivi `lintDebug` en CI.
 - À faire : ajouter `ktlint` (detekt tourne déjà en CI) et déplacer les tests sans `java.util.Locale` vers `commonTest`.
 
 ## 4. Feuille de route iOS

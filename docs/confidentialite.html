@@ -54,11 +54,17 @@
       <h2>Ce que nous recevons</h2>
       <p>Rien. Lunaison n'a pas la permission d'accéder à Internet : elle ne peut techniquement rien envoyer. Personne, pas même l'auteur de l'application, n'a accès à vos données.</p>
 
-      <h2>Pas de sauvegarde dans le nuage</h2>
-      <p>Lunaison exclut ses données de la sauvegarde Android dans le nuage : elles ne sont jamais copiées sur les serveurs de Google ni de personne d'autre.</p>
+      <h2>Sauvegarde : à votre choix, sans serveur</h2>
+      <p>Par défaut, Lunaison ne copie rien en dehors de votre téléphone. Sur Android, vous pouvez activer dans les réglages une sauvegarde automatique : chaque jour, si vos données ont changé, l'appli écrit un fichier .pilmil dans un dossier que vous choisissez avec le sélecteur de fichiers du système (Lunaison n'a pas d'accès général au stockage). Ce fichier est chiffré avant d'être écrit, avec une phrase secrète que vous définissez. La phrase reste sur votre téléphone, protégée par le coffre de clés d'Android, et n'est envoyée nulle part. Si vous l'oubliez, personne ne peut rouvrir la sauvegarde : ni vous, ni l'auteur de l'application, ni personne d'autre. Les trois derniers fichiers sont conservés. Si le dossier appartient à un service en ligne que vous utilisez déjà, c'est ce service qui synchronise le fichier, sous son propre contrôle.</p>
+      <p>En option, désactivée par défaut (Android 12 ou plus) : laisser Android copier le dernier fichier de sauvegarde dans votre compte Google. Seul ce fichier, déjà chiffré par votre phrase secrète, est concerné : jamais la base de données ni les clés. Android le chiffre en plus avec le code de verrouillage de votre téléphone. Désactiver le réglage n'efface pas une copie déjà envoyée, que vous pouvez supprimer depuis la sauvegarde de votre compte Google. Le transfert direct d'un téléphone à l'autre, au moment de configurer un nouvel appareil, emporte ce même fichier chiffré et rien d'autre.</p>
 
       <h2>Changer de téléphone ou d'application</h2>
-      <p>Lors de la configuration d'un nouveau téléphone Android (version 12 ou plus récente), vous pouvez copier vos applications et leurs données directement depuis l'ancien, par câble ou sans fil. Lunaison autorise cette copie : vos données passent d'un appareil à l'autre, sans transiter par Internet. Si vous ne le souhaitez pas, il suffit de décocher Lunaison pendant le transfert.</p>
+      <p>Sur Android, votre journal est enregistré dans une base chiffrée dont la clé est protégée par le téléphone lui-même et ne peut pas en sortir. La base ne part donc dans aucune copie. Pour retrouver votre journal sur un autre téléphone, trois chemins existent, tous protégés par une phrase ou un mot de passe que vous détenez :</p>
+      <ul>
+        <li>le fichier de la sauvegarde automatique : sur le nouveau téléphone, choisissez « Restaurer une sauvegarde » à l'ouverture de Lunaison, sélectionnez le fichier .pilmil et entrez la phrase secrète ;</li>
+        <li>si vous l'avez activée, la copie faite par Android : le nouveau téléphone retrouve le fichier et Lunaison vous demande la phrase secrète pour le restaurer ;</li>
+        <li>une sauvegarde chiffrée créée à la main depuis les réglages, avec un mot de passe de votre choix.</li>
+      </ul>
       <p>Vous pouvez aussi exporter vos données au format tableur depuis les réglages : vous choisissez où enregistrer le fichier.</p>
       <p>Pour quitter une application propriétaire sans perdre vos années d'historique, Lunaison permet d'importer directement vos données (y compris les archives ZIP chiffrées de l'application Calendrier des règles ou des fichiers CSV). Le déchiffrement et l'importation se font exclusivement dans la mémoire vive de votre appareil, sans envoyer le moindre octet sur Internet.</p>
 

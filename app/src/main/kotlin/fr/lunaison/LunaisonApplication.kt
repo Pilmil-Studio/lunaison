@@ -4,6 +4,7 @@ import android.app.Application
 import fr.lunaison.core.data.LunaisonRepository
 import fr.lunaison.core.data.LunaisonRepositoryProvider
 import fr.lunaison.reminders.ReminderScheduler
+import fr.lunaison.ui.backup.AutoBackupScheduler
 import fr.lunaison.widget.LunaisonWidget
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,6 +23,8 @@ class LunaisonApplication : Application(), LunaisonRepositoryProvider {
 
     override fun onCreate() {
         super.onCreate()
+        // La sauvegarde automatique, si la personne l'a activée : la tâche quotidienne doit exister (hors du fil principal, le Keystore est lu).
+        scope.launch { AutoBackupScheduler.ensureScheduled(this@LunaisonApplication) }
         // Un seul endroit replanifie les rappels : à chaque changement des journées notées ou des réglages.
         scope.launch {
             combine(repository.logs, repository.settings) { logs, settings -> logs to settings }
