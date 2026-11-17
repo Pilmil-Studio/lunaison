@@ -124,7 +124,7 @@ L'accueil affiche un conseil par jour, sans sa source. Les voici toutes, phase p
 
 | Conseil | Source |
 |---|---|
-| La chaleur sur le bas du ventre soulage autant qu'un anti-inflammatoire dans les études. Attention aux brûlures : jamais de chaleur trop forte directement sur la peau. | [Jo J et Lee SH, 2018](https://doi.org/10.1038/s41598-018-34303-z) |
+| La chaleur sur le bas du ventre peut soulager les douleurs de règles. Attention aux brûlures : jamais de chaleur trop forte directement sur la peau. | [Jo J et Lee SH, 2018](https://doi.org/10.1038/s41598-018-34303-z) |
 | Un anti-inflammatoire comme l'ibuprofène soulage mieux que le paracétamol, surtout pris dès le début des douleurs. Respectez la notice. | [Marjoribanks J et al., 2015](https://doi.org/10.1002/14651858.CD001751.pub3) |
 | Une douleur qui vous empêche de faire vos activités n'est pas à supporter : elle mérite un avis médical. | [ACOG n° 760, 2018](https://www.acog.org/clinical/clinical-guidance/committee-opinion/articles/2018/12/dysmenorrhea-and-endometriosis-in-the-adolescent) |
 | Les règles font perdre du fer. Légumineuses, viande ou poisson, avec une source de vitamine C comme un agrume ou un kiwi, aident à le compenser. | [EFSA, 2015](https://www.efsa.europa.eu/en/efsajournal/pub/4254) |
@@ -171,7 +171,7 @@ L'accueil affiche un conseil par jour, sans sa source. Les voici toutes, phase p
 | Conseil | Source |
 |---|---|
 | Si elles ont commencé et que vous l'avez oublié, ajoutez-les dans le calendrier. | Sans étude : bon sens ou usage de l’appli |
-| Si une grossesse est possible, un test urinaire est en général fiable dès maintenant. | Sans étude : bon sens ou usage de l’appli |
+| Si une grossesse est possible, un test urinaire peut être fait dès le premier jour de retard. Un résultat négatif est moins fiable : refaites le test après quelques jours. | Sans étude : bon sens ou usage de l’appli |
 | Sans règles depuis plus de trois mois, demandez un avis médical. | [ACOG n° 651, 2015](https://www.acog.org/clinical/clinical-guidance/committee-opinion/articles/2015/12/menstruation-in-girls-and-adolescents-using-the-menstrual-cycle-as-a-vital-sign) |
 
 ## Choix de conception

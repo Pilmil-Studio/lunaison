@@ -1,0 +1,6 @@
+• Die Schwangerschaftswahrscheinlichkeit wird nicht mehr angezeigt.
+• Fruchtbares Fenster: standardmäßig aus, nur für Erwachsene, die es einschalten, nie für unter 18-Jährige.
+• Phasenartikel: Stärken und Herausforderungen nach Evidenzgrad neu formuliert.
+• Wiederherstellung: Eine Sicherung ohne Einstellungen behält die Einstellungen des Telefons und seinen PIN-Code.
+• Auswahlfelder: besser sichtbares Häkchen und Rand, Kontraste getestet.
+• Fehlerfarbe in Terrakotta im Design.

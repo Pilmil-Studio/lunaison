@@ -107,14 +107,14 @@ interface LunaisonDao {
     }
 }
 
-@Database(entities = [DayLogEntity::class, SettingsEntity::class], version = 8, exportSchema = true)
+@Database(entities = [DayLogEntity::class, SettingsEntity::class], version = 9, exportSchema = true)
 @ConstructedBy(LunaisonDatabaseConstructor::class)
 abstract class LunaisonDatabase : RoomDatabase() {
     abstract fun dao(): LunaisonDao
 
     companion object {
         /**
-         * Toutes les migrations, de la version 1 à la version 7, sous forme de requêtes SQL.
+         * Toutes les migrations, de la version 1 à la version 8, sous forme de requêtes SQL.
          * Chaque étape se contente d'ajouter des colonnes : aucune donnée existante n'est touchée.
          */
         internal val MIGRATIONS: List<SqlMigration> = listOf(
@@ -167,6 +167,11 @@ abstract class LunaisonDatabase : RoomDatabase() {
             SqlMigration(
                 7, 8,
                 "ALTER TABLE settings ADD COLUMN articleLastShown TEXT NOT NULL DEFAULT ''",
+            ),
+            // Version 9 : la fenêtre fertile estimée devient un réglage désactivé par défaut, avec avertissement à l'activation.
+            SqlMigration(
+                8, 9,
+                "UPDATE settings SET showFertility = 0",
             ),
         )
     }

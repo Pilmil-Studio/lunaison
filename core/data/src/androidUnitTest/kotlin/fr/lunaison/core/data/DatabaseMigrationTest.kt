@@ -21,13 +21,13 @@ import kotlin.test.assertTrue
  */
 class DatabaseMigrationTest {
 
-    // Le plugin Room range le schéma exporté dans un sous-dossier qui dépend de la cible : on cherche la version 8.
+    // Le plugin Room range le schéma exporté dans un sous-dossier qui dépend de la cible : on cherche la version 9.
     private val latestSchema: File by lazy {
-        File("schemas").walkTopDown().first { it.isFile && it.name == "8.json" }
+        File("schemas").walkTopDown().first { it.isFile && it.name == "9.json" }
     }
 
     @Test
-    fun `migration de v1 a v8 sans perte de donnees`() = withDatabase { conn, db ->
+    fun `migration de v1 a v9 sans perte de donnees`() = withDatabase { conn, db ->
         createV1(db)
         db.execSQL(
             "INSERT INTO day_logs (date, flow, pain, symptoms, moods, note) " +
@@ -71,7 +71,7 @@ class DatabaseMigrationTest {
     }
 
     @Test
-    fun `la base migree correspond exactement au schema Room v8`() {
+    fun `la base migree correspond exactement au schema Room v9`() {
         val expected = withDatabase { conn, db ->
             createTablesSql(latestSchema).values.forEach(db::execSQL)
             tables(conn)
@@ -87,8 +87,8 @@ class DatabaseMigrationTest {
     private fun migrateToLatest(db: SupportSQLiteDatabase) {
         val steps = LunaisonDatabase.MIGRATIONS
         // La chaîne couvre toutes les versions, sans trou ni doublon, jusqu'à la version courante.
-        assertEquals((1..7).toList(), steps.map { it.startVersion })
-        assertEquals((2..8).toList(), steps.map { it.endVersion })
+        assertEquals((1..8).toList(), steps.map { it.startVersion })
+        assertEquals((2..9).toList(), steps.map { it.endVersion })
         steps.forEach { step -> step.statements.forEach(db::execSQL) }
     }
 

@@ -1,0 +1,6 @@
+• La probabilité de grossesse n'est plus affichée.
+• Fenêtre fertile : désactivée par défaut, réservée aux adultes qui l'activent, jamais proposée aux moins de 18 ans.
+• Fiches des phases : atouts et défis reformulés selon le niveau de preuve.
+• Restauration : une sauvegarde sans réglages garde ceux du téléphone et son code PIN.
+• Pastilles de choix : coche et bordure plus visibles, contrastes testés.
+• Couleur d'erreur en terre cuite dans le thème.
