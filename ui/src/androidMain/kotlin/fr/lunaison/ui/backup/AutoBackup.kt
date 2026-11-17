@@ -109,16 +109,21 @@ object AutoBackup {
 
     /** État affiché : lit aussi le système pour savoir si le dossier est toujours accessible. */
     suspend fun status(context: Context): AutoBackupStatus = withContext(Dispatchers.IO) {
+        // Hors d'un vrai téléphone (captures d'écran), le système peut manquer : l'état est alors simplement indisponible.
+        runCatching { readStatus(context) }.getOrDefault(AutoBackupStatus.Unavailable)
+    }
+
+    private fun readStatus(context: Context): AutoBackupStatus {
         val config = AutoBackupConfig(context)
-        val state = runCatching { BackupPassphraseStore(context).state() }.getOrDefault(PassphraseState.UNREADABLE)
-        if (state == PassphraseState.ABSENT) return@withContext AutoBackupStatus.NotConfigured(config.cardHiddenUntil)
+        val state = BackupPassphraseStore(context).state()
+        if (state == PassphraseState.ABSENT) return AutoBackupStatus.NotConfigured(config.cardHiddenUntil)
         val uri = config.folderUri
         val problem = when {
             state == PassphraseState.UNREADABLE -> BackupProblem.PHRASE_UNREADABLE
             uri != null && !safFolder(context, uri).isUsable() -> BackupProblem.FOLDER_UNAVAILABLE
             else -> config.problem
         }
-        AutoBackupStatus.Configured(
+        return AutoBackupStatus.Configured(
             folderName = config.folderName,
             lastSuccessMillis = config.lastSuccessMillis.takeIf { it > 0 },
             problem = problem,
