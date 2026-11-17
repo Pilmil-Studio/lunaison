@@ -13,3 +13,16 @@ Constats avant reprise :
 8. Zones tactiles : liens de navigation 29 px de haut, liens du pied de page 26 px, pastilles non interactives. Les boutons font 48 à 53 px (49 px quand le flex les comprime à 360 px).
 9. Focus clavier : seul `.gallery img` a un style de focus ; les liens et boutons gardent le focus par défaut. Le lien d'évitement `.skip` existe. Aucune règle `@media print`.
 10. `galerie_anatomie.html` : page à part (style en ligne, fond #121015, pas de `style.css`, pas de `zoom.js`), six images en data URI sans dimensions. Hors du périmètre d'un site commun, seul le débordement à 360 px est corrigé.
+
+## Après reprise
+
+1. Corrigé : `width="461" height="1000"` sur les 16 captures de l'accueil (français, anglais), ratio tiré des attributs, `height:auto`, cadre en `box-shadow`. Vérifié : les images s'affichent, le zoom s'ouvre (français et anglais). Non reproduit en local : l'absence des captures au-dessus des légendes ; la place est maintenant réservée avant chargement. Si le défaut persiste en ligne, vérifier que le déploiement a bien publié les captures régénérées par l'intégration continue.
+2. Corrigé : grille à deux colonnes à 360 px (`minmax(150px, 1fr)`), au lieu d'une colonne de 709 px par capture.
+3. Corrigé : un seul bouton plein par groupe (« Installer l'APK » en haut, « Télécharger l'APK » dans la section d'installation), même ordre HTML ; les « bientôt » sont sans opacité, texte atténué (6,87), bordure en tirets, placés en dernier par `order`. Le style en ligne `opacity:.6` est retiré des quatre `<span>` (français et anglais).
+4. Partiellement corrigé : pas de débordement avant ni après (360 px). Liens portés à 44 px de haut, donc l'en-tête passe à 216 px de haut à 360 px (accueil français) ; allemand et polonais 128 px.
+5. Corrigé : liens longs coupés par `overflow-wrap:anywhere` (`sources.html`, `en/evidence.html`) ; grille de `galerie_anatomie.html` en `minmax(min(420px, 100%), 1fr)`. Largeur de page mesurée : 360 px sur les 20 pages.
+6. Corrigé : `max-width: 32em` sur les paragraphes et listes de section et de prose, 72 à 77 caractères mesurés avec la police de la page avant arrondi (77 avant la dernière réduction de 34 em à 32 em, non remesuré après).
+7. Corrigé : `--clay` clair #A8473F devient #983C35 (6,11 sur fond uni, 5,20 au pire du dégradé) ; dégradé prune de 18 % à 12 % (texte atténué 5,57 au pire). Thème sombre inchangé.
+8. Corrigé : liens de navigation et de pied de page à 44 px de haut.
+9. Corrigé : `:focus-visible` global (contour 3 px, couleur du lien, blanc dans l'en-tête) ; règle `@media print` ajoutée (fond blanc, navigation, boutons et liens de pied masqués).
+10. Corrigé pour la largeur de page et les dimensions des six images (415 x 1000, lues dans l'en-tête PNG). Non fait : `galerie_anatomie.html` garde son style en ligne, sans `style.css` ni `zoom.js` ; elle s'affiche correctement.
