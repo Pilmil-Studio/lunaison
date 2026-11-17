@@ -105,7 +105,7 @@ class BackupWriterTest {
     }
 
     @Test
-    fun `dossier inaccessible : probleme signale, copie privee tout de meme ecrite`() {
+    fun `dossier inaccessible - probleme signale, copie privee tout de meme ecrite`() {
         folder.unavailable = true
 
         val report = writer.write("donnees", phrase, today, folder, copy)
@@ -116,7 +116,7 @@ class BackupWriterTest {
     }
 
     @Test
-    fun `ecriture impossible : les anciennes sauvegardes sont intactes`() {
+    fun `ecriture impossible - les anciennes sauvegardes sont intactes`() {
         existing("14", "15", "16")
         folder.failWrite = true
 
@@ -127,7 +127,7 @@ class BackupWriterTest {
     }
 
     @Test
-    fun `fichier ecrit illisible : retire, anciennes sauvegardes intactes`() {
+    fun `fichier ecrit illisible - retire, anciennes sauvegardes intactes`() {
         existing("14", "15", "16")
         folder.corruptWrites = true
 
@@ -141,7 +141,7 @@ class BackupWriterTest {
     }
 
     @Test
-    fun `chiffrement qui echoue : rien n est ecrit`() {
+    fun `chiffrement qui echoue - rien n est ecrit`() {
         val broken = BackupWriter(seal = { _, _ -> error("moteur") }, open = { _, _ -> "" })
 
         val report = broken.write("donnees", phrase, today, folder, copy)
@@ -152,7 +152,7 @@ class BackupWriterTest {
     }
 
     @Test
-    fun `chiffrement non relisible : rien n est ecrit`() {
+    fun `chiffrement non relisible - rien n est ecrit`() {
         val lossy = BackupWriter(seal = { p, _ -> p.toByteArray() }, open = { _, _ -> "autre chose" })
 
         val report = lossy.write("donnees", phrase, today, folder, copy)
@@ -162,7 +162,7 @@ class BackupWriterTest {
     }
 
     @Test
-    fun `copie privee en echec : signalee, mais la sauvegarde du dossier est faite`() {
+    fun `copie privee en echec - signalee, mais la sauvegarde du dossier est faite`() {
         copy.failing = true
 
         val report = writer.write("donnees", phrase, today, folder, copy)
@@ -173,7 +173,7 @@ class BackupWriterTest {
     }
 
     @Test
-    fun `deuxieme sauvegarde le meme jour : nouveau nom, ancien fichier conserve`() {
+    fun `deuxieme sauvegarde le meme jour - nouveau nom, ancien fichier conserve`() {
         writer.write("v1", phrase, today, folder, copy)
         writer.write("v2", phrase, today, folder, copy)
 

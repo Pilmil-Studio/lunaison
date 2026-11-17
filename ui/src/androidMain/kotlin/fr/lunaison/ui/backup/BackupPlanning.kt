@@ -31,9 +31,9 @@ object BackupFileNames {
     /** Null pour tout nom qui n'est pas un fichier de l'appli : ces fichiers ne sont jamais touchés. */
     fun parse(name: String): Parsed? {
         val match = PATTERN.matchEntire(name) ?: return null
-        val (year, month, day, counter) = match.destructured
-        val date = runCatching { LocalDate(year.toInt(), month.toInt(), day.toInt()) }.getOrNull() ?: return null
-        val number = counter.takeIf { it.isNotEmpty() }?.toInt() ?: 1
+        val groups = match.groupValues
+        val date = runCatching { LocalDate(groups[1].toInt(), groups[2].toInt(), groups[3].toInt()) }.getOrNull() ?: return null
+        val number = groups[4].takeIf { it.isNotEmpty() }?.toInt() ?: 1
         return if (number < 1) null else Parsed(date, number)
     }
 

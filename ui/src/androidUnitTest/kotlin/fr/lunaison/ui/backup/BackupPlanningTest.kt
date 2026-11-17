@@ -43,7 +43,7 @@ class BackupFileNamesTest {
     }
 
     @Test
-    fun `rotation : on garde les 3 plus recentes, nouvelle comprise`() {
+    fun `rotation - on garde les 3 plus recentes, nouvelle comprise`() {
         val existing = listOf(
             "sauvegarde-2026-11-10.pilmil",
             "sauvegarde-2026-11-12.pilmil",
@@ -56,13 +56,13 @@ class BackupFileNamesTest {
     }
 
     @Test
-    fun `rotation : moins de 3 fichiers, rien n est supprime`() {
+    fun `rotation - moins de 3 fichiers, rien n est supprime`() {
         val existing = listOf("sauvegarde-2026-11-16.pilmil", "sauvegarde-2026-11-17.pilmil")
         assertTrue(BackupFileNames.toDelete(existing, "sauvegarde-2026-11-17.pilmil").isEmpty())
     }
 
     @Test
-    fun `rotation : les fichiers etrangers ne sont jamais supprimes`() {
+    fun `rotation - les fichiers etrangers ne sont jamais supprimes`() {
         val existing = listOf(
             "releve-banque.pdf",
             "sauvegarde-2026-11-01.pilmil",
@@ -75,7 +75,7 @@ class BackupFileNamesTest {
     }
 
     @Test
-    fun `rotation : le fichier qui vient d etre ecrit n est jamais supprime, meme avec une horloge en retard`() {
+    fun `rotation - le fichier qui vient d etre ecrit n est jamais supprime, meme avec une horloge en retard`() {
         val existing = listOf(
             "sauvegarde-2027-01-01.pilmil",
             "sauvegarde-2027-01-02.pilmil",
