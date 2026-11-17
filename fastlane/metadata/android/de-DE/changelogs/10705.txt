@@ -1,0 +1,4 @@
+• Phasenartikel: Stärken und Herausforderungen nach Evidenzgrad neu formuliert.
+• Wiederherstellung: Eine Sicherung ohne Einstellungen behält die Einstellungen des Telefons und seinen PIN-Code.
+• Auswahlfelder: besser sichtbares Häkchen und Rand, Kontraste getestet.
+• Fehlerfarbe in Terrakotta im Design.

@@ -1,0 +1,4 @@
+• Opisy faz: mocne strony i wyzwania sformułowane na nowo według poziomu dowodów.
+• Przywracanie: kopia bez ustawień zachowuje ustawienia telefonu i jego kod PIN.
+• Pola wyboru: wyraźniejszy znacznik i obramowanie, kontrasty przetestowane.
+• Kolor błędu w kolorze terakoty w motywie.

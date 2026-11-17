@@ -1,0 +1,4 @@
+• Fichas de las fases: puntos fuertes y retos reformulados según el nivel de evidencia.
+• Restauración: una copia sin ajustes conserva los del teléfono y su código PIN.
+• Opciones: marca y borde más visibles, contrastes comprobados.
+• Color de error en terracota en el tema.

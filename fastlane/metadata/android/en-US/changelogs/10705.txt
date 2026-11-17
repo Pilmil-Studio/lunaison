@@ -1,0 +1,4 @@
+• Phase guides: strengths and challenges reworded according to the level of evidence.
+• Restore: a backup without settings keeps the phone's settings and its PIN code.
+• Choice chips: more visible check mark and border, contrast tested.
+• Error color in terracotta in the theme.
