@@ -380,6 +380,22 @@ fun SettingsScreen(
             LunaButton(tr("Tout effacer", "Erase everything", pl = "Usuń wszystko", uk = "Стерти все", es = "Borrar todo", de = "Alles löschen"), onClick = { confirmErase = true }, style = LunaButtonStyle.Quiet, icon = Icons.Filled.Delete)
         }
 
+        if (autoBackupAvailable) {
+            SectionTitle(
+                tr(
+                    "Sauvegarde automatique",
+                    "Automatic backup",
+                    pl = "Automatyczna kopia zapasowa",
+                    uk = "Автоматична резервна копія",
+                    es = "Copia de seguridad automática",
+                    de = "Automatische Sicherung",
+                ),
+            )
+            LunaCard {
+                AutoBackupSettings()
+            }
+        }
+
         SectionTitle(
             tr(
                 "Dans la même démarche",
@@ -533,11 +549,12 @@ fun SettingsScreen(
         AlertDialog(
             onDismissRequest = { confirmErase = false },
             title = { Text(tr("Tout effacer ?", "Erase everything?", pl = "Usunąć wszystko?", uk = "Стерти все?", es = "¿Borrar todo?", de = "Alles löschen?")) },
-            text = { Text(tr("Toutes vos journées et vos réglages seront supprimés de ce téléphone. Ce n'est pas réversible.", "All your days and settings will be deleted from this phone. This cannot be undone.", pl = "Wszystkie Twoje dni i ustawienia zostaną usunięte z tego telefonu. Tego nie można cofnąć.", uk = "Усі ваші дні та налаштування буде видалено з цього телефону. Це неможливо скасувати.", es = "Todos tus días y ajustes se eliminarán de este teléfono. No se puede deshacer.", de = "Alle deine Tage und Einstellungen werden von diesem Telefon gelöscht. Das lässt sich nicht rückgängig machen.")) },
+            text = { Text(tr("Toutes vos journées et vos réglages seront supprimés de ce téléphone. Ce n'est pas réversible.", "All your days and settings will be deleted from this phone. This cannot be undone.", pl = "Wszystkie Twoje dni i ustawienia zostaną usunięte z tego telefonu. Tego nie można cofnąć.", uk = "Усі ваші дні та налаштування буде видалено з цього телефону. Це неможливо скасувати.", es = "Todos tus días y ajustes se eliminarán de este teléfono. No se puede deshacer.", de = "Alle deine Tage und Einstellungen werden von diesem Telefon gelöscht. Das lässt sich nicht rückgängig machen.") + if (autoBackupAvailable) " " + tr("Les fichiers de sauvegarde déjà écrits hors de l'appli (dossier de sauvegarde automatique, exports) ne sont pas supprimés.", "Backup files already written outside the app (automatic backup folder, exports) are not deleted.", pl = "Pliki kopii zapisane już poza aplikacją (folder automatycznej kopii, eksporty) nie są usuwane.", uk = "Файли копій, уже записані поза застосунком (тека автоматичної копії, експорти), не видаляються.", es = "Los archivos de copia ya escritos fuera de la app (carpeta de copia automática, exportaciones) no se borran.", de = "Bereits außerhalb der App geschriebene Sicherungsdateien (Ordner der automatischen Sicherung, Exporte) werden nicht gelöscht.") else "") },
             confirmButton = {
                 TextButton(onClick = {
                     confirmErase = false
                     actions.eraseAll()
+                    onAllDataErased(context)
                 }) { Text(tr("Effacer", "Erase", pl = "Usuń", uk = "Стерти", es = "Borrar", de = "Löschen")) }
             },
             dismissButton = { TextButton(onClick = { confirmErase = false }) { Text(tr("Annuler", "Cancel", pl = "Anuluj", uk = "Скасувати", es = "Cancelar", de = "Abbrechen")) } },

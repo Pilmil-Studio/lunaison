@@ -9,6 +9,9 @@ import fr.lunaison.core.data.Partner
 import fr.lunaison.core.data.PinThrottleState
 import fr.lunaison.core.model.DayLog
 import fr.lunaison.core.model.PartnerSnapshot
+import fr.lunaison.ui.backup.AutoBackupStatus
+import fr.lunaison.ui.backup.RestoreOffer
+import kotlinx.datetime.LocalDate
 
 /*
  * Frontière avec le système : tout ce que les écrans communs demandent à Android ou iOS passe ici.
@@ -119,7 +122,38 @@ expect fun RestoreBackupButton(
     label: String,
     onRestore: suspend (json: String) -> BackupRestoreSummary,
     onResult: (String) -> Unit,
+    /** Fichier .pilmil déjà sélectionné (retrouvé sur le téléphone) : le bouton demande directement la phrase. */
+    preselected: ByteArray? = null,
+    /** Faux sur une base vide : rien n'est remplacé, la confirmation « remplacer les données » n'a pas lieu d'être. */
+    replacesData: Boolean = true,
+    /** Bouton principal (accueil d'arrivée) plutôt que bouton secondaire. */
+    primary: Boolean = false,
 )
+
+/** La sauvegarde automatique vers un dossier choisi est disponible (Android seulement). */
+expect val autoBackupAvailable: Boolean
+
+/** Section « Sauvegarde automatique » des réglages : dossier, phrase secrète, état. Ne montre rien sur iOS. */
+@Composable
+expect fun AutoBackupSettings()
+
+/** État de la sauvegarde automatique ; lit le système, à appeler hors du fil principal. */
+expect suspend fun readAutoBackupStatus(context: PlatformContext): AutoBackupStatus
+
+/** « Plus tard » sur la carte de rappel de l'accueil : masquée jusqu'à [date]. */
+expect fun hideBackupCardUntil(context: PlatformContext, date: LocalDate)
+
+/** Après « Tout effacer » : la copie interne de la sauvegarde ne doit pas garder ce qui vient d'être effacé. */
+expect fun onAllDataErased(context: PlatformContext)
+
+/**
+ * Au premier lancement sur une base vide : y a-t-il quelque chose à restaurer ? Une copie chiffrée retrouvée sur le
+ * téléphone, ou une base chiffrée venue d'un autre téléphone (mise de côté). Null s'il n'y a rien.
+ */
+expect suspend fun readRestoreOffer(context: PlatformContext): RestoreOffer?
+
+/** La personne a restauré ou commencé à zéro : le message sur la base mise de côté disparaît. */
+expect fun acknowledgeRestoreOffer(context: PlatformContext)
 
 /** La sauvegarde iCloud de l'iPhone inclut les données ; la personne peut l'exclure (iOS seulement). */
 expect val cloudBackupControllable: Boolean

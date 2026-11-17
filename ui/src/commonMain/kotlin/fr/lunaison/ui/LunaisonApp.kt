@@ -51,6 +51,7 @@ import fr.lunaison.core.model.Baseline
 import fr.lunaison.core.model.DayLog
 import fr.lunaison.core.model.Flow
 import fr.lunaison.core.model.tr
+import fr.lunaison.ui.backup.RestoreOffer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
@@ -130,11 +131,16 @@ fun LunaisonApp(
     // Accueil rouvert depuis les réglages : il se ferme sans rien effacer.
     var replayWelcome by rememberSaveable { mutableStateOf(false) }
 
+    val platformContext = rememberPlatformContext()
     val currentLogs = logs
     val currentSettings = settings
     if (currentLogs == null || currentSettings == null) {
         Box(Modifier.fillMaxSize())
         return
+    }
+    // Une fois l'accueil passé (restauration faite ou « Commencer »), le message sur une base mise de côté n'a plus lieu d'être.
+    LaunchedEffect(currentSettings.onboarded) {
+        if (currentSettings.onboarded) acknowledgeRestoreOffer(platformContext)
     }
 
     val expectedPinHash = currentSettings.pinHash
@@ -148,6 +154,9 @@ fun LunaisonApp(
 
     if (OnboardingFlow.shouldShow(currentSettings.onboarded) || replayWelcome) {
         val firstLaunch = !currentSettings.onboarded
+        val restoreOffer by produceState<RestoreOffer?>(null, firstLaunch) {
+            value = if (firstLaunch) readRestoreOffer(platformContext) else null
+        }
         val onboardingActions = remember(repository) { RepositoryActions(repository, scope) }
         fun finish(baseline: Baseline, log: Boolean) {
             if (log) localLink = LINK_LOG
@@ -181,6 +190,7 @@ fun LunaisonApp(
             },
             actions = onboardingActions,
             onClose = if (firstLaunch) null else ({ replayWelcome = false }),
+            restoreOffer = restoreOffer,
         )
         return
     }
@@ -321,6 +331,7 @@ private fun MainScaffold(
                     onCalendar = { navController.openTab(Tab.CALENDAR.route) },
                     onInsights = { navController.navigate("cycles") },
                     onBreathe = { navController.navigate("respirer") },
+                    onBackupSettings = { navController.openTab(Tab.SETTINGS.route) },
                 )
             }
             composable(Tab.CALENDAR.route) {

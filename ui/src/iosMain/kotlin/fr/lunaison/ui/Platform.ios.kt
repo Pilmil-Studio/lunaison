@@ -34,6 +34,9 @@ import fr.lunaison.core.model.DayLog
 import fr.lunaison.core.model.PartnerSnapshot
 import fr.lunaison.core.model.minusDays
 import fr.lunaison.core.model.tr
+import fr.lunaison.ui.backup.AutoBackupStatus
+import fr.lunaison.ui.backup.RestoreOffer
+import kotlinx.datetime.LocalDate
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
@@ -433,7 +436,29 @@ actual fun RestoreBackupButton(
     label: String,
     onRestore: suspend (json: String) -> BackupRestoreSummary,
     onResult: (String) -> Unit,
+    preselected: ByteArray?,
+    replacesData: Boolean,
+    primary: Boolean,
 ) = Unit
+
+/*
+ * Sauvegarde automatique vers un dossier : Android seulement dans cette étape. Sur iOS, la section est masquée
+ * et rien n'est proposé à la restauration.
+ */
+actual val autoBackupAvailable: Boolean = false
+
+@Composable
+actual fun AutoBackupSettings() = Unit
+
+actual suspend fun readAutoBackupStatus(context: PlatformContext): AutoBackupStatus = AutoBackupStatus.Unavailable
+
+actual fun hideBackupCardUntil(context: PlatformContext, date: LocalDate) = Unit
+
+actual fun onAllDataErased(context: PlatformContext) = Unit
+
+actual suspend fun readRestoreOffer(context: PlatformContext): RestoreOffer? = null
+
+actual fun acknowledgeRestoreOffer(context: PlatformContext) = Unit
 
 @Composable
 actual fun EncryptedBackupButton(
