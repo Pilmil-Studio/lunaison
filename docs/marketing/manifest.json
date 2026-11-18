@@ -32,7 +32,10 @@
           "chips": [
             "Libre",
             "Sans compte"
-          ]
+          ],
+          "side_title": "Où en êtes-vous",
+          "side_subtitle": "La phase en cours, les prochaines règles estimées et un conseil du jour.",
+          "side": "left"
         },
         {
           "slug": "journee",
@@ -42,7 +45,10 @@
           "title": "Noter sa journée en quelques taps",
           "subtitle": "Flux, douleur, symptômes, humeur : tout se note sans clavier.",
           "chips": [],
-          "second": "docs/marketing/captures/fr/calendrier.png"
+          "second": "docs/marketing/captures/fr/calendrier.png",
+          "side_title": "Noter sans clavier",
+          "side_subtitle": "Flux, douleur, symptômes, humeur : quelques taps suffisent.",
+          "side": "right"
         },
         {
           "slug": "comprendre",
@@ -52,7 +58,10 @@
           "title": "Comprendre chaque phase",
           "subtitle": "Ce qui se passe dans le corps et ce qui aide, phase par phase.",
           "chips": [],
-          "second": "docs/marketing/captures/fr/fiche_cycle.png"
+          "second": "docs/marketing/captures/fr/fiche_cycle.png",
+          "side_title": "Comprendre chaque phase",
+          "side_subtitle": "Ce qui se passe dans le corps et ce qui aide, phase par phase.",
+          "side": "left"
         },
         {
           "slug": "fiches",
@@ -61,7 +70,10 @@
           "tilt": 3,
           "title": "Des fiches sourcées",
           "subtitle": "Chaque fiche cite ses références et son niveau de preuve.",
-          "chips": []
+          "chips": [],
+          "side_title": "Des fiches sourcées",
+          "side_subtitle": "Chaque fiche cite ses références et son niveau de preuve.",
+          "side": "right"
         },
         {
           "slug": "partage",
@@ -73,7 +85,10 @@
           "chips": [
             "Facultatif",
             "Sans serveur"
-          ]
+          ],
+          "side_title": "Prévenir sans serveur",
+          "side_subtitle": "Par message ou par QR Code, d'un téléphone à l'autre, si vous le souhaitez.",
+          "side": "left"
         },
         {
           "slug": "confidentialite",
@@ -86,7 +101,10 @@
             "Hors ligne",
             "Sans publicité"
           ],
-          "second": "docs/marketing/captures/fr/reglages.png"
+          "second": "docs/marketing/captures/fr/reglages.png",
+          "side_title": "Tout reste ici",
+          "side_subtitle": "Pas de compte, pas de permission Internet, code PIN facultatif.",
+          "side": "right"
         }
       ]
     },
@@ -108,7 +126,10 @@
           "chips": [
             "Open source",
             "No account"
-          ]
+          ],
+          "side_title": "Where you are",
+          "side_subtitle": "The current phase, your estimated next period and a daily tip.",
+          "side": "left"
         },
         {
           "slug": "journee",
@@ -118,7 +139,10 @@
           "title": "Log your day in a few taps",
           "subtitle": "Flow, pain, symptoms, mood: all logged without typing.",
           "chips": [],
-          "second": "docs/marketing/captures/en/calendrier.png"
+          "second": "docs/marketing/captures/en/calendrier.png",
+          "side_title": "Log without typing",
+          "side_subtitle": "Flow, pain, symptoms, mood: a few taps are enough.",
+          "side": "right"
         },
         {
           "slug": "comprendre",
@@ -128,7 +152,10 @@
           "title": "Understand each phase",
           "subtitle": "What happens in the body and what helps, phase by phase.",
           "chips": [],
-          "second": "docs/marketing/captures/en/fiche_cycle.png"
+          "second": "docs/marketing/captures/en/fiche_cycle.png",
+          "side_title": "Understand each phase",
+          "side_subtitle": "What happens in the body and what helps, phase by phase.",
+          "side": "left"
         },
         {
           "slug": "fiches",
@@ -137,7 +164,10 @@
           "tilt": 3,
           "title": "Sourced articles",
           "subtitle": "Each article cites its references and level of evidence.",
-          "chips": []
+          "chips": [],
+          "side_title": "Sourced articles",
+          "side_subtitle": "Each article cites its references and level of evidence.",
+          "side": "right"
         },
         {
           "slug": "partage",
@@ -149,7 +179,10 @@
           "chips": [
             "Optional",
             "No server"
-          ]
+          ],
+          "side_title": "Share with no server",
+          "side_subtitle": "By message or QR code, phone to phone, only if you choose to.",
+          "side": "left"
         },
         {
           "slug": "confidentialite",
@@ -162,7 +195,10 @@
             "Offline",
             "No ads"
           ],
-          "second": "docs/marketing/captures/en/reglages.png"
+          "second": "docs/marketing/captures/en/reglages.png",
+          "side_title": "Everything stays here",
+          "side_subtitle": "No account, no Internet permission, optional PIN code.",
+          "side": "right"
         }
       ]
     }
