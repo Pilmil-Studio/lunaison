@@ -148,7 +148,7 @@ private fun Color.muted(amount: Float): Color {
 @Composable
 internal fun UterusIllustration(
     day: Float,
-    selected: UterusPart,
+    selected: UterusPart?,
     onSelect: (UterusPart) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -157,17 +157,18 @@ internal fun UterusIllustration(
     val measurer = rememberTextMeasurer()
     val currentOnSelect by rememberUpdatedState(onSelect)
     val focus = UterusPart.entries.associateWith { part ->
-        animateFloatAsState(if (part == selected) 1f else 0f, tween(durationMillis = 280), label = "focus-${part.name}").value
+        animateFloatAsState(if (selected == null || part == selected) 1f else 0f, tween(durationMillis = 280), label = "focus-${part.name}").value
     }
-    val label = uterusPartChipLabel(selected)
+    val label = selected?.let(::uterusPartChipLabel)
     val roundedDay = day.roundToInt().coerceIn(1, 28)
+    val selection = label ?: tr("aucun organe", "no organ", pl = "żaden narząd", uk = "жодного органа", es = "ningún órgano", de = "kein Organ")
     val description = tr(
-        "Schéma de l'utérus au jour $roundedDay, ${cyclePhaseName(roundedDay)}. Organe sélectionné : $label.",
-        "Diagram of the uterus on day $roundedDay, ${cyclePhaseName(roundedDay)}. Selected: $label.",
-        pl = "Schemat macicy w dniu $roundedDay, ${cyclePhaseName(roundedDay)}. Wybrano: $label.",
-        uk = "Схема матки в день $roundedDay, ${cyclePhaseName(roundedDay)}. Вибрано: $label.",
-        es = "Esquema del útero el día $roundedDay, ${cyclePhaseName(roundedDay)}. Seleccionado: $label.",
-        de = "Schema der Gebärmutter an Tag $roundedDay, ${cyclePhaseName(roundedDay)}. Ausgewählt: $label.",
+        "Schéma de l'utérus au jour $roundedDay, ${cyclePhaseName(roundedDay)}. Organe sélectionné : $selection.",
+        "Diagram of the uterus on day $roundedDay, ${cyclePhaseName(roundedDay)}. Selected: $selection.",
+        pl = "Schemat macicy w dniu $roundedDay, ${cyclePhaseName(roundedDay)}. Wybrano: $selection.",
+        uk = "Схема матки в день $roundedDay, ${cyclePhaseName(roundedDay)}. Вибрано: $selection.",
+        es = "Esquema del útero el día $roundedDay, ${cyclePhaseName(roundedDay)}. Seleccionado: $selection.",
+        de = "Schema der Gebärmutter an Tag $roundedDay, ${cyclePhaseName(roundedDay)}. Ausgewählt: $selection.",
     )
 
     Canvas(
@@ -191,6 +192,7 @@ internal fun UterusIllustration(
         drawLigamentsAndOvaries(layout, day, ::tissue)
         drawTubes(layout, day, ::tissue)
         drawUterus(layout, day, ::tissue)
+        if (selected == null || label == null) return@Canvas
         drawFocusRing(layout, selected, focus[selected] ?: 0f, colors.primary)
 
         // Étiquette de l'organe sélectionné, en haut à gauche pour ne jamais masquer le schéma.

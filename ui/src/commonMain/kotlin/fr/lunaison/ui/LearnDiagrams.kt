@@ -581,10 +581,13 @@ private fun cyclePhaseDescription(day: Int): String = when (day) {
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun InteractiveUterusDiagram(
-    initialPart: UterusPart = UterusPart.ENDOMETRIUM,
+    /** Organe mis en avant à l'ouverture ; aucun par défaut, pour voir d'abord l'ensemble. */
+    initialPart: UterusPart? = null,
     initialDay: Int = 14,
 ) {
     var selectedPart by remember { mutableStateOf(initialPart) }
+    // Toucher de nouveau l'organe sélectionné le désélectionne.
+    val toggle: (UterusPart) -> Unit = { part -> selectedPart = if (part == selectedPart) null else part }
     var cycleDay by remember { mutableFloatStateOf(initialDay.toFloat()) }
     val sliderDay = cycleDay.roundToInt().coerceIn(1, 28)
     val colors = MaterialTheme.colorScheme
@@ -608,7 +611,7 @@ fun InteractiveUterusDiagram(
             UterusIllustration(
                 day = shownDay,
                 selected = selectedPart,
-                onSelect = { selectedPart = it },
+                onSelect = toggle,
                 modifier = Modifier.fillMaxSize().padding(8.dp),
             )
         }
@@ -736,7 +739,7 @@ fun InteractiveUterusDiagram(
             UterusPart.entries.forEach { part ->
                 FilterChip(
                     selected = part == selectedPart,
-                    onClick = { selectedPart = part },
+                    onClick = { toggle(part) },
                     label = { Text(uterusPartChipLabel(part), style = MaterialTheme.typography.labelMedium) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = colors.primaryContainer,
@@ -746,8 +749,20 @@ fun InteractiveUterusDiagram(
             }
         }
 
-        // 4. Fiche détaillée de l'organe sélectionné
-        Surface(
+        // 4. Fiche détaillée de l'organe sélectionné, ou invitation à en toucher un.
+        val part = selectedPart
+        if (part == null) {
+            Muted(
+                tr(
+                    "Touchez un organe sur le schéma ou ci-dessus pour en savoir plus.",
+                    "Tap an organ on the diagram or above to learn more.",
+                    pl = "Dotknij narządu na schemacie lub powyżej, aby dowiedzieć się więcej.",
+                    uk = "Торкніться органа на схемі або вище, щоб дізнатися більше.",
+                    es = "Toca un órgano en el esquema o arriba para saber más.",
+                    de = "Tippe auf ein Organ im Schema oder oben, um mehr zu erfahren.",
+                ),
+            )
+        } else Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             color = colors.secondaryContainer.copy(alpha = 0.45f),
@@ -766,7 +781,7 @@ fun InteractiveUterusDiagram(
                             .size(10.dp)
                             .clip(CircleShape)
                             .background(
-                                when (selectedPart) {
+                                when (part) {
                                     UterusPart.ENDOMETRIUM -> Color(0xFFD32F2F)
                                     UterusPart.MYOMETRIUM -> Color(0xFFE57373)
                                     UterusPart.CERVIX -> Color(0xFFD81B60)
@@ -777,14 +792,14 @@ fun InteractiveUterusDiagram(
                             )
                     )
                     Text(
-                        uterusPartTitle(selectedPart),
+                        uterusPartTitle(part),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = colors.onSurface,
                     )
                 }
                 Text(
-                    uterusPartSummary(selectedPart),
+                    uterusPartSummary(part),
                     style = MaterialTheme.typography.bodyMedium,
                     color = colors.onSurfaceVariant,
                 )
