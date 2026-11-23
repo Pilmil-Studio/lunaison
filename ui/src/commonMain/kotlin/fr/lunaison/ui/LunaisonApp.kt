@@ -55,7 +55,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import fr.lunaison.core.model.now
+import fr.lunaison.core.data.ImportMerger
+import fr.lunaison.core.data.ImportPlan
+import fr.lunaison.core.data.ImportPreview
+import fr.lunaison.core.data.UnreadableImportException
+import fr.lunaison.core.data.applyImport
 import fr.lunaison.core.data.importAuto
+import fr.lunaison.core.data.planImport
+import fr.lunaison.core.data.previewClueFile
 
 private enum class Tab(
     val route: String,
@@ -226,6 +233,16 @@ interface Actions {
     suspend fun restoreBackup(json: String): BackupRestoreSummary = BackupRestoreSummary(0, false)
     suspend fun importCsv(content: String): Int = 0
     suspend fun importAuto(bytes: ByteArray, password: String? = null): ImportSummary = ImportSummary(0, 0)
+
+    /** Lit un export Clue en mémoire sans rien écrire (expérimental). */
+    suspend fun previewClue(bytes: ByteArray, password: String? = null): ImportPreview =
+        throw UnreadableImportException()
+
+    /** Fusion prévue d'un aperçu avec les journées existantes, sans rien écrire. */
+    suspend fun planImport(preview: ImportPreview): ImportPlan = ImportMerger.plan(preview, emptyList())
+
+    /** Écrit la fusion confirmée (les journées déjà saisies sont conservées). Renvoie le nombre de journées écrites. */
+    suspend fun applyImport(plan: ImportPlan): Int = 0
 }
 
 /** Les actions réelles, toutes enregistrées localement. */
@@ -248,6 +265,9 @@ class RepositoryActions(private val repository: LunaisonRepository, private val 
     override suspend fun importCsv(content: String): Int = repository.importCsv(content)
     override suspend fun importAuto(bytes: ByteArray, password: String?): ImportSummary =
         repository.importAuto(bytes, password)
+    override suspend fun previewClue(bytes: ByteArray, password: String?): ImportPreview = previewClueFile(bytes, password)
+    override suspend fun planImport(preview: ImportPreview): ImportPlan = repository.planImport(preview)
+    override suspend fun applyImport(plan: ImportPlan): Int = repository.applyImport(plan)
 }
 
 @Composable
