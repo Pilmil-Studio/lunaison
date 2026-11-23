@@ -21,6 +21,8 @@ jbNavigation = "2.8.0-alpha10"
 jbLifecycle = "2.8.4"
 kover = "0.9.1"
 detekt = "1.23.8"
+serializationJson = "1.7.3"
+healthConnect = "1.1.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -49,6 +51,8 @@ zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" 
 compose-icons-core = { group = "org.jetbrains.compose.material", name = "material-icons-core", version.ref = "composeMultiplatform" }
 jb-navigation-compose = { group = "org.jetbrains.androidx.navigation", name = "navigation-compose", version.ref = "jbNavigation" }
 jb-lifecycle-runtime-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "jbLifecycle" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serializationJson" }
+androidx-health-connect = { group = "androidx.health.connect", name = "connect-client", version.ref = "healthConnect" }
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinxDatetime" }
 
 [plugins]

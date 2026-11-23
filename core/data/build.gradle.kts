@@ -32,9 +32,13 @@ kotlin {
             api(project(":core:content"))
             api(libs.kotlinx.coroutines.core)
             api(libs.androidx.room.runtime)
+            // Lecture tolérante du JSON d'export Clue (JsonElement, sans classes rigides).
+            implementation(libs.kotlinx.serialization.json)
         }
         androidMain.dependencies {
             api(libs.kotlinx.coroutines.android)
+            // Lecture seule des règles écrites par d'autres applis, à la demande de la personne.
+            implementation(libs.androidx.health.connect)
         }
         iosMain.dependencies {
             // Moteur SQLite embarqué : iOS n'a pas d'équivalent de SupportSQLite.
