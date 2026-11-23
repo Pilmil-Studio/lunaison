@@ -4,7 +4,9 @@
 
 ## 1. Fonctionnalités à venir
 - **v1.x** :
-  - Prise en charge de formats d'import complémentaires (Clue, Flo, Drip) lorsque des exports exploitables existent.
+  - Prise en charge de formats d'import complémentaires (Flo, Drip) lorsque des exports exploitables existent.
+  - Import depuis HealthKit sur iOS : l'interface commune (`HealthDataSource`) est prête, l'implémentation iOS reste à écrire.
+  - Valider l'import Clue (aujourd'hui expérimental) sur un vrai export, puis ajuster `ClueKeyMapping`.
   - Intégration de `pilmil-core` (`BackupVault` `.pilmil` AES-256-GCM) pour mutualiser l'export chiffré.
 
 ## 2. Aspect visuel & UX

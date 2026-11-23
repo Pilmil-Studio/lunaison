@@ -21,7 +21,7 @@ Lunaison is a free, open source (MPL-2.0) app for Android and iOS, with no ads, 
 - **One referenced tip a day and 1-minute guided breathing**: the daily tip changes according to the phase and responds first to what you logged; a guided abdominal breathing exercise (4 s / 6 s) helps ease cramps or premenstrual tension.
 - **Spot what deserves medical advice**: repeated severe pain, periods longer than 8 days, repeated heavy periods (NHS indicators), cycles outside the usual range, bleeding between periods, missing periods, extended delay. Never a diagnosis.
 - **Read referenced guides and anatomical diagrams**: the cycle, pain, food, premenstrual syndrome, when to see a doctor, contraception, **endometriosis, PCOS, adenomyosis, perimenopause**, limits of forecasts, a guide for partners and family, plus anatomical diagrams (reproductive system and vulva).
-- **Serverless data migration & import**: direct import of backups from the popular *Period Calendar* app (password-protected ZIP or JSON) and Lunaison CSV files, parsed and decrypted locally on device without sending a single byte to any server.
+- **Serverless data migration & import**: direct import of backups from the popular *Period Calendar* app (password-protected ZIP or JSON) and Lunaison CSV files, parsed and decrypted locally on device without sending a single byte to any server. Two more sources are available, always on request: **Health Connect** (Android, read-only access to periods written by other apps) and the **Clue export** (experimental: ZipCrypto-protected ZIP archive, `.json` file or old `.cluedata` backup; an AES-encrypted archive is refused with the advice to extract it first). Both imports show a **preview** first (days, cycles, covered period) and ask for confirmation; they **never overwrite** a day already logged in Lunaison. See [documentation/pistes.md](documentation/pistes.md).
 - **Discreet reminders**: before your period, to log your day, or daily for contraception or medication, always neutral on the lock screen ("Lunaison").
 - **Share with a partner, by message or offline QR Code** (18 and over): ready-to-send messages, concrete support tips for your partner, and serverless estimate sharing via **QR Code** (displayed and scanned right inside the app) or Android's native share menu (SMS, Signal, WhatsApp…).
 - **Customization, PIN lock and home screen widget**: 4 color palettes (light and dark), optional 4-digit PIN lock (hiding the preview in recent apps), and a discreet home screen widget.
@@ -52,7 +52,7 @@ Screenshots are generated automatically from the screen code on every change.
 
 ## Design commitments
 
-- **No Internet permission**: the app requests no network access from Android (the only permission is the camera, to scan a partner's QR Code). Your period dates, symptoms and notes stay on your phone.
+- **No Internet permission**: the app requests no network access from Android (the only permissions that can be requested are the camera, to scan a partner's QR Code, and reading periods from Health Connect, only if you start that import). Your period dates, symptoms and notes stay on your phone.
 - **Everything included upfront**: perimenopause mode, consultation summaries, ovulation signs and partner sharing are all available with no subscription.
 - **A calm tone, with no red warnings**: an extended delay or unusual symptom is explained plainly with its medical references.
 - **No daily streak counter**: skipping a few days is normal and does not stop the app from working.
