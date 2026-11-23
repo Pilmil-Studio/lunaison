@@ -199,7 +199,7 @@ class PeriodCalendarImporterTest {
     )
 
     /** Écrit des en-têtes locaux zip (méthode deflate), chiffrés en ZipCrypto si un mot de passe est fourni. */
-    private fun zipEntries(entries: List<Pair<String, String>>, password: String?): ByteArray {
+    internal fun zipEntries(entries: List<Pair<String, String>>, password: String?): ByteArray {
         val out = ByteArrayOutputStream()
         for ((name, content) in entries) {
             val raw = content.toByteArray(Charsets.UTF_8)
