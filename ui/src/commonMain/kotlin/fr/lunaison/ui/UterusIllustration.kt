@@ -73,7 +73,7 @@ private val LigamentTint = Color(0xFFE6BDB1)
 private val NightWash = Color(0xFF2B2026)
 
 /** Emplacements des organes, calculés une fois par taille de Canvas ; sert au dessin et à la détection du toucher. */
-private class UterusLayout(w: Float, h: Float) {
+private class UterusLayout(w: Float, val h: Float) {
     val s = min(w, h * 1.25f)
     val cx = w / 2f
     val topY = h * 0.2f
@@ -109,7 +109,7 @@ private class UterusLayout(w: Float, h: Float) {
     }
 
     /** Organe touché à cet endroit, ou null. */
-    fun hit(p: Offset, h: Float, liningPx: Float): UterusPart? {
+    fun hit(p: Offset, liningPx: Float): UterusPart? {
         val dx = p.x - cx
         for (side in listOf(-1f, 1f)) {
             val ex = (p.x - ovaryX(side)) / (ovaryW * 0.62f)
@@ -176,7 +176,7 @@ internal fun UterusIllustration(
                 detectTapGestures { p ->
                     val layout = UterusLayout(size.width.toFloat(), size.height.toFloat())
                     val lining = layout.s * 0.06f
-                    layout.hit(p, size.height.toFloat(), lining)?.let(currentOnSelect)
+                    layout.hit(p, lining)?.let(currentOnSelect)
                 }
             },
     ) {
