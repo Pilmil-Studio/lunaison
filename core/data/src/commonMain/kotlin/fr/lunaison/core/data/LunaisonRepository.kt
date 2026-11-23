@@ -112,6 +112,20 @@ data class AppSettings(
             return "$PBKDF2_PREFIX${salt.toHex()}$${derived.toHex()}"
         }
 
+        /**
+         * Ce qu'ouvre un code saisi. Le code leurre est vérifié dans tous les cas, pour que les deux chemins
+         * prennent le même temps et ne se distinguent pas à l'usage. Le vrai code l'emporte toujours.
+         */
+        fun checkUnlock(pin: String, pinHash: String, decoyPinHash: String?): UnlockResult {
+            val real = verifyPin(pin, pinHash)
+            val decoy = decoyPinHash?.let { verifyPin(pin, it) } ?: false
+            return when {
+                real -> UnlockResult.REAL
+                decoy -> UnlockResult.DECOY
+                else -> UnlockResult.WRONG
+            }
+        }
+
         fun verifyPin(pin: String, storedHash: String): Boolean {
             if (storedHash.startsWith(PBKDF2_PREFIX)) {
                 val parts = storedHash.split('$')
@@ -151,6 +165,9 @@ data class AppSettings(
         }
     }
 }
+
+/** Résultat d'un code saisi à l'écran de déverrouillage. */
+enum class UnlockResult { REAL, DECOY, WRONG }
 
 /** Seule source de données de l'appli. Tout reste sur le téléphone. */
 class LunaisonRepository(private val dao: LunaisonDao) {

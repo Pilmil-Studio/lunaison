@@ -40,6 +40,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import fr.lunaison.core.data.AppSettings
 import fr.lunaison.core.data.PinThrottle
+import fr.lunaison.core.data.UnlockResult
 import fr.lunaison.core.model.tr
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -114,12 +115,11 @@ fun PinUnlockScreen(
             entered = next
             verifying = true
             scope.launch {
-                // Le code leurre est toujours vérifié aussi, pour que les deux chemins prennent le même temps.
-                val (ok, decoy) = withContext(Dispatchers.Default) {
-                    val real = AppSettings.verifyPin(next, expectedHash)
-                    val leurre = decoyHash?.let { AppSettings.verifyPin(next, it) } ?: false
-                    real to (!real && leurre)
+                val result = withContext(Dispatchers.Default) {
+                    AppSettings.checkUnlock(next, expectedHash, decoyHash)
                 }
+                val ok = result == UnlockResult.REAL
+                val decoy = result == UnlockResult.DECOY
                 verifying = false
                 if (ok || decoy) {
                     val reset = PinThrottle.onSuccess()
