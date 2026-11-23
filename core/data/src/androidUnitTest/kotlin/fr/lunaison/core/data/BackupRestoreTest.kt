@@ -62,6 +62,27 @@ class BackupRestoreTest {
     }
 
     @Test
+    fun `le code leurre et l'empreinte restent sur le telephone, les notifications discretes voyagent`() = runBlocking {
+        val source = filledRepo()
+        source.updateSettings {
+            it.copy(decoyPinHash = AppSettings.hashPin("1234"), biometricUnlock = true, discreetNotifications = true)
+        }
+        val json = source.exportBackupJson()
+        assertTrue(!json.contains("decoyPinHash"))
+        assertTrue(!json.contains("biometricUnlock"))
+
+        val target = LunaisonRepository(InMemoryLunaisonDao())
+        target.updateSettings { it.copy(pinHash = AppSettings.hashPin("1111"), decoyPinHash = AppSettings.hashPin("2222")) }
+        target.restoreBackupJson(json)
+        val restored = target.settingsOnce()
+        val decoy = restored.decoyPinHash
+        assertNotNull(decoy)
+        assertTrue(AppSettings.verifyPin("2222", decoy))
+        assertEquals(false, restored.biometricUnlock)
+        assertEquals(true, restored.discreetNotifications)
+    }
+
+    @Test
     fun `une sauvegarde sans reglages ne supprime pas le PIN du telephone`() = runBlocking {
         val json = LunaisonRepository(InMemoryLunaisonDao()).exportBackupJson()
 

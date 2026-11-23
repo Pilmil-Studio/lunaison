@@ -82,6 +82,15 @@ data class AppSettings(
     val reviewPromptDismissed: Boolean = false,
     /** Date de dernier affichage ou lecture de chaque fiche (identifiant -> date ISO). */
     val articleLastShown: Map<String, LocalDate> = emptyMap(),
+    /**
+     * Empreinte du code leurre : saisi à la place du code, il ouvre une Lunaison séparée et vide.
+     * Null si aucun leurre n'est défini. Jamais sauvegardée.
+     */
+    val decoyPinHash: String? = null,
+    /** Déverrouillage par empreinte ou visage en plus du code. Propre à ce téléphone, jamais sauvegardé. */
+    val biometricUnlock: Boolean = false,
+    /** Notifications neutres (« Lunaison », « Vous avez un rappel ») même téléphone déverrouillé. */
+    val discreetNotifications: Boolean = false,
 ) {
     val isAdult: Boolean get() = baseline.ageGroup == AgeGroup.ADULT
 
@@ -101,6 +110,20 @@ data class AppSettings(
             val salt = randomPinSalt(PBKDF2_SALT_BYTES)
             val derived = pbkdf2HmacSha256(pin, salt, PBKDF2_ITERATIONS, PBKDF2_KEY_BYTES)
             return "$PBKDF2_PREFIX${salt.toHex()}$${derived.toHex()}"
+        }
+
+        /**
+         * Ce qu'ouvre un code saisi. Le code leurre est vérifié dans tous les cas, pour que les deux chemins
+         * prennent le même temps et ne se distinguent pas à l'usage. Le vrai code l'emporte toujours.
+         */
+        fun checkUnlock(pin: String, pinHash: String, decoyPinHash: String?): UnlockResult {
+            val real = verifyPin(pin, pinHash)
+            val decoy = decoyPinHash?.let { verifyPin(pin, it) } ?: false
+            return when {
+                real -> UnlockResult.REAL
+                decoy -> UnlockResult.DECOY
+                else -> UnlockResult.WRONG
+            }
         }
 
         fun verifyPin(pin: String, storedHash: String): Boolean {
@@ -143,6 +166,9 @@ data class AppSettings(
     }
 }
 
+/** Résultat d'un code saisi à l'écran de déverrouillage. */
+enum class UnlockResult { REAL, DECOY, WRONG }
+
 /** Seule source de données de l'appli. Tout reste sur le téléphone. */
 class LunaisonRepository(private val dao: LunaisonDao) {
 
@@ -165,6 +191,23 @@ class LunaisonRepository(private val dao: LunaisonDao) {
         }
     }
 
+    /**
+     * Prépare cette base comme leurre de [real] : l'accueil est passé, la tranche d'âge, la palette et le verrou
+     * affiché sont ceux de la vraie base, mais aucune journée n'y est copiée. Les journées déjà notées dans le
+     * leurre sont gardées d'une ouverture à l'autre, pour qu'il ait l'air utilisé.
+     */
+    suspend fun prepareAsDecoyOf(real: AppSettings) {
+        updateSettings { current ->
+            val base = if (current.onboarded) {
+                current
+            } else {
+                AppSettings(onboarded = true, baseline = Baseline(real.baseline.ageGroup), themePalette = real.themePalette)
+            }
+            // Le leurre n'a jamais de leurre ni d'empreinte : rien ne doit y trahir l'existence de la vraie base.
+            base.copy(pinHash = real.pinHash, decoyPinHash = null, biometricUnlock = false)
+        }
+    }
+
     /** Efface tout, sans retour possible. */
     suspend fun eraseAll() {
         dao.deleteLogs()
@@ -172,7 +215,8 @@ class LunaisonRepository(private val dao: LunaisonDao) {
     }
 
     /**
-     * Document JSON de la sauvegarde complète : toutes les tables de la base, sans le code PIN.
+     * Document JSON de la sauvegarde complète : toutes les tables de la base, sans le code PIN, le code leurre
+     * ni le choix du déverrouillage biométrique.
      * C'est le contenu qu'on chiffre dans un fichier .pilmil.
      */
     suspend fun exportBackupJson(): String =
@@ -188,7 +232,12 @@ class LunaisonRepository(private val dao: LunaisonDao) {
         settingsMutex.withLock {
             val current = dao.settingsOnce()
             // Une sauvegarde sans réglages ne doit pas effacer ceux du téléphone, ni surtout son code PIN.
-            val settings = content.settings?.copy(pinHash = current?.pinHash) ?: current
+            // Le code leurre et l'empreinte sont propres à ce téléphone : ils restent eux aussi.
+            val settings = content.settings?.copy(
+                pinHash = current?.pinHash,
+                decoyPinHash = current?.decoyPinHash,
+                biometricUnlock = current?.biometricUnlock ?: false,
+            ) ?: current
             dao.replaceAll(content.logs, settings)
         }
         return BackupRestoreSummary(daysCount = content.logs.size, settingsRestored = content.settings != null)
@@ -420,6 +469,9 @@ internal fun SettingsEntity.toModel() = AppSettings(
         val date = parts.getOrNull(1)?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
         if (id != null && date != null) id to date else null
     }.toMap(),
+    decoyPinHash = decoyPinHash,
+    biometricUnlock = biometricUnlock,
+    discreetNotifications = discreetNotifications,
 )
 
 internal fun AppSettings.toEntity() = SettingsEntity(
@@ -450,6 +502,9 @@ internal fun AppSettings.toEntity() = SettingsEntity(
     irregularCyclesMode = irregularCyclesMode,
     reviewPromptDismissed = reviewPromptDismissed,
     articleLastShown = articleLastShown.entries.joinToString(",") { "${it.key}@${it.value}" },
+    decoyPinHash = decoyPinHash,
+    biometricUnlock = biometricUnlock,
+    discreetNotifications = discreetNotifications,
 )
 
 /** Identifiant de l'énumération, sinon libellé dans l'une des six langues (sans tenir compte de la casse). */

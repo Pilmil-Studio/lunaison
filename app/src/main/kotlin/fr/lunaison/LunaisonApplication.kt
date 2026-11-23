@@ -12,11 +12,15 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import fr.lunaison.core.data.create
+import fr.lunaison.core.data.createDecoy
 
 /** Assemblage des dépendances, sans framework d'injection : une seule source de données. */
 class LunaisonApplication : Application(), LunaisonRepositoryProvider {
 
     override val repository: LunaisonRepository by lazy { LunaisonRepository.create(this) }
+
+    /** Base du code leurre, ouverte seulement quand ce code est saisi. Rappels et widget l'ignorent. */
+    val decoyRepository: LunaisonRepository by lazy { LunaisonRepository.createDecoy(this) }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
