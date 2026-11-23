@@ -58,8 +58,8 @@ private val CervixLight = Color(0xFFF1C2C4)
 private val CervixDeep = Color(0xFFDB9CA4)
 private val MucusOpaque = Color(0xFFEFE4D6)
 private val MucusClear = Color(0xFFE6F3F6)
-private val VaginaLight = Color(0xFFEBC3CE)
-private val VaginaDeep = Color(0xFFCF97A8)
+private val VaginaLight = Color(0xFFF0C9CF)
+private val VaginaDeep = Color(0xFFD9A3AE)
 private val TubeOuter = Color(0xFFD99595)
 private val TubeInner = Color(0xFFF2C0B8)
 private val OvaryLight = Color(0xFFF5DECF)
@@ -82,8 +82,8 @@ private class UterusLayout(w: Float, val h: Float) {
     val isthW = s * 0.07f
     val cervW = s * 0.078f
     val cervBottom = h * 0.68f
-    val vagW = s * 0.11f
-    val vagBottom = h * 0.96f
+    val vagW = s * 0.078f
+    val vagBottom = h * 0.92f
     val cavTop = topY + h * 0.07f
     val cavW = fundusW * 0.62f
     val cavApex = isthY - h * 0.015f
@@ -133,11 +133,12 @@ private class UterusLayout(w: Float, val h: Float) {
     }
 }
 
-/** Teinte grisée de même luminosité, pour estomper les organes non sélectionnés sans les rendre transparents. */
+/** Teinte adoucie vers un beige de même clarté, pour estomper les organes non sélectionnés sans les éteindre. */
 private fun Color.muted(amount: Float): Color {
     if (amount <= 0f) return this
     val l = 0.3f * red + 0.59f * green + 0.11f * blue
-    return lerp(this, Color(l, l, l, alpha), amount)
+    val warmNeutral = Color((l * 1.04f).coerceAtMost(1f), l, (l * 0.95f), alpha)
+    return lerp(this, warmNeutral, amount)
 }
 
 /**
@@ -183,7 +184,7 @@ internal fun UterusIllustration(
         val layout = UterusLayout(size.width, size.height)
         // En thème sombre, les tissus s'assombrissent un peu pour ne pas éblouir.
         fun tone(c: Color) = if (dark) lerp(c, NightWash, 0.18f) else c
-        fun tissue(part: UterusPart, c: Color) = tone(c).muted(0.62f * (1f - (focus[part] ?: 0f)))
+        fun tissue(part: UterusPart, c: Color) = tone(c).muted(0.38f * (1f - (focus[part] ?: 0f)))
 
         drawBackdrop(layout, colors.primary.copy(alpha = if (dark) 0.10f else 0.07f))
         drawVagina(layout, day, ::tissue)
@@ -340,7 +341,7 @@ private fun DrawScope.drawTubes(l: UterusLayout, day: Float, tissue: (UterusPart
             cubicTo(c1.x, c1.y, c2.x, c2.y, end.x, end.y)
         }
         // Deux traits superposés donnent le volume d'un conduit.
-        drawPath(path, outer, style = Stroke(l.s * 0.026f, cap = StrokeCap.Round))
+        drawPath(path, outer, style = Stroke(l.s * 0.03f, cap = StrokeCap.Round))
         drawPath(path, inner, style = Stroke(l.s * 0.012f, cap = StrokeCap.Round))
         // Pavillon : franges souples tournées vers l'ovaire.
         for (i in 0 until 7) {
@@ -418,25 +419,27 @@ private fun DrawScope.drawEndometrium(l: UterusLayout, day: Float, tissue: (Uter
     val thickness = CyclePhysiology.endometrium(day)
     val secretory = CyclePhysiology.secretory(day)
     val shedding = CyclePhysiology.shedding(day)
-    val lining = l.s * (0.012f + 0.048f * thickness)
-    val scale = 0.6f + 0.4f * thickness
-    val w = l.cavW * scale
-    val top = l.cavTop + (1f - scale) * (l.cavApex - l.cavTop) * 0.15f
-    val cavity = Path().apply {
-        moveTo(l.cx - w, top)
-        quadraticTo(l.cx, top + (l.cavApex - top) * 0.08f, l.cx + w, top)
-        quadraticTo(l.cx + w * 0.25f, (top + l.cavApex) / 2f, l.cx, l.cavApex)
-        quadraticTo(l.cx - w * 0.25f, (top + l.cavApex) / 2f, l.cx - w, top)
+    // La cavité est une fente triangulaire ; la muqueuse la tapisse. Fine après les règles, épaisse en phase lutéale.
+    val lining = l.s * (0.006f + 0.032f * thickness)
+    val w = l.cavW * (0.5f + 0.5f * thickness)
+    val top = l.cavTop + (1f - thickness) * (l.cavApex - l.cavTop) * 0.1f
+    fun triangle(width: Float, bow: Float) = Path().apply {
+        moveTo(l.cx - width, top)
+        quadraticTo(l.cx, top + (l.cavApex - top) * bow, l.cx + width, top)
+        quadraticTo(l.cx + width * 0.25f, (top + l.cavApex) / 2f, l.cx, l.cavApex)
+        quadraticTo(l.cx - width * 0.25f, (top + l.cavApex) / 2f, l.cx - width, top)
         close()
     }
+    val cavity = triangle(w, 0.08f)
+    val lumen = triangle(w * (0.42f - 0.22f * thickness), 0.04f)
     val base = lerp(lerp(EndoProliferative, EndoSecretory, secretory), EndoShedding, shedding * 0.8f)
     val color = tissue(UterusPart.ENDOMETRIUM, base)
     // La muqueuse : un liseré épais autour de la cavité, plein à l'intérieur.
     drawPath(cavity, color, style = Stroke(lining * 2f, join = StrokeJoin.Round))
-    drawPath(cavity, Brush.radialGradient(listOf(lerp(color, Color.White, 0.18f), color), center = Offset(l.cx, top + (l.cavApex - top) * 0.3f), radius = w * 1.2f))
+    drawPath(cavity, Brush.radialGradient(listOf(lerp(color, Color.White, 0.12f), color), center = Offset(l.cx, top + (l.cavApex - top) * 0.3f), radius = w * 1.2f))
 
     // Glandes : droites en phase folliculaire, sinueuses en phase lutéale.
-    val gland = tissue(UterusPart.ENDOMETRIUM, GlandTint).copy(alpha = 0.55f + 0.25f * thickness)
+    val gland = tissue(UterusPart.ENDOMETRIUM, GlandTint).copy(alpha = 0.35f + 0.25f * thickness)
     val count = 5 + (thickness * 4).roundToInt()
     for (side in listOf(-1f, 1f)) {
         for (i in 0 until count) {
@@ -474,9 +477,10 @@ private fun DrawScope.drawEndometrium(l: UterusLayout, day: Float, tissue: (Uter
             }
         }
     }
-    // La cavité elle-même : une fente fine, teintée pendant les règles.
-    val slit = lerp(lerp(GlandTint, color, 0.35f), tissue(UterusPart.ENDOMETRIUM, EndoShedding), shedding)
-    drawPath(cavity, slit.copy(alpha = 0.9f), style = Stroke(1.1f.dpx(this) + shedding * 1.2f.dpx(this), join = StrokeJoin.Round))
+    // La cavité elle-même : une fente claire, teintée pendant les règles.
+    val slit = lerp(lerp(GlandTint, color, 0.3f), tissue(UterusPart.ENDOMETRIUM, EndoShedding), shedding)
+    drawPath(lumen, slit)
+    drawPath(lumen, lerp(color, MyoRim, 0.3f).copy(alpha = 0.6f), style = Stroke(0.8f.dpx(this), join = StrokeJoin.Round))
 }
 
 private fun DrawScope.drawCervicalCanal(l: UterusLayout, day: Float, tissue: (UterusPart, Color) -> Color) {
@@ -484,7 +488,7 @@ private fun DrawScope.drawCervicalCanal(l: UterusLayout, day: Float, tissue: (Ut
     val opening = CyclePhysiology.cervixOpening(day)
     val fertile = CyclePhysiology.fertileMucus(day)
     val shedding = CyclePhysiology.shedding(day)
-    val half = l.s * (0.005f + 0.014f * opening)
+    val half = l.s * (0.004f + 0.011f * opening)
     val top = l.cavApex - h * 0.005f
     val bottom = l.cervBottom + h * 0.008f
     val canal = Path().apply {
