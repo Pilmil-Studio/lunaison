@@ -30,8 +30,9 @@ class LunaisonApplication : Application(), LunaisonRepositoryProvider {
         scope.launch {
             combine(repository.logs, repository.settings) { logs, settings -> logs to settings }
                 .distinctUntilChanged()
-                .collect {
+                .collect { (_, settings) ->
                     ReminderScheduler.reschedule(this@LunaisonApplication, repository)
+                    AppShortcuts.update(this@LunaisonApplication, settings)
                     LunaisonWidget.updateAll(this@LunaisonApplication, repository)
                 }
         }

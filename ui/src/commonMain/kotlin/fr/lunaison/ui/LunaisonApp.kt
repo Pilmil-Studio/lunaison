@@ -269,6 +269,9 @@ private fun UnlockedApp(
 
 const val LINK_LOG = "log"
 
+/** Raccourci « Mes règles ont commencé » : ouvre la journée du jour avec le début des règles déjà coché. */
+const val LINK_PERIOD = "regles"
+
 /** Ce que les écrans peuvent faire. Une interface, pour afficher les écrans sans base de données dans les captures. */
 interface Actions {
     fun save(log: DayLog)
@@ -339,7 +342,10 @@ private fun MainScaffold(
     // Lien de notification : la navigation n'est prête qu'une fois la première destination affichée.
     LaunchedEffect(link, route == null) {
         if (link == null || route == null) return@LaunchedEffect
-        if (link == LINK_LOG) navController.navigate("jour/${state.today}") { launchSingleTop = true }
+        when (link) {
+            LINK_LOG -> navController.navigate("jour/${state.today}") { launchSingleTop = true }
+            LINK_PERIOD -> navController.navigate("jour/${state.today}?debut=true") { launchSingleTop = true }
+        }
         onLinkHandled()
     }
     val savedMessage = tr("Journée enregistrée", "Day saved", pl = "Dzień zapisany", uk = "День збережено", es = "Día guardado", de = "Tag gespeichert")
