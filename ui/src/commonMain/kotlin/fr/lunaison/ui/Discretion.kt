@@ -1,6 +1,7 @@
 package fr.lunaison.ui
 
 import androidx.compose.runtime.staticCompositionLocalOf
+import fr.lunaison.core.model.tr
 
 /**
  * Déverrouillage par empreinte ou visage, fourni par la plateforme. Il ne remplace pas le code : il évite
@@ -41,4 +42,4 @@ internal object DiscretionTexts {
 }
 
 internal fun tr6(fr: String, en: String, pl: String, uk: String, es: String, de: String): String =
-    fr.lunaison.core.model.tr(fr, en, pl = pl, uk = uk, es = es, de = de)
+    tr(fr, en, pl = pl, uk = uk, es = es, de = de)

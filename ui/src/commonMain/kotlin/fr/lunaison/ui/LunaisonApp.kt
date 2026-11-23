@@ -146,9 +146,9 @@ fun LunaisonApp(
                 },
                 decoyHash = currentSettings.decoyPinHash.takeIf { decoyRepository != null },
                 onDecoy = {
-                    val decoy = decoyRepository ?: return@PinUnlockScreen
+                    val openDecoy = decoyRepository ?: return@PinUnlockScreen
                     scope.launch {
-                        decoy.prepareAsDecoyOf(currentSettings)
+                        openDecoy().prepareAsDecoyOf(currentSettings)
                         decoyMode = true
                         unlocked = true
                     }
