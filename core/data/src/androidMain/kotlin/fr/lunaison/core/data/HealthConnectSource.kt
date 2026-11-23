@@ -89,6 +89,14 @@ class HealthConnectSource(context: Context) : HealthDataSource {
             HealthPermission.getReadPermission(MenstruationFlowRecord::class),
         )
 
+        /**
+         * Permissions demandées à l'utilisatrice : READ_MENSTRUATION (obligatoire) et l'accès à l'historique
+         * (facultatif, lecture seule). Sans l'historique, Health Connect ne donne que les 30 jours qui
+         * précèdent l'autorisation, ce qui rend l'import d'un ancien suivi presque inutile.
+         * Si l'utilisatrice refuse l'historique, l'import fonctionne quand même sur cette période.
+         */
+        val REQUESTED_PERMISSIONS: Set<String> = PERMISSIONS + HealthPermission.PERMISSION_READ_HEALTH_DATA_HISTORY
+
         private const val MAX_PAGES = 100
     }
 }

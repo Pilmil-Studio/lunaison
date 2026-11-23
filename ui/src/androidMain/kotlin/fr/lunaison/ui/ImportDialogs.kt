@@ -172,7 +172,7 @@ actual fun ImportDialogs(
             when {
                 status != HealthAvailability.AVAILABLE -> importResult(healthAvailabilityMessage(status))
                 health.hasPermission() -> readHealth()
-                else -> healthPermissions.launch(HealthConnectSource.PERMISSIONS)
+                else -> healthPermissions.launch(HealthConnectSource.REQUESTED_PERMISSIONS)
             }
         }
     }
