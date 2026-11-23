@@ -4,6 +4,7 @@
 
 ## 1. Fonctionnalités à venir
 - **v1.x** :
+  - Tout nouveau format d'import doit produire un `ImportPreview` et passer par `applyImport` (aperçu, confirmation, aucune journée notée écrasée) ; un test garde-fou le vérifie.
   - Prise en charge de formats d'import complémentaires (Flo, Drip) lorsque des exports exploitables existent.
   - Import depuis HealthKit sur iOS : l'interface commune (`HealthDataSource`) est prête, l'implémentation iOS reste à écrire.
   - Valider l'import Clue (aujourd'hui expérimental) sur un vrai export, puis ajuster `ClueKeyMapping`.

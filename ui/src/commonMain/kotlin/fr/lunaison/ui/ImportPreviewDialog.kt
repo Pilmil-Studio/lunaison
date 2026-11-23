@@ -22,7 +22,34 @@ private fun fullDate(date: LocalDate): String = "${Format.dayMonth(date)} ${date
 internal fun importSourceName(source: ImportSource): String = when (source) {
     ImportSource.HEALTH_CONNECT -> "Health Connect"
     ImportSource.CLUE -> tr("Clue (expérimental)", "Clue (experimental)", pl = "Clue (eksperymentalne)", uk = "Clue (експериментально)", es = "Clue (experimental)", de = "Clue (experimentell)")
+    ImportSource.PERIOD_CALENDAR -> tr("Calendrier des règles", "Period Calendar", pl = "Kalendarz miesiączek", uk = "Календар менструацій", es = "Calendario menstrual", de = "Periodenkalender")
+    ImportSource.LUNAISON_CSV -> "Lunaison (CSV)"
 }
+
+/** Message affiché quand le fichier a été lu mais ne contient aucune journée exploitable. */
+internal fun importNothingFoundMessage(preview: ImportPreview): String {
+    val base = tr(
+        fr = "Aucune journée exploitable dans ce fichier. Rien n'a été modifié.",
+        en = "No usable day in this file. Nothing was changed.",
+        pl = "W tym pliku nie ma użytecznych dni. Nic nie zmieniono.",
+        uk = "У цьому файлі немає придатних до імпорту днів. Нічого не змінено.",
+        es = "No hay ningún día utilizable en este archivo. No se ha modificado nada.",
+        de = "Keine verwertbaren Tage in dieser Datei. Es wurde nichts geändert.",
+    )
+    val n = preview.skippedCount
+    if (n <= 0) return base
+    return base + " " + tr(
+        fr = "$n ligne(s) ignorée(s).",
+        en = "$n line(s) skipped.",
+        pl = "Pominięte wiersze: $n.",
+        uk = "Пропущено рядків: $n.",
+        es = "$n línea(s) omitida(s).",
+        de = "$n Zeile(n) übersprungen.",
+    )
+}
+
+/** Les sources qui ne contiennent que des jours de saignement (et pas un journal complet). */
+private fun ImportSource.bleedingOnly(): Boolean = this == ImportSource.HEALTH_CONNECT || this == ImportSource.CLUE
 
 /** Lignes de l'aperçu : ce qui a été trouvé et ce qui sera réellement écrit. Texte pur, testable. */
 internal fun importPlanLines(plan: ImportPlan): List<String> {
@@ -30,7 +57,11 @@ internal fun importPlanLines(plan: ImportPlan): List<String> {
     val lines = mutableListOf<String>()
     val days = preview.daysCount
     val cycles = preview.cyclesCount
-    lines += tr("Journées de règles trouvées : $days", "Days with bleeding found: $days", pl = "Znalezione dni z krwawieniem: $days", uk = "Знайдено днів із виділеннями: $days", es = "Días con sangrado encontrados: $days", de = "Gefundene Tage mit Blutung: $days")
+    lines += if (preview.source.bleedingOnly()) {
+        tr("Journées de règles trouvées : $days", "Days with bleeding found: $days", pl = "Znalezione dni z krwawieniem: $days", uk = "Знайдено днів із виділеннями: $days", es = "Días con sangrado encontrados: $days", de = "Gefundene Tage mit Blutung: $days")
+    } else {
+        tr("Journées trouvées : $days", "Days found: $days", pl = "Znalezione dni: $days", uk = "Знайдено днів: $days", es = "Días encontrados: $days", de = "Gefundene Tage: $days")
+    }
     lines += tr("Cycles repérés : $cycles", "Cycles detected: $cycles", pl = "Wykryte cykle: $cycles", uk = "Виявлено циклів: $cycles", es = "Ciclos detectados: $cycles", de = "Erkannte Zyklen: $cycles")
     val first = preview.firstDate
     val last = preview.lastDate
@@ -52,8 +83,27 @@ internal fun importPlanLines(plan: ImportPlan): List<String> {
     }
     val fresh = plan.toWrite.size
     lines += tr("Journées qui seront ajoutées : $fresh", "Days that will be added: $fresh", pl = "Dni, które zostaną dodane: $fresh", uk = "Дні, які буде додано: $fresh", es = "Días que se añadirán: $fresh", de = "Tage, die hinzugefügt werden: $fresh")
+    if (plan.fillsBaseline) {
+        lines += tr(
+            "Repères de cycle de la source : seuls les champs encore vides seront complétés",
+            "Cycle settings from the source: only fields that are still empty will be filled in",
+            pl = "Ustawienia cyklu ze źródła: uzupełnione zostaną tylko pola, które są jeszcze puste",
+            uk = "Параметри циклу з джерела: буде заповнено лише ті поля, що ще порожні",
+            es = "Datos del ciclo de la fuente: solo se completarán los campos que sigan vacíos",
+            de = "Zyklusangaben aus der Quelle: Es werden nur noch leere Felder ergänzt",
+        )
+    }
     val skipped = preview.skippedCount
-    if (skipped > 0) {
+    if (skipped > 0 && preview.source == ImportSource.LUNAISON_CSV) {
+        lines += tr(
+            "Lignes ignorées (illisibles ou vides) : $skipped",
+            "Skipped lines (unreadable or empty): $skipped",
+            pl = "Pominięte wiersze (nieczytelne lub puste): $skipped",
+            uk = "Пропущено рядків (нечитабельні або порожні): $skipped",
+            es = "Líneas omitidas (ilegibles o vacías): $skipped",
+            de = "Übersprungene Zeilen (unlesbar oder leer): $skipped",
+        )
+    } else if (skipped > 0) {
         lines += tr(
             "Éléments ignorés (date illisible) : $skipped",
             "Ignored items (unreadable date): $skipped",
@@ -110,7 +160,7 @@ internal fun importPreviewErrorMessage(e: Throwable): String? = when (e) {
  */
 @Composable
 internal fun ImportPlanDialog(plan: ImportPlan, onConfirm: () -> Unit, onDismiss: () -> Unit) {
-    val nothingNew = plan.toWrite.isEmpty()
+    val nothingNew = plan.isEmpty
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(tr("Aperçu de l'import", "Import preview", pl = "Podgląd importu", uk = "Попередній перегляд імпорту", es = "Vista previa de la importación", de = "Vorschau des Imports")) },
@@ -148,6 +198,18 @@ internal fun ImportPlanDialog(plan: ImportPlan, onConfirm: () -> Unit, onDismiss
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+                Text(
+                    tr(
+                        fr = "Vos journées déjà notées ne sont jamais modifiées.",
+                        en = "Days you already logged are never changed.",
+                        pl = "Dni już zapisane w Lunaison nigdy nie są zmieniane.",
+                        uk = "Дні, які ви вже записали, ніколи не змінюються.",
+                        es = "Los días que ya anotaste nunca se modifican.",
+                        de = "Bereits eingetragene Tage werden nie verändert.",
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 Text(
                     tr(
                         fr = "Tout est traité sur votre téléphone, rien n'est envoyé ailleurs.",

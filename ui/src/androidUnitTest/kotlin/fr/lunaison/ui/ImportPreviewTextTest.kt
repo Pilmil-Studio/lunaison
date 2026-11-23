@@ -6,6 +6,8 @@ import fr.lunaison.core.data.ImportSource
 import fr.lunaison.core.data.NothingToImportException
 import fr.lunaison.core.data.UnreadableImportException
 import fr.lunaison.core.data.UnsupportedEncryptionException
+import fr.lunaison.core.model.AgeGroup
+import fr.lunaison.core.model.Baseline
 import fr.lunaison.core.model.DayLog
 import fr.lunaison.core.model.Flow
 import fr.lunaison.core.model.of
@@ -30,6 +32,25 @@ class ImportPreviewTextTest {
         return ImportPlan(preview, toWrite = logs.take(1), keptExisting = 1)
     }
 
+    private fun csvPlan(): ImportPlan {
+        val logs = listOf(DayLog(LocalDate.of(2024, 3, 5), flow = Flow.HEAVY), DayLog(LocalDate.of(2024, 3, 6), note = "RAS"))
+        val preview = ImportPreview.of(ImportSource.LUNAISON_CSV, logs, skippedCount = 3, baseline = Baseline(AgeGroup.ADULT, usualCycleLength = 28))
+        return ImportPlan(preview, toWrite = logs, keptExisting = 0, fillsBaseline = true)
+    }
+
+    @Test
+    fun `chaque source d'import a un nom dans chaque langue et l'apercu CSV parle de journees et de lignes`() {
+        for (lang in languages) {
+            Locale.setDefault(Locale.forLanguageTag(lang))
+            assertTrue(ImportSource.entries.all { importSourceName(it).isNotBlank() }, lang)
+            val lines = importPlanLines(csvPlan())
+            // jours, cycles, période, jours ajoutés, repères de cycle, lignes ignorées
+            assertEquals(6, lines.size, "$lang : $lines")
+            assertTrue(lines.last().endsWith("3"), "$lang : ${lines.last()}")
+            assertTrue(importNothingFoundMessage(csvPlan().preview).isNotBlank(), lang)
+        }
+    }
+
     @Test
     fun `l'apercu annonce jours, cycles, periode, journees conservees et elements ignores dans chaque langue`() {
         for (lang in languages) {
@@ -48,7 +69,9 @@ class ImportPreviewTextTest {
             Locale.setDefault(Locale.forLanguageTag(lang))
             val texts = importPlanLines(plan()) +
                 importAppliedMessage(3, 1) +
-                importSourceName(ImportSource.CLUE) +
+                ImportSource.entries.map { importSourceName(it) } +
+                importNothingFoundMessage(csvPlan().preview) +
+                importPlanLines(csvPlan()) +
                 listOf(UnsupportedEncryptionException(), UnreadableImportException(), NothingToImportException()).map { importPreviewErrorMessage(it).orEmpty() }
             assertTrue(texts.none { '\u2014' in it }, lang)
         }

@@ -33,7 +33,6 @@ import fr.lunaison.core.data.HealthRecordsMapper
 import fr.lunaison.core.data.ImportPlan
 import fr.lunaison.core.data.ImportPreview
 import fr.lunaison.core.data.ImportSource
-import fr.lunaison.core.data.ImportSummary
 import fr.lunaison.core.data.PasswordRequiredException
 import fr.lunaison.core.data.UnsupportedEncryptionException
 import fr.lunaison.core.data.platformHealthDataSource
@@ -43,35 +42,6 @@ import fr.lunaison.core.model.tr
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
-/** Message affiché après un import réussi ; signale les lignes du fichier qui n'ont pas pu être lues. */
-internal fun importSummaryMessage(summary: ImportSummary): String {
-    val base = importedMessage(summary)
-    if (summary.skippedCount <= 0) return base
-    val n = summary.skippedCount
-    return base + " " + tr(
-        fr = "$n ligne(s) ignorée(s).",
-        en = "$n line(s) skipped.",
-        pl = "Pominięte wiersze: $n.",
-        uk = "Пропущено рядків: $n.",
-        es = "$n línea(s) omitida(s).",
-        de = "$n Zeile(n) übersprungen.",
-    )
-}
-
-private fun importedMessage(summary: ImportSummary): String =
-    if (summary.cyclesCount > 0) {
-        tr(
-            fr = "${summary.daysCount} journées et ${summary.cyclesCount} cycles importés depuis Calendrier.",
-            en = "${summary.daysCount} days and ${summary.cyclesCount} cycles imported from Calendar.",
-            pl = "Zaimportowano z aplikacji Kalendarz (dni: ${summary.daysCount}, cykle: ${summary.cyclesCount}).",
-            uk = "Імпортовано з Календаря (днів: ${summary.daysCount}, циклів: ${summary.cyclesCount}).",
-            es = "${summary.daysCount} días y ${summary.cyclesCount} ciclos importados desde Calendario.",
-            de = "${summary.daysCount} Tage und ${summary.cyclesCount} Zyklen aus Kalender importiert.",
-        )
-    } else {
-        tr("${summary.daysCount} journées importées.", "${summary.daysCount} days imported.", pl = "Zaimportowano dni: ${summary.daysCount}.", uk = "Імпортовано днів: ${summary.daysCount}.", es = "${summary.daysCount} días importados.", de = "${summary.daysCount} Tage importiert.")
-    }
 
 /**
  * Import d'un historique (Calendrier des règles, CSV Lunaison) : choix de la source, sélecteur de fichier du système,
@@ -92,13 +62,13 @@ actual fun ImportDialogs(
     var passwordError by rememberSaveable { mutableStateOf<String?>(null) }
     var pendingZipBytes by remember { mutableStateOf<ByteArray?>(null) }
     val importResult by rememberUpdatedState(onResult)
-    // Imports avec aperçu (Health Connect, Clue) : rien n'est écrit avant la confirmation.
+    // Tous les imports (Calendrier, CSV Lunaison, Health Connect, Clue) passent par un aperçu : rien n'est écrit avant la confirmation.
     var pendingPlan by remember { mutableStateOf<ImportPlan?>(null) }
     var passwordForClue by rememberSaveable { mutableStateOf(false) }
     val health = remember(context) { platformHealthDataSource(context) }
 
     suspend fun showPlan(preview: ImportPreview) {
-        pendingPlan = actions.planImport(preview)
+        if (preview.daysCount == 0) importResult(importNothingFoundMessage(preview)) else pendingPlan = actions.planImport(preview)
     }
 
     suspend fun readHealth() {
@@ -113,14 +83,17 @@ actual fun ImportDialogs(
         }
     }
 
-    /** Aperçu d'un export Clue. Renvoie false si un mot de passe est (re)demandé, pour garder la fenêtre ouverte. */
-    suspend fun previewClue(bytes: ByteArray, password: String?): Boolean {
+    /**
+     * Aperçu d'un fichier (Clue si [clue], sinon Calendrier ou CSV Lunaison). Rien n'est écrit.
+     * Renvoie false si un mot de passe est (re)demandé, pour garder la fenêtre ouverte.
+     */
+    suspend fun previewBytes(bytes: ByteArray, password: String?, clue: Boolean): Boolean {
         try {
-            showPlan(actions.previewClue(bytes, password))
+            showPlan(if (clue) actions.previewClue(bytes, password) else actions.previewFile(bytes, password))
             return true
         } catch (e: PasswordRequiredException) {
             pendingZipBytes = bytes
-            passwordForClue = true
+            passwordForClue = clue
             passwordInput = ""
             passwordError = null
             showPasswordDialog = true
@@ -160,7 +133,7 @@ actual fun ImportDialogs(
                         passwordError = null
                         showPasswordDialog = true
                     }
-                    else -> previewClue(bytes, null)
+                    else -> previewBytes(bytes, null, clue = true)
                 }
             }
         }
@@ -198,6 +171,8 @@ actual fun ImportDialogs(
                             es = "Este archivo es una copia .pilmil: usa «Restaurar una copia».",
                             de = "Diese Datei ist eine .pilmil-Sicherung: nutze „Sicherung wiederherstellen“.",
                         ))
+                    } else if (PeriodCalendarImporter.isAesEncryptedZip(bytes)) {
+                        importResult(importPreviewErrorMessage(UnsupportedEncryptionException()).orEmpty())
                     } else if (PeriodCalendarImporter.isZip(bytes) && PeriodCalendarImporter.isEncryptedZip(bytes)) {
                         pendingZipBytes = bytes
                         passwordForClue = false
@@ -205,8 +180,7 @@ actual fun ImportDialogs(
                         passwordError = null
                         showPasswordDialog = true
                     } else {
-                        val summary = actions.importAuto(bytes, null)
-                        importResult(importSummaryMessage(summary))
+                        previewBytes(bytes, null, clue = false)
                     }
                 } catch (e: Exception) {
                     importResult(tr("Erreur lors de l'import : ${e.localizedMessage}", "Import error: ${e.localizedMessage}", pl = "Błąd podczas importu: ${e.localizedMessage}", uk = "Помилка під час імпорту: ${e.localizedMessage}", es = "Error al importar: ${e.localizedMessage}", de = "Fehler beim Import: ${e.localizedMessage}"))
@@ -408,30 +382,17 @@ actual fun ImportDialogs(
                 TextButton(
                     onClick = {
                         val bytes = pendingZipBytes
-                        if (bytes != null && passwordForClue) {
+                        if (bytes != null) {
                             scope.launch {
-                                if (previewClue(bytes, passwordInput.trim())) {
+                                if (previewBytes(bytes, passwordInput.trim(), clue = passwordForClue)) {
                                     showPasswordDialog = false
                                     pendingZipBytes = null
-                                }
-                            }
-                        } else if (bytes != null) {
-                            scope.launch {
-                                try {
-                                    val summary = actions.importAuto(bytes, passwordInput.trim())
-                                    showPasswordDialog = false
-                                    pendingZipBytes = null
-                                    importResult(importSummaryMessage(summary))
-                                } catch (e: InvalidPasswordException) {
-                                    passwordError = tr("Mot de passe incorrect.", "Incorrect password.", pl = "Nieprawidłowe hasło.", uk = "Неправильний пароль.", es = "Contraseña incorrecta.", de = "Falsches Passwort.")
-                                } catch (e: Exception) {
-                                    passwordError = tr("Erreur : ${e.localizedMessage}", "Error: ${e.localizedMessage}", pl = "Błąd: ${e.localizedMessage}", uk = "Помилка: ${e.localizedMessage}", es = "Error: ${e.localizedMessage}", de = "Fehler: ${e.localizedMessage}")
                                 }
                             }
                         }
                     },
                 ) {
-                    Text(tr("Déchiffrer et importer", "Decrypt & import", pl = "Odszyfruj i zaimportuj", uk = "Розшифрувати й імпортувати", es = "Descifrar e importar", de = "Entschlüsseln und importieren"))
+                    Text(tr("Déchiffrer et afficher l'aperçu", "Decrypt and preview", pl = "Odszyfruj i pokaż podgląd", uk = "Розшифрувати й переглянути", es = "Descifrar y ver la vista previa", de = "Entschlüsseln und Vorschau anzeigen"))
                 }
             },
             dismissButton = {

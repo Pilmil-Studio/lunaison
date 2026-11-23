@@ -5,6 +5,7 @@ import fr.lunaison.core.model.IntimacyKind
 import fr.lunaison.core.model.PillStatus
 import fr.lunaison.core.model.Symptom
 import java.io.ByteArrayOutputStream
+import kotlinx.coroutines.runBlocking
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlinx.datetime.LocalDate
@@ -185,6 +186,28 @@ class PeriodCalendarImporterTest {
     fun `une archive sans fichier de journees est refusee`() {
         val bytes = zipEntries(listOf("settings_device.json" to settingsJson), null)
         assertFailsWith<IllegalArgumentException> { PeriodCalendarImporter.importFromZip(bytes) }
+    }
+
+    // --- Aperçu sans écriture ---------------------------------------------------------------------
+
+    @Test
+    fun `l'apercu d'une archive chiffree reprend journees, cycles et situation de depart sans rien ecrire`() = runBlocking {
+        val preview = previewPeriodCalendarZip(buildArchive(password), password)
+        assertEquals(ImportSource.PERIOD_CALENDAR, preview.source)
+        assertEquals(19, preview.daysCount)
+        assertEquals(3, preview.cyclesCount)
+        assertEquals(30, assertNotNull(preview.baseline).usualCycleLength)
+        // Un aperçu ne touche à aucune base : seule la confirmation écrit.
+        val repo = LunaisonRepository(InMemoryLunaisonDao())
+        assertEquals(19, repo.applyImport(repo.planImport(preview)))
+        assertEquals(19, repo.logsOnce().size)
+        assertEquals(6, repo.settingsOnce().baseline.usualPeriodLength)
+    }
+
+    @Test
+    fun `l'apercu automatique demande le mot de passe d'une archive chiffree`() {
+        assertFailsWith<PasswordRequiredException> { previewAuto(buildArchive(password)) }
+        assertFailsWith<InvalidPasswordException> { previewAuto(buildArchive(password), "faux") }
     }
 
     // --- Fabrication de l'archive -----------------------------------------------------------------
