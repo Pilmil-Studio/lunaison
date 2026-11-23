@@ -38,6 +38,8 @@ import fr.lunaison.core.model.AgeGroup
 import fr.lunaison.core.model.Baseline
 import fr.lunaison.core.model.PartnerSnapshot
 import fr.lunaison.core.model.tr
+import fr.lunaison.ui.backup.RestoreOffer
+import fr.lunaison.ui.backup.RestoreReason
 import kotlinx.datetime.LocalDate
 
 /**
@@ -62,6 +64,8 @@ fun OnboardingScreen(
     onPinChosen: (String) -> Unit = {},
     actions: Actions? = null,
     onClose: (() -> Unit)? = null,
+    /** Quelque chose à restaurer au premier lancement : copie retrouvée sur le téléphone, ou base venue d'un autre téléphone. */
+    restoreOffer: RestoreOffer? = null,
 ) {
     var stepIndex by rememberSaveable { mutableIntStateOf(OnboardingStep.WELCOME.ordinal) }
     val step = OnboardingStep.entries[stepIndex]
@@ -100,7 +104,7 @@ fun OnboardingScreen(
                 LunaCard {
                     Text(tr("Vos données restent sur ce téléphone", "Your data stays on this phone", pl = "Twoje dane zostają w tym telefonie", uk = "Ваші дані залишаються на цьому телефоні", es = "Tus datos se quedan en este teléfono", de = "Deine Daten bleiben auf diesem Handy"), style = MaterialTheme.typography.titleMedium)
                     Bullet(tr("Pas de compte, pas de serveur, pas de publicité, pas de traceur. Lunaison n'a même pas accès à Internet.", "No account, no server, no ads, no trackers. Lunaison does not even have Internet access.", pl = "Bez konta, bez serwera, bez reklam, bez śledzenia. Lunaison nie ma nawet dostępu do Internetu.", uk = "Без облікового запису, без сервера, без реклами, без трекерів. Lunaison навіть не має доступу до Інтернету.", es = "Sin cuenta, sin servidor, sin anuncios, sin rastreadores. Lunaison ni siquiera tiene acceso a Internet.", de = "Kein Konto, kein Server, keine Werbung, keine Tracker. Lunaison hat nicht einmal Internetzugriff."))
-                    Bullet(tr("Aucune sauvegarde automatique dans le nuage. Rien n'est partagé sans que vous l'envoyiez vous-même.", "No automatic cloud backup. Nothing is shared unless you send it yourself.", pl = "Bez automatycznej kopii zapasowej w chmurze. Nic nie jest udostępniane, dopóki tego nie wyślesz.", uk = "Жодних автоматичних резервних копій у хмарі. Нічого не передається, якщо ви самі цього не надішлете.", es = "Sin copia de seguridad automática en la nube. No se comparte nada a menos que lo envíes tú.", de = "Keine automatische Cloud-Sicherung. Nichts wird geteilt, außer du schickst es selbst."))
+                    Bullet(tr("Aucune sauvegarde dans le nuage, sauf si vous l'activez vous-même. Rien n'est partagé sans que vous l'ayez choisi.", "No cloud backup unless you turn it on yourself. Nothing is shared unless you chose it.", pl = "Bez kopii zapasowej w chmurze, dopóki jej nie włączysz. Nic nie jest udostępniane bez Twojego wyboru.", uk = "Жодних копій у хмарі, доки ви самі їх не ввімкнете. Нічого не передається без вашого вибору.", es = "Sin copia en la nube salvo que tú la actives. No se comparte nada sin que lo elijas.", de = "Keine Cloud-Sicherung, solange du sie nicht selbst einschaltest. Nichts wird geteilt, was du nicht selbst gewählt hast."))
                     Bullet(tr("Un code à 4 chiffres facultatif verrouille l'appli. Vous pouvez tout effacer en un geste.", "An optional 4-digit PIN locks the app. You can erase everything in one tap.", pl = "Opcjonalny 4-cyfrowy kod blokuje aplikację. Możesz wszystko usunąć jednym dotknięciem.", uk = "Необов'язковий 4-значний код блокує застосунок. Ви можете стерти все одним дотиком.", es = "Un código opcional de 4 dígitos bloquea la aplicación. Puedes borrarlo todo con un toque.", de = "Ein optionaler 4-stelliger Code sperrt die App. Du kannst alles mit einem Tippen löschen."))
                 }
                 Muted(tr("Lunaison est un outil de suivi : ses prévisions sont des estimations. Ce n'est ni un dispositif médical ni une méthode de contraception.", "Lunaison is a tracking tool: its predictions are estimates. It is neither a medical device nor a method of contraception.", pl = "Lunaison to narzędzie do śledzenia cyklu: jego prognozy to szacunki. Nie jest wyrobem medycznym ani metodą antykoncepcji.", uk = "Lunaison є інструментом для відстеження: його прогнози є оцінками. Це не медичний виріб і не метод контрацепції.", es = "Lunaison es una herramienta de seguimiento: sus previsiones son estimaciones. No es un dispositivo médico ni un método anticonceptivo.", de = "Lunaison ist ein Werkzeug zum Begleiten des Zyklus: Die Vorhersagen sind Schätzungen. Es ist weder ein Medizinprodukt noch eine Verhütungsmethode."))
@@ -108,7 +112,41 @@ fun OnboardingScreen(
                     Muted(tr("Un historique est déjà présent : Lunaison l'utilisera pour ses estimations.", "A history is already here: Lunaison will use it for its estimates.", pl = "Historia jest już zapisana: Lunaison użyje jej do szacunków.", uk = "Історія вже є: Lunaison використає її для оцінок.", es = "Ya hay un historial: Lunaison lo usará para sus estimaciones.", de = "Ein Verlauf ist schon vorhanden: Lunaison nutzt ihn für die Schätzungen."))
                 }
                 importMessage?.let { Muted(it) }
+                val canRestore = actions != null && encryptedBackupAvailable && onClose == null
+                if (canRestore && restoreOffer != null) {
+                    LunaCard { Text(restoreExplanation(restoreOffer.reason), style = MaterialTheme.typography.bodyMedium) }
+                }
                 LunaButton(tr("Commencer (suivre mon cycle)", "Get started (track my cycle)", pl = "Zaczynamy (śledzę swój cykl)", uk = "Почати (стежити за своїм циклом)", es = "Empezar (seguir mi ciclo)", de = "Los geht's (meinen Zyklus begleiten)"), onClick = { goNext() })
+                if (canRestore && actions != null) {
+                    val found = restoreOffer?.file
+                    if (found != null) {
+                        RestoreBackupButton(
+                            label = tr(
+                                "Restaurer la sauvegarde retrouvée",
+                                "Restore the backup found",
+                                pl = "Przywróć znalezioną kopię",
+                                uk = "Відновити знайдену копію",
+                                es = "Restaurar la copia encontrada",
+                                de = "Gefundene Sicherung wiederherstellen",
+                            ),
+                            onRestore = { actions.restoreBackup(it) },
+                            onResult = { importMessage = it },
+                            preselected = found,
+                            replacesData = false,
+                            primary = true,
+                        )
+                    }
+                    RestoreBackupButton(
+                        label = if (found != null) {
+                            tr("Restaurer un autre fichier", "Restore another file", pl = "Przywróć z innego pliku", uk = "Відновити з іншого файлу", es = "Restaurar otro archivo", de = "Andere Datei wiederherstellen")
+                        } else {
+                            tr("Restaurer une sauvegarde", "Restore a backup", pl = "Przywróć kopię zapasową", uk = "Відновити резервну копію", es = "Restaurar una copia", de = "Sicherung wiederherstellen")
+                        },
+                        onRestore = { actions.restoreBackup(it) },
+                        onResult = { importMessage = it },
+                        replacesData = false,
+                    )
+                }
                 if (actions != null && importAvailable) {
                     LunaButton(
                         tr("J'ai déjà des données : importer", "I already have data: import", pl = "Mam już dane: importuj", uk = "Маю дані: імпортувати", es = "Ya tengo datos: importar", de = "Ich habe schon Daten: importieren"),
@@ -330,4 +368,24 @@ fun Stepper(label: String, onMinus: () -> Unit, onPlus: () -> Unit, modifier: Mo
             Icon(Icons.Filled.Add, contentDescription = null)
         }
     }
+}
+
+/** Pourquoi l'accueil propose de restaurer une sauvegarde avant de commencer. */
+private fun restoreExplanation(reason: RestoreReason): String = when (reason) {
+    RestoreReason.COPY_FOUND -> tr(
+        "Une sauvegarde chiffrée a été retrouvée sur ce téléphone, sans doute copiée depuis votre ancien téléphone. Entrez la phrase secrète que vous aviez définie pour la restaurer.",
+        "An encrypted backup was found on this phone, probably copied over from your old phone. Enter the secret phrase you set to restore it.",
+        pl = "Na tym telefonie znaleziono zaszyfrowaną kopię, prawdopodobnie przeniesioną ze starego telefonu. Wpisz tajną frazę, którą ustawiono, aby ją przywrócić.",
+        uk = "На цьому телефоні знайдено зашифровану копію, ймовірно перенесену зі старого телефона. Введіть таємну фразу, яку ви задали, щоб її відновити.",
+        es = "Se ha encontrado una copia cifrada en este teléfono, probablemente copiada desde tu teléfono anterior. Introduce la frase secreta que definiste para restaurarla.",
+        de = "Auf diesem Handy wurde eine verschlüsselte Sicherung gefunden, vermutlich von deinem alten Handy übertragen. Gib die geheime Phrase ein, die du festgelegt hast, um sie wiederherzustellen.",
+    )
+    RestoreReason.DATABASE_UNREADABLE -> tr(
+        "Les données de ce téléphone ne peuvent pas être lues : elles viennent sans doute d'un autre téléphone, et la clé qui les ouvre n'est pas passée avec elles. Elles ont été mises de côté, pas effacées. Si vous avez un fichier .pilmil, vous pouvez restaurer votre historique.",
+        "The data on this phone cannot be read: it probably came from another phone, and the key that opens it did not come along. It was set aside, not deleted. If you have a .pilmil file, you can restore your history.",
+        pl = "Danych na tym telefonie nie można odczytać: prawdopodobnie pochodzą z innego telefonu, a klucz, który je otwiera, nie został przeniesiony. Odłożono je na bok, nie usunięto. Jeśli masz plik .pilmil, możesz przywrócić historię.",
+        uk = "Дані на цьому телефоні неможливо прочитати: вони, імовірно, з іншого телефона, а ключ, що їх відкриває, не перенісся. Їх відкладено, а не видалено. Якщо у вас є файл .pilmil, можна відновити історію.",
+        es = "Los datos de este teléfono no se pueden leer: probablemente vienen de otro teléfono y la clave que los abre no se ha transferido. Se han apartado, no borrado. Si tienes un archivo .pilmil, puedes restaurar tu historial.",
+        de = "Die Daten auf diesem Handy lassen sich nicht lesen: Sie stammen wohl von einem anderen Handy, und der Schlüssel, der sie öffnet, ist nicht mitgekommen. Sie wurden beiseitegelegt, nicht gelöscht. Mit einer .pilmil-Datei kannst du deinen Verlauf wiederherstellen.",
+    )
 }

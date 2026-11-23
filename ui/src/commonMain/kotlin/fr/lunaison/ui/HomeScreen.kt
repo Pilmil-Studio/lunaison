@@ -93,6 +93,7 @@ import fr.lunaison.core.model.Pain
 import fr.lunaison.core.model.daysTo
 import kotlinx.datetime.LocalDate
 import fr.lunaison.core.model.tr
+import fr.lunaison.ui.backup.BackupHomeCards
 import fr.lunaison.core.model.isAfter
 import fr.lunaison.core.model.minusDays
 import fr.lunaison.core.model.plusDays
@@ -107,6 +108,7 @@ fun HomeScreen(
     onCalendar: () -> Unit,
     onInsights: () -> Unit = {},
     onBreathe: () -> Unit = {},
+    onBackupSettings: () -> Unit = {},
 ) {
     val cycle = state.cycle
     val todayLog = state.logFor(state.today)
@@ -316,6 +318,12 @@ fun HomeScreen(
                 onDismiss = { actions.updateSettings { it.copy(recapSeen = recap.record.start) } },
             )
         }
+
+        BackupHomeCards(
+            loggedDays = state.logs.count { !it.isEmpty },
+            today = state.today,
+            onOpenSettings = onBackupSettings,
+        )
 
         if (state.settings.isAdult) {
             val partner = state.settings.partner
