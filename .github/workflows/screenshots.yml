@@ -60,6 +60,12 @@ jobs:
             name=$(basename "$f")
             cp "$f" "docs/captures/en/${name#*_ScreensEnTest_captures_}"
           done
+          # Schémas pédagogiques, pour les relire sans lancer l'appli.
+          mkdir -p docs/captures/schemas
+          for f in screenshots/src/test/snapshots/images/*_DiagrammesTest_*.png; do
+            name=$(basename "$f")
+            cp "$f" "docs/captures/schemas/${name#*_DiagrammesTest_captures_}"
+          done
           cp docs/captures/accueil.png "$STORE_FR/ecran1_accueil.png"
           cp docs/captures/journee.png "$STORE_FR/ecran2_journee.png"
           cp docs/captures/calendrier.png "$STORE_FR/ecran3_calendrier.png"
