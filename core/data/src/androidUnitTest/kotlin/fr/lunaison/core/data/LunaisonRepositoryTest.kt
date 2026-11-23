@@ -36,6 +36,9 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
+/** Aperçu, plan puis écriture, comme le fait l'interface après la confirmation. Renvoie le nombre de journées écrites. */
+internal suspend fun LunaisonRepository.confirmImport(preview: ImportPreview): Int = applyImport(planImport(preview))
+
 internal class InMemoryLunaisonDao : LunaisonDao {
     private val logsMap = MutableStateFlow<Map<String, DayLogEntity>>(emptyMap())
     private val settingsFlow = MutableStateFlow<SettingsEntity?>(null)
@@ -96,7 +99,7 @@ class LunaisonRepositoryTest {
     }
 
     @Test
-    fun `exportCsv puis importCsv reconstitue fidelement les donnees v2`() = runBlocking {
+    fun `exportCsv puis l'import CSV confirmé reconstitue fidelement les donnees v2`() = runBlocking {
         val sourceRepo = LunaisonRepository(InMemoryLunaisonDao())
         val original = DayLog(
             date = LocalDate.of(2026, 5, 10),
@@ -118,7 +121,7 @@ class LunaisonRepositoryTest {
 
         val csv = sourceRepo.exportCsv()
         val targetRepo = LunaisonRepository(InMemoryLunaisonDao())
-        val importedCount = targetRepo.importCsv(csv)
+        val importedCount = targetRepo.confirmImport(previewLunaisonCsv(csv))
 
         assertEquals(1, importedCount)
         val restored = targetRepo.logsOnce().single()
@@ -139,7 +142,7 @@ class LunaisonRepositoryTest {
     }
 
     @Test
-    fun `importCsv accepte un CSV externe a virgules et des colonnes v1`() = runBlocking {
+    fun `l'import CSV accepte un CSV externe a virgules et des colonnes v1`() = runBlocking {
         val repo = LunaisonRepository(InMemoryLunaisonDao())
         val externalCsv = """
             date,flow,pain,symptoms,moods,medication,note
@@ -148,7 +151,7 @@ class LunaisonRepositoryTest {
             ligne-invalide,foo,bar
         """.trimIndent()
 
-        val count = repo.importCsv(externalCsv)
+        val count = repo.confirmImport(previewLunaisonCsv(externalCsv))
         assertEquals(2, count)
         val logs = repo.logsOnce()
         assertEquals(Flow.HEAVY, logs[0].flow)

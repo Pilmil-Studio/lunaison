@@ -45,17 +45,25 @@ import androidx.navigation.compose.rememberNavController
 import fr.lunaison.core.cycle.CycleState
 import fr.lunaison.core.data.AppSettings
 import fr.lunaison.core.data.BackupRestoreSummary
-import fr.lunaison.core.data.ImportSummary
 import fr.lunaison.core.data.LunaisonRepository
 import fr.lunaison.core.model.Baseline
 import fr.lunaison.core.model.DayLog
 import fr.lunaison.core.model.Flow
 import fr.lunaison.core.model.tr
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDate
 import fr.lunaison.core.model.now
-import fr.lunaison.core.data.importAuto
+import fr.lunaison.core.data.ImportMerger
+import fr.lunaison.core.data.ImportPlan
+import fr.lunaison.core.data.ImportPreview
+import fr.lunaison.core.data.UnreadableImportException
+import fr.lunaison.core.data.applyImport
+import fr.lunaison.core.data.previewAuto
+import fr.lunaison.core.data.planImport
+import fr.lunaison.core.data.previewClueFile
 
 private enum class Tab(
     val route: String,
@@ -224,8 +232,23 @@ interface Actions {
 
     /** Remplace toutes les données par celles du document ; lève [fr.lunaison.core.data.BackupFormatException] sans rien modifier s'il est refusé. */
     suspend fun restoreBackup(json: String): BackupRestoreSummary = BackupRestoreSummary(0, false)
-    suspend fun importCsv(content: String): Int = 0
-    suspend fun importAuto(bytes: ByteArray, password: String? = null): ImportSummary = ImportSummary(0, 0)
+
+    /**
+     * Lit un fichier d'import (Calendrier des règles Zip ou JSON, CSV Lunaison) en mémoire sans rien écrire.
+     * Il n'existe aucune action qui écrive un import sans passer par [planImport] puis [applyImport].
+     */
+    suspend fun previewFile(bytes: ByteArray, password: String? = null): ImportPreview =
+        throw UnreadableImportException()
+
+    /** Lit un export Clue en mémoire sans rien écrire (expérimental). */
+    suspend fun previewClue(bytes: ByteArray, password: String? = null): ImportPreview =
+        throw UnreadableImportException()
+
+    /** Fusion prévue d'un aperçu avec les journées existantes, sans rien écrire. */
+    suspend fun planImport(preview: ImportPreview): ImportPlan = ImportMerger.plan(preview, emptyList())
+
+    /** Écrit la fusion confirmée (les journées déjà saisies sont conservées). Renvoie le nombre de journées écrites. */
+    suspend fun applyImport(plan: ImportPlan): Int = 0
 }
 
 /** Les actions réelles, toutes enregistrées localement. */
@@ -245,9 +268,11 @@ class RepositoryActions(private val repository: LunaisonRepository, private val 
     override suspend fun exportCsv(): String = repository.exportCsv()
     override suspend fun exportBackup(): String = repository.exportBackupJson()
     override suspend fun restoreBackup(json: String): BackupRestoreSummary = repository.restoreBackupJson(json)
-    override suspend fun importCsv(content: String): Int = repository.importCsv(content)
-    override suspend fun importAuto(bytes: ByteArray, password: String?): ImportSummary =
-        repository.importAuto(bytes, password)
+    override suspend fun previewFile(bytes: ByteArray, password: String?): ImportPreview =
+        withContext(Dispatchers.Default) { previewAuto(bytes, password) }
+    override suspend fun previewClue(bytes: ByteArray, password: String?): ImportPreview = previewClueFile(bytes, password)
+    override suspend fun planImport(preview: ImportPreview): ImportPlan = repository.planImport(preview)
+    override suspend fun applyImport(plan: ImportPlan): Int = repository.applyImport(plan)
 }
 
 @Composable

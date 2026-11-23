@@ -64,7 +64,40 @@ object PeriodCalendarImporter {
     }
 
     /**
+     * Vrai si l'archive est chiffrée en AES (WinZip : méthode 99 ou champ supplémentaire 0x9901) et non en ZipCrypto.
+     * Lunaison ne déchiffre que ZipCrypto : l'AES demanderait une dépendance de plus.
+     * Seul le premier en-tête local est examiné, ce qui suffit : une archive utilise une seule méthode de chiffrement.
+     */
+    fun isAesEncryptedZip(bytes: ByteArray): Boolean {
+        if (!isEncryptedZip(bytes) || bytes.size < 30) return false
+        val buf = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN)
+        val method = buf.getShort(8).toInt() and 0xFFFF
+        val fnlen = buf.getShort(26).toInt() and 0xFFFF
+        val exlen = buf.getShort(28).toInt() and 0xFFFF
+        if (method == AES_METHOD) return true
+        val extraStart = 30 + fnlen
+        if (extraStart + exlen > bytes.size) return false
+        return hasAesExtra(buf, extraStart, exlen)
+    }
+
+    private const val AES_METHOD = 99
+    private const val AES_EXTRA_ID = 0x9901
+
+    private fun hasAesExtra(buf: ByteBuffer, start: Int, length: Int): Boolean {
+        var i = start
+        val end = start + length
+        while (i + 4 <= end) {
+            val id = buf.getShort(i).toInt() and 0xFFFF
+            val size = buf.getShort(i + 2).toInt() and 0xFFFF
+            if (id == AES_EXTRA_ID) return true
+            i += 4 + size
+        }
+        return false
+    }
+
+    /**
      * Décompresse et déchiffre (si nécessaire avec ZipCrypto) les fichiers texte d'une archive zip.
+     * Une archive chiffrée en AES est refusée avec [UnsupportedEncryptionException], avant toute demande de mot de passe.
      */
     /** Taille maximale du fichier importé. Un export Period Calendar pèse quelques centaines de Ko. */
     const val MAX_FILE_BYTES: Long = 20L * 1024 * 1024
@@ -79,6 +112,7 @@ object PeriodCalendarImporter {
         maxUncompressedBytes: Long = MAX_UNCOMPRESSED_BYTES,
     ): Map<String, String> {
         if (bytes.size.toLong() > maxFileBytes) throw ImportTooLargeException()
+        if (isAesEncryptedZip(bytes)) throw UnsupportedEncryptionException()
         val files = mutableMapOf<String, String>()
         var remaining = maxUncompressedBytes
         val buf = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN)

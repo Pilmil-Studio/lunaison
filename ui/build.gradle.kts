@@ -42,6 +42,8 @@ kotlin {
             implementation(libs.androidx.core.ktx)
             implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.lifecycle.runtime.compose)
+            // Contrat de demande de permission de lecture Health Connect (import à la demande).
+            implementation(libs.androidx.health.connect)
             implementation(libs.androidx.camera.core)
             implementation(libs.androidx.camera.camera2)
             implementation(libs.androidx.camera.lifecycle)

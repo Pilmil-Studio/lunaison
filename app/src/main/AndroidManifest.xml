@@ -6,13 +6,21 @@
         Autorisations facultatives :
         - notifications, demandée quand la personne active un rappel ;
         - caméra, demandée uniquement si la personne ouvre le lecteur de QR Code partenaire ;
+        - lecture des règles dans Health Connect (READ_MENSTRUATION), demandée uniquement quand la personne
+          choisit d'importer depuis Health Connect, avec l'accès facultatif à l'historique
+          (READ_HEALTH_DATA_HISTORY). Lecture seule : aucune permission d'écriture.
     -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-permission android:name="android.permission.health.READ_MENSTRUATION" />
+    <!-- Historique Health Connect (lecture seule, facultatif) : sans lui, seuls les 30 derniers jours sont lisibles. -->
+    <uses-permission android:name="android.permission.health.READ_HEALTH_DATA_HISTORY" />
 
     <!-- Messageries vers lesquelles le partage peut ouvrir directement la conversation. -->
     <queries>
+        <!-- Health Connect : nécessaire pour savoir s'il est installé (visibilité des paquets). -->
+        <package android:name="com.google.android.apps.healthdata" />
         <package android:name="com.whatsapp" />
         <package android:name="com.whatsapp.w4b" />
         <package android:name="org.thoughtcrime.securesms" />
@@ -43,6 +51,27 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Justification des permissions Health Connect : écran d'explication, sans accès aux données. -->
+        <activity
+            android:name=".HealthRationaleActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+            </intent-filter>
+        </activity>
+
+        <!-- Android 14 et plus : Health Connect ouvre cette cible par VIEW_PERMISSION_USAGE. -->
+        <activity-alias
+            android:name="ViewPermissionUsageActivity"
+            android:exported="true"
+            android:permission="android.permission.START_VIEW_PERMISSION_USAGE"
+            android:targetActivity=".HealthRationaleActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
+                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
+            </intent-filter>
+        </activity-alias>
 
         <!-- Partage du bilan de santé en PDF : fichier du cache lu par l'appli choisie, sans permission ni réseau. -->
         <provider

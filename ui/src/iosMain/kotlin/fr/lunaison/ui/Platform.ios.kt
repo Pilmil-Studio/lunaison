@@ -3,10 +3,7 @@
 package fr.lunaison.ui
 
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -17,7 +14,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.viewinterop.UIKitView
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import fr.lunaison.core.cycle.HealthReport
@@ -25,6 +21,7 @@ import fr.lunaison.core.cycle.LogReminderMode
 import fr.lunaison.core.cycle.Prediction
 import fr.lunaison.core.data.AppSettings
 import fr.lunaison.core.data.BackupRestoreSummary
+import fr.lunaison.core.data.ImportPlan
 import fr.lunaison.core.data.Partner
 import fr.lunaison.core.data.PartnerChannel
 import fr.lunaison.core.data.PinThrottleState
@@ -304,10 +301,30 @@ actual val importAvailable: Boolean = true
 @Composable
 actual fun ImportDialogs(showSource: Boolean, onDismiss: () -> Unit, actions: Actions, onResult: (String) -> Unit) {
     val scope = rememberCoroutineScope()
-    var pendingBytes by remember { mutableStateOf<ByteArray?>(null) }
-    var passwordInput by remember { mutableStateOf("") }
-    var passwordError by remember { mutableStateOf<String?>(null) }
+    // Même contrat qu'Android : fichier -> aperçu -> confirmation -> fusion. Rien n'est écrit avant la confirmation.
+    var pendingPlan by remember { mutableStateOf<ImportPlan?>(null) }
     var activePickerDelegate by remember { mutableStateOf<NSObject?>(null) }
+
+    fun preview(bytes: ByteArray) {
+        scope.launch {
+            try {
+                val found = actions.previewFile(bytes, null)
+                if (found.daysCount == 0) onResult(importNothingFoundMessage(found)) else pendingPlan = actions.planImport(found)
+            } catch (err: Exception) {
+                onResult(
+                    importPreviewErrorMessage(err)
+                        ?: tr(
+                            fr = "Import impossible : ${err.message ?: "format non reconnu"}",
+                            en = "Import failed: ${err.message ?: "unrecognized format"}",
+                            pl = "Import nie powiódł się: ${err.message ?: "nierozpoznany format"}",
+                            uk = "Не вдалося імпортувати: ${err.message ?: "невідомий формат"}",
+                            es = "No se pudo importar: ${err.message ?: "formato no reconocido"}",
+                            de = "Import nicht möglich: ${err.message ?: "Format nicht erkannt"}",
+                        ),
+                )
+            }
+        }
+    }
 
     LaunchedEffect(showSource) {
         if (!showSource) return@LaunchedEffect
@@ -332,29 +349,11 @@ actual fun ImportDialogs(showSource: Boolean, onDismiss: () -> Unit, actions: Ac
                 } finally {
                     if (accessed) url.stopAccessingSecurityScopedResource()
                 }
+                onDismiss()
                 if (bytes == null || bytes.isEmpty()) {
-                    onResult("Fichier vide ou illisible.")
-                    onDismiss()
-                    return
-                }
-                val magic = "PILMIL".encodeToByteArray()
-                val isPilmil = bytes.size >= magic.size && magic.indices.all { bytes[it] == magic[it] }
-                if (isPilmil) {
-                    passwordInput = ""
-                    passwordError = null
-                    pendingBytes = bytes
-                    onDismiss()
+                    onResult(tr("Fichier vide ou illisible.", "Empty or unreadable file.", pl = "Plik jest pusty lub nieczytelny.", uk = "Файл порожній або нечитабельний.", es = "Archivo vacío o ilegible.", de = "Datei leer oder nicht lesbar."))
                 } else {
-                    onDismiss()
-                    scope.launch {
-                        runCatching { actions.importAuto(bytes, null) }
-                            .onSuccess { summary ->
-                                onResult("${summary.daysCount} journée(s) restaurée(s).")
-                            }
-                            .onFailure { err ->
-                                onResult("Restauration impossible : ${err.message ?: "format non reconnu"}")
-                            }
-                    }
+                    preview(bytes)
                 }
             }
 
@@ -374,49 +373,28 @@ actual fun ImportDialogs(showSource: Boolean, onDismiss: () -> Unit, actions: Ac
         }
     }
 
-    val bytesToDecrypt = pendingBytes
-    if (bytesToDecrypt != null) {
-        AlertDialog(
-            onDismissRequest = { pendingBytes = null },
-            title = { Text("Mot de passe de la sauvegarde") },
-            text = {
-                androidx.compose.foundation.layout.Column {
-                    Text("Entrez le mot de passe choisi lors de la sauvegarde :")
-                    OutlinedTextField(
-                        value = passwordInput,
-                        onValueChange = {
-                            passwordInput = it
-                            passwordError = null
-                        },
-                        singleLine = true,
-                        visualTransformation = PasswordVisualTransformation(),
-                    )
-                    passwordError?.let { Text(it) }
+    pendingPlan?.let { plan ->
+        ImportPlanDialog(
+            plan = plan,
+            onDismiss = { pendingPlan = null },
+            onConfirm = {
+                pendingPlan = null
+                scope.launch {
+                    runCatching { actions.applyImport(plan) }
+                        .onSuccess { written -> onResult(importAppliedMessage(written, plan.keptExisting)) }
+                        .onFailure { err ->
+                            onResult(
+                                tr(
+                                    fr = "Import impossible : ${err.message ?: "erreur inconnue"}",
+                                    en = "Import failed: ${err.message ?: "unknown error"}",
+                                    pl = "Import nie powiódł się: ${err.message ?: "nieznany błąd"}",
+                                    uk = "Не вдалося імпортувати: ${err.message ?: "невідома помилка"}",
+                                    es = "No se pudo importar: ${err.message ?: "error desconocido"}",
+                                    de = "Import nicht möglich: ${err.message ?: "unbekannter Fehler"}",
+                                ),
+                            )
+                        }
                 }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val pwd = passwordInput.trim()
-                        if (pwd.isEmpty()) {
-                            passwordError = "Entrez votre mot de passe."
-                            return@TextButton
-                        }
-                        pendingBytes = null
-                        scope.launch {
-                            runCatching { actions.importAuto(bytesToDecrypt, pwd) }
-                                .onSuccess { summary ->
-                                    onResult("${summary.daysCount} journée(s) restaurée(s).")
-                                }
-                                .onFailure { err ->
-                                    onResult("Restauration impossible : ${err.message ?: "mot de passe incorrect"}")
-                                }
-                        }
-                    },
-                ) { Text("Restaurer") }
-            },
-            dismissButton = {
-                TextButton(onClick = { pendingBytes = null }) { Text("Annuler") }
             },
         )
     }
