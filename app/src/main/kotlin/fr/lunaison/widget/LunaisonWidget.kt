@@ -62,7 +62,7 @@ class LunaisonWidget : AppWidgetProvider() {
             val state = CycleAnalyzer.analyze(logs, settings.baseline, today)
 
             val (title, subtitle) = when {
-                settings.pinHash != null -> "Lunaison" to tr("Toucher pour ouvrir", "Tap to open", pl = "Dotknij, aby otworzyć", uk = "Торкніться, щоб відкрити", es = "Toca para abrir", de = "Zum Öffnen tippen")
+                settings.pinHash != null || settings.discreetNotifications -> "Lunaison" to tr("Toucher pour ouvrir", "Tap to open", pl = "Dotknij, aby otworzyć", uk = "Торкніться, щоб відкрити", es = "Toca para abrir", de = "Zum Öffnen tippen")
                 settings.pausePredictions -> tr("Lunaison : en pause", "Lunaison: paused", pl = "Lunaison: wstrzymane", uk = "Lunaison: на паузі", es = "Lunaison: en pausa", de = "Lunaison: pausiert") to tr("Noter ma journée", "Log my day", pl = "Zanotuj mój dzień", uk = "Записати мій день", es = "Anotar mi día", de = "Meinen Tag eintragen")
                 state is CycleState.Known -> {
                     val head = tr("Jour ${state.dayOfCycle} · ${Format.phaseName(state.phase)}", "Day ${state.dayOfCycle} · ${Format.phaseName(state.phase)}", pl = "Dzień ${state.dayOfCycle} · ${Format.phaseName(state.phase)}", uk = "День ${state.dayOfCycle} · ${Format.phaseName(state.phase)}", es = "Día ${state.dayOfCycle} · ${Format.phaseName(state.phase)}", de = "Tag ${state.dayOfCycle} · ${Format.phaseName(state.phase)}")

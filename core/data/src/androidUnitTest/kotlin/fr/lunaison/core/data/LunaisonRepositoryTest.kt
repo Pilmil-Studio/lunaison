@@ -197,6 +197,9 @@ class LunaisonRepositoryTest {
                 "spm" to LocalDate.of(2026, 4, 12),
                 "douleurs" to LocalDate.of(2026, 4, 5),
             ),
+            decoyPinHash = AppSettings.hashPin("1357"),
+            biometricUnlock = true,
+            discreetNotifications = true,
         )
 
         val restored = settings.toEntity().toModel()
@@ -208,6 +211,37 @@ class LunaisonRepositoryTest {
             articleLastShown = "spm@2026-04-12,bad,@2026-04-01,cycle@not-a-date",
         ).toModel()
         assertEquals(mapOf("spm" to LocalDate.of(2026, 4, 12)), malformed.articleLastShown)
+    }
+
+    @Test
+    fun `le leurre reprend l'apparence de la vraie base sans aucune donnee`() = runBlocking {
+        val real = AppSettings(
+            onboarded = true,
+            baseline = Baseline(AgeGroup.ADULT, LocalDate.of(2026, 4, 1), 30, 5),
+            themePalette = ThemePalette.SAGE,
+            pinHash = AppSettings.hashPin("2580"),
+            decoyPinHash = AppSettings.hashPin("1357"),
+            biometricUnlock = true,
+            myShareName = "Camille",
+        )
+        val decoy = LunaisonRepository(InMemoryLunaisonDao())
+        decoy.prepareAsDecoyOf(real)
+
+        val settings = decoy.settingsOnce()
+        assertTrue(settings.onboarded)
+        assertEquals(AgeGroup.ADULT, settings.baseline.ageGroup)
+        assertNull(settings.baseline.lastPeriodStart)
+        assertEquals(ThemePalette.SAGE, settings.themePalette)
+        assertEquals(real.pinHash, settings.pinHash)
+        assertNull(settings.decoyPinHash)
+        assertEquals(false, settings.biometricUnlock)
+        assertEquals("", settings.myShareName)
+        assertTrue(decoy.logsOnce().isEmpty())
+
+        // Les journées notées dans le leurre restent d'une ouverture à l'autre.
+        decoy.save(DayLog(LocalDate.of(2026, 5, 2), flow = Flow.LIGHT))
+        decoy.prepareAsDecoyOf(real)
+        assertEquals(1, decoy.logsOnce().size)
     }
 
     @Test

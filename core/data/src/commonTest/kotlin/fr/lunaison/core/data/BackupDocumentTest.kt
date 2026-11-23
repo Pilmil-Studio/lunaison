@@ -97,7 +97,7 @@ class BackupDocumentTest {
     fun `une sauvegarde v7 sans articleLastShown reste importable`() {
         val v8Json = LunaisonBackup.encode(BackupContent(logs, settings))
         val v7Json = v8Json
-            .replace("\"schemaVersion\":8", "\"schemaVersion\":7")
+            .replace("\"schemaVersion\":10", "\"schemaVersion\":7")
             .replace(",\"articleLastShown\":\"spm@2026-02-01,cycle@2026-01-20\"", "")
         val back = LunaisonBackup.decode(v7Json)
         assertEquals("", back.settings?.articleLastShown)

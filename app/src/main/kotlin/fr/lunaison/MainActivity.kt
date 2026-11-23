@@ -6,7 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import fr.lunaison.reminders.ReminderWorker
 import android.view.WindowManager
-import androidx.activity.ComponentActivity
+import androidx.fragment.app.FragmentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.LaunchedEffect
@@ -15,7 +15,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.lunaison.core.designsystem.LunaisonTheme
 import fr.lunaison.ui.LunaisonApp
 
-class MainActivity : ComponentActivity() {
+/** FragmentActivity plutôt que ComponentActivity : la demande d'empreinte du système en a besoin. */
+class MainActivity : FragmentActivity() {
 
     /** Écran demandé par une notification, consommé une fois la navigation faite. */
     private var pendingLink by mutableStateOf<String?>(null)
@@ -24,7 +25,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         if (savedInstanceState == null) pendingLink = intent.getStringExtra(ReminderWorker.EXTRA_OPEN)
-        val repository = (application as LunaisonApplication).repository
+        val app = application as LunaisonApplication
+        val repository = app.repository
+        val biometric = AndroidBiometricUnlock(this)
         setContent {
             val settings by repository.settings.collectAsStateWithLifecycle(initialValue = null)
             val hasPin = settings?.pinHash != null
@@ -36,7 +39,14 @@ class MainActivity : ComponentActivity() {
                 }
             }
             LunaisonTheme(palette = settings?.themePalette?.name ?: "PLUM") {
-                LunaisonApp(repository, BuildConfig.VERSION_NAME, link = pendingLink, onLinkHandled = { pendingLink = null })
+                LunaisonApp(
+                    repository,
+                    BuildConfig.VERSION_NAME,
+                    link = pendingLink,
+                    onLinkHandled = { pendingLink = null },
+                    decoyRepository = { app.decoyRepository },
+                    biometric = biometric,
+                )
             }
         }
     }

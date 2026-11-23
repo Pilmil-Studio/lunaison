@@ -14,7 +14,8 @@ import kotlinx.datetime.LocalTime
  *   "tables": { "day_logs": [ ... ], "settings": [ ... ] }
  * }
  *
- * `tables` reprend chaque table de la base Room, colonne par colonne. Le code PIN (`pinHash`) n'y figure jamais.
+ * `tables` reprend chaque table de la base Room, colonne par colonne. Le code PIN (`pinHash`), le code leurre (`decoyPinHash`)
+ * et le choix de l'empreinte (`biometricUnlock`) n'y figurent jamais : ils sont propres au téléphone.
  */
 
 /** Pourquoi une sauvegarde a été refusée. */
@@ -36,7 +37,7 @@ object LunaisonBackup {
     const val VERSION = 1
 
     /** Version du schéma Room au moment de l'écriture (information, pas une condition de lecture). */
-    const val SCHEMA_VERSION = 8
+    const val SCHEMA_VERSION = 10
 
     /** Écrit le document ; le hachage du code PIN est retiré des réglages. */
     fun encode(content: BackupContent): String {
@@ -87,6 +88,7 @@ object LunaisonBackup {
                 "irregularCyclesMode" to s.irregularCyclesMode,
                 "reviewPromptDismissed" to s.reviewPromptDismissed,
                 "articleLastShown" to s.articleLastShown,
+                "discreetNotifications" to s.discreetNotifications,
             )
         }
         val document = linkedMapOf<String, Any?>(
@@ -203,6 +205,10 @@ object LunaisonBackup {
                 irregularCyclesMode = bool("irregularCyclesMode"),
                 reviewPromptDismissed = bool("reviewPromptDismissed"),
                 articleLastShown = stringOrNull("articleLastShown") ?: "",
+                decoyPinHash = null,
+                biometricUnlock = false,
+                // Absent des sauvegardes écrites avant la version 10 du schéma.
+                discreetNotifications = map["discreetNotifications"] as? Boolean ?: false,
             )
         }
 

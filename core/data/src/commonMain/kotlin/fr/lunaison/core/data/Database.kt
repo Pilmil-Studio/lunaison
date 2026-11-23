@@ -66,6 +66,12 @@ data class SettingsEntity(
     val irregularCyclesMode: Boolean = false,
     val reviewPromptDismissed: Boolean = false,
     val articleLastShown: String = "",
+    /** Empreinte du code leurre, même format que [pinHash] ; jamais sauvegardée. */
+    val decoyPinHash: String? = null,
+    /** Déverrouillage par empreinte ou visage, propre à ce téléphone ; jamais sauvegardé. */
+    val biometricUnlock: Boolean = false,
+    /** Notifications sans aucun mot sur le cycle, même téléphone déverrouillé. */
+    val discreetNotifications: Boolean = false,
 )
 
 @Dao
@@ -107,14 +113,14 @@ interface LunaisonDao {
     }
 }
 
-@Database(entities = [DayLogEntity::class, SettingsEntity::class], version = 9, exportSchema = true)
+@Database(entities = [DayLogEntity::class, SettingsEntity::class], version = 10, exportSchema = true)
 @ConstructedBy(LunaisonDatabaseConstructor::class)
 abstract class LunaisonDatabase : RoomDatabase() {
     abstract fun dao(): LunaisonDao
 
     companion object {
         /**
-         * Toutes les migrations, de la version 1 à la version 8, sous forme de requêtes SQL.
+         * Toutes les migrations, de la version 1 à la version 10, sous forme de requêtes SQL.
          * Chaque étape se contente d'ajouter des colonnes : aucune donnée existante n'est touchée.
          */
         internal val MIGRATIONS: List<SqlMigration> = listOf(
@@ -172,6 +178,13 @@ abstract class LunaisonDatabase : RoomDatabase() {
             SqlMigration(
                 8, 9,
                 "UPDATE settings SET showFertility = 0",
+            ),
+            // Version 10 : discrétion (code leurre, déverrouillage biométrique, notifications neutres).
+            SqlMigration(
+                9, 10,
+                "ALTER TABLE settings ADD COLUMN decoyPinHash TEXT",
+                "ALTER TABLE settings ADD COLUMN biometricUnlock INTEGER NOT NULL DEFAULT 0",
+                "ALTER TABLE settings ADD COLUMN discreetNotifications INTEGER NOT NULL DEFAULT 0",
             ),
         )
     }

@@ -11,23 +11,23 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
- * Rejoue toutes les migrations (v1 -> v5) sur un vrai moteur SQLite, à partir d'une base v1 remplie.
+ * Rejoue toutes les migrations (v1 -> v10) sur un vrai moteur SQLite, à partir d'une base v1 remplie.
  *
  * Deux garanties :
  * - aucune journée ni aucun réglage existant n'est perdu ou modifié ;
  * - la base migrée est identique (colonnes, types, NOT NULL, clé primaire) à une base neuve créée
- *   par Room à partir du schéma exporté `schemas/.../5.json`. Si quelqu'un ajoute une colonne à une
+ *   par Room à partir du schéma exporté `schemas/.../10.json`. Si quelqu'un ajoute une colonne à une
  *   entité sans écrire la migration correspondante, ce test échoue.
  */
 class DatabaseMigrationTest {
 
-    // Le plugin Room range le schéma exporté dans un sous-dossier qui dépend de la cible : on cherche la version 9.
+    // Le plugin Room range le schéma exporté dans un sous-dossier qui dépend de la cible : on cherche la version 10.
     private val latestSchema: File by lazy {
-        File("schemas").walkTopDown().first { it.isFile && it.name == "9.json" }
+        File("schemas").walkTopDown().first { it.isFile && it.name == "10.json" }
     }
 
     @Test
-    fun `migration de v1 a v9 sans perte de donnees`() = withDatabase { conn, db ->
+    fun `migration de v1 a v10 sans perte de donnees`() = withDatabase { conn, db ->
         createV1(db)
         db.execSQL(
             "INSERT INTO day_logs (date, flow, pain, symptoms, moods, note) " +
@@ -67,11 +67,14 @@ class DatabaseMigrationTest {
             assertEquals(0, rs.getInt("irregularCyclesMode"))
             assertEquals(0, rs.getInt("reviewPromptDismissed"))
             assertEquals("", rs.getString("articleLastShown"))
+            assertNull(rs.getString("decoyPinHash"))
+            assertEquals(0, rs.getInt("biometricUnlock"))
+            assertEquals(0, rs.getInt("discreetNotifications"))
         }
     }
 
     @Test
-    fun `la base migree correspond exactement au schema Room v9`() {
+    fun `la base migree correspond exactement au schema Room v10`() {
         val expected = withDatabase { conn, db ->
             createTablesSql(latestSchema).values.forEach(db::execSQL)
             tables(conn)
@@ -87,8 +90,8 @@ class DatabaseMigrationTest {
     private fun migrateToLatest(db: SupportSQLiteDatabase) {
         val steps = LunaisonDatabase.MIGRATIONS
         // La chaîne couvre toutes les versions, sans trou ni doublon, jusqu'à la version courante.
-        assertEquals((1..8).toList(), steps.map { it.startVersion })
-        assertEquals((2..9).toList(), steps.map { it.endVersion })
+        assertEquals((1..9).toList(), steps.map { it.startVersion })
+        assertEquals((2..10).toList(), steps.map { it.endVersion })
         steps.forEach { step -> step.statements.forEach(db::execSQL) }
     }
 

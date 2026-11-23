@@ -29,6 +29,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
+import fr.lunaison.core.data.AppSettings
 import fr.lunaison.core.model.tr
 import fr.lunaison.core.model.now
 import fr.lunaison.core.model.toLocalDate
@@ -91,12 +92,12 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
                     days == 1 -> tr("Vos règles devraient arriver demain.", "Your period should arrive tomorrow.", pl = "Miesiączka powinna pojawić się jutro.", uk = "Місячні мають початися завтра.", es = "Tu regla debería llegar mañana.", de = "Deine Periode sollte morgen kommen.")
                     else -> tr("Vos règles devraient arriver dans $days jours environ.", "Your period should arrive in about $days days.", pl = "Miesiączka powinna pojawić się za około $days dni.", uk = "Місячні мають початися приблизно через $days днів.", es = "Tu regla debería llegar en unos $days días.", de = "Deine Periode sollte in etwa $days Tagen kommen.")
                 }
-                notify(kind, settings.pinHash != null, tr("Bientôt vos règles", "Period coming soon", pl = "Wkrótce miesiączka", uk = "Скоро місячні", es = "Pronto tu regla", de = "Periode bald"), text)
+                notify(kind, settings, tr("Bientôt vos règles", "Period coming soon", pl = "Wkrótce miesiączka", uk = "Скоро місячні", es = "Pronto tu regla", de = "Periode bald"), text)
             }
             ReminderKind.LOG -> {
                 val logged = logs.any { it.date == today }
                 if (ReminderPlanner.shouldRemindToLog(state, settings.reminders, today, logged)) {
-                    notify(kind, settings.pinHash != null, tr("Un petit point sur votre journée ?", "A quick check-in on your day?", pl = "Krótko o Twoim dniu?", uk = "Коротко про ваш день?", es = "¿Un momento para tu día?", de = "Kurz zu deinem Tag?"), tr("Quelques secondes pour noter comment vous allez.", "A few seconds to note how you are doing.", pl = "Kilka sekund, by zanotować, jak się czujesz.", uk = "Кілька секунд, щоб записати, як ви почуваєтеся.", es = "Unos segundos para anotar cómo estás.", de = "Ein paar Sekunden, um festzuhalten, wie es dir geht."))
+                    notify(kind, settings, tr("Un petit point sur votre journée ?", "A quick check-in on your day?", pl = "Krótko o Twoim dniu?", uk = "Коротко про ваш день?", es = "¿Un momento para tu día?", de = "Kurz zu deinem Tag?"), tr("Quelques secondes pour noter comment vous allez.", "A few seconds to note how you are doing.", pl = "Kilka sekund, by zanotować, jak się czujesz.", uk = "Кілька секунд, щоб записати, як ви почуваєтеся.", es = "Unos segundos para anotar cómo estás.", de = "Ein paar Sekunden, um festzuhalten, wie es dir geht."))
                 }
             }
             ReminderKind.MEDICATION -> {
@@ -105,7 +106,7 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
                     val label = settings.reminders.medicationLabel.trim()
                     val title = if (label.isNotEmpty()) tr("Rappel : $label", "Reminder: $label", pl = "Przypomnienie: $label", uk = "Нагадування: $label", es = "Recordatorio: $label", de = "Erinnerung: $label") else tr("Rappel quotidien", "Daily reminder", pl = "Codzienne przypomnienie", uk = "Щоденне нагадування", es = "Recordatorio diario", de = "Tägliche Erinnerung")
                     val text = tr("Pensez à votre prise du jour et à la noter dans Lunaison.", "Remember your daily dose and log it in Lunaison.", pl = "Pamiętaj o dzisiejszej dawce i zanotuj ją w Lunaison.", uk = "Не забудьте про сьогоднішню дозу й запишіть її в Lunaison.", es = "Recuerda tu toma de hoy y anótala en Lunaison.", de = "Denk an deine heutige Einnahme und trag sie in Lunaison ein.")
-                    notify(kind, settings.pinHash != null, title, text)
+                    notify(kind, settings, title, text)
                 }
             }
         }
@@ -115,7 +116,16 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
 
     // L'autorisation est vérifiée au début de la fonction.
     @SuppressLint("MissingPermission")
-    private fun notify(kind: ReminderKind, locked: Boolean, title: String, text: String) {
+    private fun notify(kind: ReminderKind, settings: AppSettings, fullTitle: String, fullText: String) {
+        val locked = settings.pinHash != null
+        // Mode discret : aucun mot sur le cycle ni sur le traitement, même téléphone déverrouillé.
+        val discreet = settings.discreetNotifications
+        val title = if (discreet) applicationContext.getString(R.string.app_name) else fullTitle
+        val text = if (discreet) {
+            tr("Vous avez un rappel.", "You have a reminder.", pl = "Masz przypomnienie.", uk = "У вас є нагадування.", es = "Tienes un recordatorio.", de = "Du hast eine Erinnerung.")
+        } else {
+            fullText
+        }
         val context = applicationContext
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
@@ -147,7 +157,7 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
         // Action en un geste depuis la notification. Pas d'action si un code PIN protège l'appli :
         // on n'écrit rien sans passer par le déverrouillage.
-        if (!locked) {
+        if (!locked && !discreet) {
             val action = when (kind) {
                 ReminderKind.PERIOD -> ReminderActionReceiver.ACTION_PERIOD_STARTED to
                     tr("Mes règles ont commencé", "My period has started", pl = "Zaczęła się miesiączka", uk = "Місячні почалися", es = "Me ha venido la regla", de = "Meine Periode hat begonnen")

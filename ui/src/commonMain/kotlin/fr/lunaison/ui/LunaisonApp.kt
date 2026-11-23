@@ -17,6 +17,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -101,6 +102,87 @@ fun LunaisonApp(
     /** « log » : ouvrir la saisie du jour (rappel du soir), une fois l'appli déverrouillée. */
     link: String? = null,
     onLinkHandled: () -> Unit = {},
+    /** Base ouverte par le code leurre ; null si la plateforme ne la propose pas. */
+    decoyRepository: (() -> LunaisonRepository)? = null,
+    /** Déverrouillage par empreinte ou visage ; null si la plateforme ne le propose pas. */
+    biometric: BiometricUnlock? = null,
+) {
+    val settings by repository.settings.collectAsStateWithLifecycle(initialValue = null)
+    val scope = rememberCoroutineScope()
+    var unlocked by rememberSaveable { mutableStateOf(false) }
+    // Ouverte par le code leurre : tout l'écran lit et écrit dans la seconde base.
+    var decoyMode by rememberSaveable { mutableStateOf(false) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val pinActive = settings?.pinHash != null
+    DisposableEffect(lifecycleOwner, pinActive) {
+        if (!pinActive) return@DisposableEffect onDispose {}
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP) {
+                unlocked = false
+                decoyMode = false
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    val currentSettings = settings
+    if (currentSettings == null) {
+        Box(Modifier.fillMaxSize())
+        return
+    }
+    val discretion = remember(biometric, decoyRepository) {
+        DiscretionSupport(biometric = biometric, decoyAvailable = decoyRepository != null)
+    }
+
+    CompositionLocalProvider(LocalDiscretion provides discretion) {
+        val expectedPinHash = currentSettings.pinHash
+        if (expectedPinHash != null && !unlocked) {
+            PinUnlockScreen(
+                expectedHash = expectedPinHash,
+                onUnlocked = {
+                    decoyMode = false
+                    unlocked = true
+                },
+                decoyHash = currentSettings.decoyPinHash.takeIf { decoyRepository != null },
+                onDecoy = {
+                    val decoy = decoyRepository ?: return@PinUnlockScreen
+                    scope.launch {
+                        decoy.prepareAsDecoyOf(currentSettings)
+                        decoyMode = true
+                        unlocked = true
+                    }
+                },
+                biometric = biometric?.takeIf { currentSettings.biometricUnlock && it.available },
+            )
+        } else {
+            val decoy = decoyRepository?.takeIf { decoyMode && expectedPinHash != null }
+            val inDecoy = decoy != null
+            val active = decoy?.invoke() ?: repository
+            UnlockedApp(
+                repository = active,
+                versionName = versionName,
+                link = link,
+                onLinkHandled = onLinkHandled,
+                isDecoy = inDecoy,
+                // « Tout effacer » dans la vraie base efface aussi le leurre.
+                alsoErase = if (inDecoy) null else decoyRepository,
+                onPinChosen = { unlocked = true },
+            )
+        }
+    }
+}
+
+/** L'appli une fois déverrouillée, sur la vraie base ou sur celle du leurre. */
+@Composable
+private fun UnlockedApp(
+    repository: LunaisonRepository,
+    versionName: String,
+    link: String?,
+    onLinkHandled: () -> Unit,
+    isDecoy: Boolean,
+    alsoErase: (() -> LunaisonRepository)?,
+    onPinChosen: () -> Unit,
 ) {
     val logs by repository.logs.collectAsStateWithLifecycle(initialValue = null)
     val settings by repository.settings.collectAsStateWithLifecycle(initialValue = null)
@@ -112,19 +194,6 @@ fun LunaisonApp(
         }
     }
     val scope = rememberCoroutineScope()
-    var unlocked by rememberSaveable { mutableStateOf(false) }
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val pinActive = settings?.pinHash != null
-    DisposableEffect(lifecycleOwner, pinActive) {
-        if (!pinActive) return@DisposableEffect onDispose {}
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_STOP) {
-                unlocked = false
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
-    }
     // Fin d'onboarding avec « Noter ma journée maintenant » : même chemin qu'un lien de notification.
     var localLink by rememberSaveable { mutableStateOf<String?>(null) }
     // Accueil rouvert depuis les réglages : il se ferme sans rien effacer.
@@ -137,18 +206,10 @@ fun LunaisonApp(
         return
     }
 
-    val expectedPinHash = currentSettings.pinHash
-    if (expectedPinHash != null && !unlocked) {
-        PinUnlockScreen(
-            expectedHash = expectedPinHash,
-            onUnlocked = { unlocked = true },
-        )
-        return
-    }
+    val actions = remember(repository, alsoErase) { RepositoryActions(repository, scope, alsoErase) }
 
     if (OnboardingFlow.shouldShow(currentSettings.onboarded) || replayWelcome) {
         val firstLaunch = !currentSettings.onboarded
-        val onboardingActions = remember(repository) { RepositoryActions(repository, scope) }
         fun finish(baseline: Baseline, log: Boolean) {
             if (log) localLink = LINK_LOG
             replayWelcome = false
@@ -176,10 +237,10 @@ fun LunaisonApp(
             pinEnabled = currentSettings.pinHash != null,
             // Le code choisi pendant l'accueil ne doit pas redemander le déverrouillage tout de suite.
             onPinChosen = { pin ->
-                unlocked = true
+                onPinChosen()
                 scope.launch { repository.updateSettings { it.copy(pinHash = AppSettings.hashPin(pin)) } }
             },
-            actions = onboardingActions,
+            actions = actions,
             onClose = if (firstLaunch) null else ({ replayWelcome = false }),
         )
         return
@@ -187,10 +248,12 @@ fun LunaisonApp(
 
     val state = remember(currentLogs, currentSettings, today) { AppState.compute(currentLogs, currentSettings, today) }
     val nextPrediction = (state.cycle as? CycleState.Known)?.next
-    LaunchedEffect(currentSettings.reminders, nextPrediction?.start) {
-        syncReminders(currentSettings, nextPrediction)
+    // Les rappels suivent toujours la vraie base : le leurre ne planifie rien.
+    if (!isDecoy) {
+        LaunchedEffect(currentSettings.reminders, nextPrediction?.start) {
+            syncReminders(currentSettings, nextPrediction)
+        }
     }
-    val actions = remember(repository) { RepositoryActions(repository, scope) }
     MainScaffold(
         state,
         actions,
@@ -229,7 +292,12 @@ interface Actions {
 }
 
 /** Les actions réelles, toutes enregistrées localement. */
-class RepositoryActions(private val repository: LunaisonRepository, private val scope: kotlinx.coroutines.CoroutineScope) : Actions {
+class RepositoryActions(
+    private val repository: LunaisonRepository,
+    private val scope: kotlinx.coroutines.CoroutineScope,
+    /** Autre base à effacer avec celle-ci (le leurre, quand on efface la vraie). */
+    private val alsoErase: (() -> LunaisonRepository)? = null,
+) : Actions {
     override fun save(log: DayLog) {
         scope.launch { repository.save(log) }
     }
@@ -239,7 +307,10 @@ class RepositoryActions(private val repository: LunaisonRepository, private val 
     }
 
     override fun eraseAll() {
-        scope.launch { repository.eraseAll() }
+        scope.launch {
+            repository.eraseAll()
+            alsoErase?.invoke()?.eraseAll()
+        }
     }
 
     override suspend fun exportCsv(): String = repository.exportCsv()

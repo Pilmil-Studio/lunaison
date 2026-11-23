@@ -85,6 +85,8 @@ fun SettingsScreen(
     var confirmErase by rememberSaveable { mutableStateOf(false) }
     var confirmFertility by rememberSaveable { mutableStateOf(false) }
     var showPinSetup by rememberSaveable { mutableStateOf(false) }
+    var showDecoySetup by rememberSaveable { mutableStateOf(false) }
+    val discretion = LocalDiscretion.current
     var showImportSourceDialog by rememberSaveable { mutableStateOf(false) }
     var importResultMessage by rememberSaveable { mutableStateOf<String?>(null) }
 
@@ -191,6 +193,21 @@ fun SettingsScreen(
                 Text(tr("Comprendre l'impact de ma contraception sur mes règles", "Understand how my contraception affects my periods", pl = "Zrozumieć wpływ mojej antykoncepcji na miesiączki", uk = "Зрозуміти вплив моєї контрацепції на менструації", es = "Entender cómo afecta mi anticoncepción a mis reglas", de = "Verstehen, wie meine Verhütung meine Periode beeinflusst"))
             }
             Muted(tr("Sur l'écran verrouillé, les notifications n'affichent que « Lunaison ».", "On the lock screen, notifications only show \"Lunaison\".", pl = "Na ekranie blokady powiadomienia pokazują tylko „Lunaison”.", uk = "На заблокованому екрані сповіщення показують лише «Lunaison».", es = "En la pantalla de bloqueo, las notificaciones solo muestran «Lunaison».", de = "Auf dem Sperrbildschirm zeigen Benachrichtigungen nur „Lunaison“ an."))
+            SwitchRow(
+                tr6("Notifications et widget discrets", "Discreet notifications and widget", "Dyskretne powiadomienia i widżet", "Непомітні сповіщення та віджет", "Notificaciones y widget discretos", "Unauffällige Benachrichtigungen und Widget"),
+                checked = settings.discreetNotifications,
+                onChange = { on -> actions.updateSettings { it.copy(discreetNotifications = on) } },
+            )
+            Muted(
+                tr6(
+                    "Même téléphone déverrouillé, les rappels n'affichent que « Lunaison » et « Vous avez un rappel », sans bouton d'action, et le widget n'affiche plus le jour du cycle.",
+                    "Even when the phone is unlocked, reminders only show \"Lunaison\" and \"You have a reminder\", with no action button, and the widget no longer shows the cycle day.",
+                    "Nawet na odblokowanym telefonie przypomnienia pokazują tylko „Lunaison” i „Masz przypomnienie”, bez przycisku akcji, a widżet nie pokazuje już dnia cyklu.",
+                    "Навіть на розблокованому телефоні нагадування показують лише «Lunaison» і «У вас є нагадування», без кнопки дії, а віджет більше не показує день циклу.",
+                    "Incluso con el teléfono desbloqueado, los recordatorios solo muestran «Lunaison» y «Tienes un recordatorio», sin botón de acción, y el widget ya no muestra el día del ciclo.",
+                    "Auch bei entsperrtem Telefon zeigen Erinnerungen nur „Lunaison“ und „Du hast eine Erinnerung“, ohne Aktionsknopf, und das Widget zeigt den Zyklustag nicht mehr an.",
+                ),
+            )
         }
 
         SectionTitle(tr("Mon cycle", "My cycle", pl = "Mój cykl", uk = "Мій цикл", es = "Mi ciclo", de = "Mein Zyklus"))
@@ -287,10 +304,60 @@ fun SettingsScreen(
                     if (on) {
                         showPinSetup = true
                     } else {
-                        actions.updateSettings { it.copy(pinHash = null) }
+                        // Sans code, ni leurre ni empreinte n'ont de sens.
+                        actions.updateSettings { it.copy(pinHash = null, decoyPinHash = null, biometricUnlock = false) }
                     }
                 },
             )
+            val realPinHash = settings.pinHash
+            if (realPinHash != null) {
+                val biometric = discretion.biometric
+                if (biometric != null && biometric.available) {
+                    SwitchRow(
+                        DiscretionTexts.useBiometric,
+                        checked = settings.biometricUnlock,
+                        onChange = { on ->
+                            if (on) {
+                                // On vérifie une fois que la reconnaissance fonctionne avant de l'activer.
+                                biometric.authenticate(DiscretionTexts.biometricPromptTitle, DiscretionTexts.useCode) {
+                                    actions.updateSettings { it.copy(biometricUnlock = true) }
+                                }
+                            } else {
+                                actions.updateSettings { it.copy(biometricUnlock = false) }
+                            }
+                        },
+                    )
+                    Muted(
+                        tr6(
+                            "Le code reste demandé si la reconnaissance échoue. L'empreinte ouvre toujours vos vraies données : si quelqu'un peut vous forcer à poser le doigt, préférez le code.",
+                            "The code is still asked if recognition fails. Fingerprint always opens your real data: if someone could force your finger, prefer the code.",
+                            "Kod jest nadal wymagany, jeśli rozpoznanie się nie powiedzie. Odcisk palca zawsze otwiera twoje prawdziwe dane: jeśli ktoś mógłby zmusić cię do przyłożenia palca, wybierz kod.",
+                            "Якщо розпізнавання не вдасться, код усе одно запитають. Відбиток завжди відкриває ваші справжні дані: якщо хтось може змусити вас прикласти палець, обирайте код.",
+                            "Se sigue pidiendo el código si el reconocimiento falla. La huella siempre abre tus datos reales: si alguien puede obligarte a poner el dedo, mejor usa el código.",
+                            "Der Code wird weiterhin abgefragt, wenn die Erkennung fehlschlägt. Der Fingerabdruck öffnet immer deine echten Daten: Wenn dich jemand zwingen könnte, den Finger aufzulegen, nutze lieber den Code.",
+                        ),
+                    )
+                }
+                if (discretion.decoyAvailable) {
+                    SwitchRow(
+                        tr6("Code leurre", "Decoy code", "Kod-przynęta", "Код-приманка", "Código señuelo", "Ablenkungscode"),
+                        checked = settings.decoyPinHash != null,
+                        onChange = { on ->
+                            if (on) showDecoySetup = true else actions.updateSettings { it.copy(decoyPinHash = null) }
+                        },
+                    )
+                    Muted(
+                        tr6(
+                            "Un second code ouvre une Lunaison vide, séparée de la vraie. Utile si quelqu'un vous oblige à ouvrir l'appli devant lui.",
+                            "A second code opens an empty Lunaison, separate from the real one. Useful if someone forces you to open the app in front of them.",
+                            "Drugi kod otwiera pustą Lunaison, oddzieloną od prawdziwej. Przydaje się, gdy ktoś zmusza cię do otwarcia aplikacji przy nim.",
+                            "Другий код відкриває порожню Lunaison, окрему від справжньої. Корисно, якщо хтось змушує вас відкрити застосунок при ньому.",
+                            "Un segundo código abre una Lunaison vacía, separada de la real. Útil si alguien te obliga a abrir la aplicación delante de él.",
+                            "Ein zweiter Code öffnet eine leere Lunaison, getrennt von der echten. Nützlich, wenn dich jemand zwingt, die App vor ihm zu öffnen.",
+                        ),
+                    )
+                }
+            }
             Muted(tr("Quand le code est activé, l'aperçu de l'application est également masqué dans le sélecteur d'applications récentes.", "When the PIN is enabled, the app preview is also hidden in the recent apps switcher.", pl = "Gdy kod jest włączony, podgląd aplikacji jest też ukrywany w przełączniku ostatnich aplikacji.", uk = "Коли код увімкнено, попередній перегляд застосунку також приховується в перемикачі нещодавніх застосунків.", es = "Cuando el código está activado, la vista previa de la aplicación también se oculta en el selector de aplicaciones recientes.", de = "Ist der Code aktiviert, wird auch die Vorschau der App in der Übersicht der zuletzt verwendeten Apps ausgeblendet."))
         }
 
@@ -504,6 +571,17 @@ fun SettingsScreen(
                 actions.updateSettings { it.copy(pinHash = AppSettings.hashPin(pin)) }
             },
             onDismiss = { showPinSetup = false },
+        )
+    }
+    val pinForDecoy = settings.pinHash
+    if (showDecoySetup && pinForDecoy != null) {
+        DecoySetupDialog(
+            realPinHash = pinForDecoy,
+            onSaveDecoy = { pin ->
+                showDecoySetup = false
+                actions.updateSettings { it.copy(decoyPinHash = AppSettings.hashPin(pin)) }
+            },
+            onDismiss = { showDecoySetup = false },
         )
     }
 
