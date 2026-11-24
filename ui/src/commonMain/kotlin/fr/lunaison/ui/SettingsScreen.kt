@@ -59,6 +59,7 @@ import fr.lunaison.core.designsystem.SectionTitle
 import fr.lunaison.core.model.AgeGroup
 import fr.lunaison.core.model.ThemePalette
 import kotlinx.coroutines.launch
+import fr.lunaison.core.model.Country
 import fr.lunaison.core.model.tr
 import fr.lunaison.core.model.plusHours
 import fr.lunaison.core.model.minusHours
@@ -512,6 +513,41 @@ fun SettingsScreen(
                     )
                 }
             }
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Text(tr6("Pays pour les droits et aides", "Country for rights and support", "Kraj praw i pomocy", "Країна для прав і допомоги", "País para derechos y ayudas", "Land für Rechte und Hilfen"), style = MaterialTheme.typography.titleSmall)
+            val detected = Country.resolve(Country.AUTO)
+            val detectedName = detected?.let { Country.displayName(it) }
+            @OptIn(ExperimentalLayoutApi::class)
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                val choices = listOf(
+                    Country.AUTO to (
+                        tr6("Selon le téléphone", "Same as phone", "Jak w telefonie", "Як у телефоні", "Según el teléfono", "Wie am Telefon") +
+                            (detectedName?.let { " ($it)" } ?: "")
+                        ),
+                ) + Country.supported.map { it to Country.displayName(it) } +
+                    listOf(Country.OTHER to tr6("Un autre pays", "Another country", "Inny kraj", "Інша країна", "Otro país", "Ein anderes Land"))
+                choices.forEach { (code, label) ->
+                    FilterChip(
+                        selected = settings.country == code,
+                        onClick = { actions.updateSettings { it.copy(country = code) } },
+                        label = { Text(label, style = MaterialTheme.typography.labelMedium) },
+                    )
+                }
+            }
+            Muted(
+                tr6(
+                    "Sert seulement à afficher les remboursements et aides de ce pays dans « Comprendre ». Rien n'est envoyé.",
+                    "Only used to show that country's reimbursements and support in \"Learn\". Nothing is sent.",
+                    "Służy tylko do pokazania refundacji i pomocy w tym kraju w zakładce „Wiedza”. Nic nie jest wysyłane.",
+                    "Використовується лише для показу відшкодувань і допомоги цієї країни в «Довіднику». Нічого не надсилається.",
+                    "Solo sirve para mostrar los reembolsos y ayudas de ese país en «Aprender». No se envía nada.",
+                    "Dient nur dazu, Erstattungen und Hilfen dieses Landes unter „Wissen“ anzuzeigen. Es wird nichts gesendet.",
+                ),
+            )
         }
 
         SectionTitle(

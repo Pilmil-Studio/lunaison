@@ -200,6 +200,7 @@ class LunaisonRepositoryTest {
             decoyPinHash = AppSettings.hashPin("1357"),
             biometricUnlock = true,
             discreetNotifications = true,
+            country = "FR",
         )
 
         val restored = settings.toEntity().toModel()

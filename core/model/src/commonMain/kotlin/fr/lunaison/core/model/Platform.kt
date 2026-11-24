@@ -5,3 +5,6 @@ package fr.lunaison.core.model
  * la langue suit le réglage du téléphone sans redémarrer l'appli.
  */
 internal expect fun systemLanguageCode(): String
+
+/** Région du téléphone (code ISO à deux lettres, en majuscules), ou chaîne vide si elle est inconnue. */
+internal expect fun systemRegionCode(): String
