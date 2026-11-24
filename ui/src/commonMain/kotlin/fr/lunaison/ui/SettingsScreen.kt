@@ -475,6 +475,11 @@ fun SettingsScreen(
                     Text(tr("Nous écrire", "Contact us", pl = "Napisz do nas", uk = "Напишіть нам", es = "Escríbenos", de = "Schreib uns"), style = MaterialTheme.typography.labelMedium)
                 }
             }
+            TranslationFeedbackButton(
+                place = tr("écran ou rubrique", "screen or section", pl = "ekran lub sekcja", uk = "екран або розділ", es = "pantalla o sección", de = "Bildschirm oder Rubrik"),
+                versionName = versionName,
+                modifier = Modifier.fillMaxWidth(),
+            )
             TextButton(onClick = onReplayWelcome, modifier = Modifier.fillMaxWidth()) {
                 Text(tr("Revoir l'accueil de bienvenue", "Replay the welcome tour", pl = "Zobacz ponownie ekran powitalny", uk = "Переглянути вітання ще раз", es = "Volver a ver la bienvenida", de = "Willkommen erneut ansehen"), style = MaterialTheme.typography.labelMedium)
             }

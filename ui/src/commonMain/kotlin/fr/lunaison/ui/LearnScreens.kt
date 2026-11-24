@@ -377,5 +377,6 @@ fun ArticleScreen(id: String, onBack: () -> Unit) {
                 )
             }
         }
+        TranslationFeedbackButton(place = article.title)
     }
 }
