@@ -77,6 +77,33 @@ Kotlin Multiplatform, Compose Multiplatform, Material 3, Room KMP (`sqlite-bundl
 
 L'appli est disponible en **6 langues** (`fr`, `en`, `pl`, `uk`, `es`, `de`), selon la langue du téléphone. Les textes d'interface passent par `tr()` dans `:core:model`, et les fiches ont un fichier par langue dans `:core:content`, vérifié par les tests.
 
+### Couverture par langue
+
+<!-- couverture-langues:debut -->
+| Langue | Textes de l'appli (`tr`) | Fiches Comprendre | Chaînes Android | Couverture |
+|---|---|---|---|---|
+| Français | 1039 / 1039 (100 %) | 10 / 10 | 4 / 4 | **100 %** |
+| Anglais | 1039 / 1039 (100 %) | 10 / 10 | 4 / 4 | **100 %** |
+| Polonais | 1039 / 1039 (100 %) | 10 / 10 | 4 / 4 | **100 %** |
+| Ukrainien | 1039 / 1039 (100 %) | 10 / 10 | 4 / 4 | **100 %** |
+| Espagnol | 1039 / 1039 (100 %) | 10 / 10 | 4 / 4 | **100 %** |
+| Allemand | 1039 / 1039 (100 %) | 10 / 10 | 4 / 4 | **100 %** |
+
+Aucun texte affiché en dur hors `tr` repéré.
+Un texte non traduit s'affiche en anglais. Tableau produit par `scripts/couverture-langues.py`.
+<!-- couverture-langues:fin -->
+
+Ce que le tableau ne mesure pas :
+
+| | Français | Anglais | Polonais | Ukrainien | Espagnol | Allemand |
+|---|---|---|---|---|---|---|
+| Fiche Google Play | oui | oui | oui | oui | oui | oui |
+| Site | complet | complet | accueil seul | accueil seul | accueil seul | accueil seul |
+| Politique de confidentialité | oui | oui | non | non | non | non |
+| Relecture par une personne native | oui | à faire | à faire | à faire | à faire | à faire |
+
+Les traductions polonaise, ukrainienne, espagnole et allemande ont été écrites avec l'aide d'une IA et n'ont pas encore été relues par des natifs.
+
 ```
 :app                 Coque Android, navigation, rappels WorkManager, widget, intégration pilmil-core
 :ui                  Interface Compose Multiplatform partagée (Android + iOS : Accueil, Ma journée, Calendrier, Comprendre, Partage, Réglages, bilan PDF)
