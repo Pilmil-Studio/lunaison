@@ -200,14 +200,18 @@ fun HomeScreen(
                 )
                 Text(
                     tr(
-                        "Aucune saisie depuis quelques jours — c'est tout à fait normal. Notez simplement vos dernières règles si vous souhaitez recalibrer vos repères.",
-                        "No entries for a few days — that's completely fine. Just log your last period if you'd like to recalibrate your estimates.",
+                        "Aucune saisie depuis quelques jours : c'est tout à fait normal. Notez simplement vos dernières règles si vous souhaitez recalibrer vos repères.",
+                        "No entries for a few days: that's completely fine. Just log your last period if you'd like to recalibrate your estimates.",
+                        pl = "Brak wpisów od kilku dni: to zupełnie normalne. Zanotuj po prostu ostatnią miesiączkę, jeśli chcesz zaktualizować prognozy.",
+                        uk = "Кілька днів без записів: це цілком нормально. Просто позначте останню менструацію, якщо хочете уточнити прогнози.",
+                        es = "Varios días sin anotar: es totalmente normal. Anota simplemente tu última regla si quieres reajustar tus previsiones.",
+                        de = "Seit ein paar Tagen keine Einträge: Das ist völlig in Ordnung. Trag einfach deine letzte Periode ein, wenn du die Vorhersagen anpassen möchtest.",
                     ),
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     TextButton(onClick = onCalendar) {
-                        Text(tr("Mettre à jour au calendrier", "Update in calendar"))
+                        Text(tr("Mettre à jour au calendrier", "Update in calendar", pl = "Zaktualizuj w kalendarzu", uk = "Оновити в календарі", es = "Actualizar en el calendario", de = "Im Kalender aktualisieren"))
                     }
                 }
             }
@@ -273,6 +277,10 @@ fun HomeScreen(
                     tr(
                         "Prenez soin de vous aujourd'hui. Vous pouvez souffler un instant ou prévenir un proche.",
                         "Take care of yourself today. You can take a breathing break or let someone close know.",
+                        pl = "Zadbaj dziś o siebie. Możesz chwilę odetchnąć albo dać znać bliskiej osobie.",
+                        uk = "Подбайте сьогодні про себе. Можна трохи перепочити або повідомити близьку людину.",
+                        es = "Cuídate hoy. Puedes tomarte un respiro o avisar a alguien cercano.",
+                        de = "Pass heute gut auf dich auf. Du kannst kurz durchatmen oder einer nahestehenden Person Bescheid geben.",
                     ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -509,7 +517,7 @@ private fun DiscoverGuideCard(state: AppState, actions: Actions, onArticle: (Str
     }
 
     val label = if (pick.isContextual) {
-        tr("Lecture recommandée", "Recommended reading")
+        tr("Lecture recommandée", "Recommended reading", pl = "Polecana lektura", uk = "Рекомендоване читання", es = "Lectura recomendada", de = "Leseempfehlung")
     } else {
         tr("À découvrir", "Good to know", pl = "Warto wiedzieć", uk = "Варто знати", es = "Para descubrir", de = "Gut zu wissen")
     }
@@ -517,18 +525,18 @@ private fun DiscoverGuideCard(state: AppState, actions: Actions, onArticle: (Str
     when (pick.id) {
         "endometriose" -> LunaCard(modifier = Modifier.clickable { onArticle("endometriose") }) {
             Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
-            Text(tr("Comprendre l'endométriose", "Understanding endometriosis"), style = MaterialTheme.typography.titleMedium)
+            Text(tr("Comprendre l'endométriose", "Understanding endometriosis", pl = "Zrozumieć endometriozę", uk = "Розуміння ендометріозу", es = "Entender la endometriosis", de = "Endometriose verstehen"), style = MaterialTheme.typography.titleMedium)
             Text(
-                tr("Repères sur les douleurs pelviennes intenses et quand en parler à un soignant.", "Key facts on intense pelvic pain and when to talk to a clinician."),
+                tr("Repères sur les douleurs pelviennes intenses et quand en parler à un soignant.", "Key facts on intense pelvic pain and when to talk to a clinician.", pl = "Najważniejsze informacje o silnym bólu miednicy i o tym, kiedy porozmawiać z lekarzem.", uk = "Орієнтири щодо сильного тазового болю і коли звернутися до лікаря.", es = "Claves sobre el dolor pélvico intenso y cuándo hablarlo con un profesional.", de = "Wichtiges zu starken Beckenschmerzen und wann du mit Fachpersonal sprechen solltest."),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         "perimenopause" -> LunaCard(modifier = Modifier.clickable { onArticle("perimenopause") }) {
             Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
-            Text(tr("Cycles irréguliers et périménopause", "Irregular cycles and perimenopause"), style = MaterialTheme.typography.titleMedium)
+            Text(tr("Cycles irréguliers et périménopause", "Irregular cycles and perimenopause", pl = "Nieregularne cykle i perimenopauza", uk = "Нерегулярні цикли та перименопауза", es = "Ciclos irregulares y perimenopausia", de = "Unregelmäßige Zyklen und Perimenopause"), style = MaterialTheme.typography.titleMedium)
             Text(
-                tr("Pourquoi les cycles varient et comment lire les signaux hormonaux.", "Why cycles vary and how to read hormonal shifts."),
+                tr("Pourquoi les cycles varient et comment lire les signaux hormonaux.", "Why cycles vary and how to read hormonal shifts.", pl = "Dlaczego cykle się różnią i jak odczytywać sygnały hormonalne.", uk = "Чому цикли змінюються і як читати гормональні сигнали.", es = "Por qué varían los ciclos y cómo leer las señales hormonales.", de = "Warum Zyklen schwanken und wie man hormonelle Signale liest."),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -788,7 +796,7 @@ private fun PhaseCard(state: AppState, cycle: CycleState.Known, onArticle: (Stri
                         tipOffset += 1
                     },
                 ) {
-                    Text(tr("Autre repère", "Another tip"))
+                    Text(tr("Autre repère", "Another tip", pl = "Inna wskazówka", uk = "Інша порада", es = "Otro consejo", de = "Noch ein Tipp"))
                 }
             }
             TextButton(onClick = { onArticle(guide.articleId) }) { Text(tr("En savoir plus", "Learn more", pl = "Dowiedz się więcej", uk = "Докладніше", es = "Saber más", de = "Mehr erfahren")) }

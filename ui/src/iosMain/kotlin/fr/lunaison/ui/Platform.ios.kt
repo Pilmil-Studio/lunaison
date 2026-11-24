@@ -378,10 +378,10 @@ actual fun ImportDialogs(showSource: Boolean, onDismiss: () -> Unit, actions: Ac
     if (bytesToDecrypt != null) {
         AlertDialog(
             onDismissRequest = { pendingBytes = null },
-            title = { Text("Mot de passe de la sauvegarde") },
+            title = { Text(tr("Mot de passe de la sauvegarde", "Backup password", pl = "Hasło kopii zapasowej", uk = "Пароль резервної копії", es = "Contraseña de la copia", de = "Passwort der Sicherung")) },
             text = {
                 androidx.compose.foundation.layout.Column {
-                    Text("Entrez le mot de passe choisi lors de la sauvegarde :")
+                    Text(tr("Entrez le mot de passe choisi lors de la sauvegarde :", "Enter the password chosen when backing up:", pl = "Wpisz hasło wybrane podczas tworzenia kopii:", uk = "Введіть пароль, обраний під час створення копії:", es = "Introduce la contraseña elegida al guardar la copia:", de = "Gib das beim Sichern gewählte Passwort ein:"))
                     OutlinedTextField(
                         value = passwordInput,
                         onValueChange = {
@@ -413,10 +413,10 @@ actual fun ImportDialogs(showSource: Boolean, onDismiss: () -> Unit, actions: Ac
                                 }
                         }
                     },
-                ) { Text("Restaurer") }
+                ) { Text(tr("Restaurer", "Restore", pl = "Przywróć", uk = "Відновити", es = "Restaurar", de = "Wiederherstellen")) }
             },
             dismissButton = {
-                TextButton(onClick = { pendingBytes = null }) { Text("Annuler") }
+                TextButton(onClick = { pendingBytes = null }) { Text(tr("Annuler", "Cancel", pl = "Anuluj", uk = "Скасувати", es = "Cancelar", de = "Abbrechen")) }
             },
         )
     }
