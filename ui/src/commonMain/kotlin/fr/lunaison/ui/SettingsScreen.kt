@@ -46,6 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.lunaison.core.cycle.LogReminderMode
@@ -192,22 +193,6 @@ fun SettingsScreen(
             TextButton(onClick = { onArticle("contraception") }) {
                 Text(tr("Comprendre l'impact de ma contraception sur mes règles", "Understand how my contraception affects my periods", pl = "Zrozumieć wpływ mojej antykoncepcji na miesiączki", uk = "Зрозуміти вплив моєї контрацепції на менструації", es = "Entender cómo afecta mi anticoncepción a mis reglas", de = "Verstehen, wie meine Verhütung meine Periode beeinflusst"))
             }
-            Muted(tr("Sur l'écran verrouillé, les notifications n'affichent que « Lunaison ».", "On the lock screen, notifications only show \"Lunaison\".", pl = "Na ekranie blokady powiadomienia pokazują tylko „Lunaison”.", uk = "На заблокованому екрані сповіщення показують лише «Lunaison».", es = "En la pantalla de bloqueo, las notificaciones solo muestran «Lunaison».", de = "Auf dem Sperrbildschirm zeigen Benachrichtigungen nur „Lunaison“ an."))
-            SwitchRow(
-                tr6("Notifications et widget discrets", "Discreet notifications and widget", "Dyskretne powiadomienia i widżet", "Непомітні сповіщення та віджет", "Notificaciones y widget discretos", "Unauffällige Benachrichtigungen und Widget"),
-                checked = settings.discreetNotifications,
-                onChange = { on -> actions.updateSettings { it.copy(discreetNotifications = on) } },
-            )
-            Muted(
-                tr6(
-                    "Même téléphone déverrouillé, les rappels n'affichent que « Lunaison » et « Vous avez un rappel », sans bouton d'action, et le widget n'affiche plus le jour du cycle.",
-                    "Even when the phone is unlocked, reminders only show \"Lunaison\" and \"You have a reminder\", with no action button, and the widget no longer shows the cycle day.",
-                    "Nawet na odblokowanym telefonie przypomnienia pokazują tylko „Lunaison” i „Masz przypomnienie”, bez przycisku akcji, a widżet nie pokazuje już dnia cyklu.",
-                    "Навіть на розблокованому телефоні нагадування показують лише «Lunaison» і «У вас є нагадування», без кнопки дії, а віджет більше не показує день циклу.",
-                    "Incluso con el teléfono desbloqueado, los recordatorios solo muestran «Lunaison» y «Tienes un recordatorio», sin botón de acción, y el widget ya no muestra el día del ciclo.",
-                    "Auch bei entsperrtem Telefon zeigen Erinnerungen nur „Lunaison“ und „Du hast eine Erinnerung“, ohne Aktionsknopf, und das Widget zeigt den Zyklustag nicht mehr an.",
-                ),
-            )
         }
 
         SectionTitle(tr("Mon cycle", "My cycle", pl = "Mój cykl", uk = "Мій цикл", es = "Mi ciclo", de = "Mein Zyklus"))
@@ -252,51 +237,18 @@ fun SettingsScreen(
             )
         }
 
-        SectionTitle(tr("Apparence et sécurité", "Appearance and security", pl = "Wygląd i bezpieczeństwo", uk = "Вигляд і безпека", es = "Apariencia y seguridad", de = "Erscheinungsbild und Sicherheit"))
+        SectionTitle(tr6("Discrétion", "Privacy", "Dyskrecja", "Конфіденційність", "Discreción", "Diskretion"))
         LunaCard {
-            Text(tr("Palette de couleurs", "Color palette", pl = "Paleta kolorów", uk = "Колірна палітра", es = "Paleta de colores", de = "Farbpalette"), style = MaterialTheme.typography.titleSmall)
-            @OptIn(ExperimentalLayoutApi::class)
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                ThemePalette.entries.forEach { palette ->
-                    val selected = palette == settings.themePalette
-                    FilterChip(
-                        selected = selected,
-                        onClick = { actions.updateSettings { it.copy(themePalette = palette) } },
-                        label = {
-                            Text(
-                                palette.label,
-                                style = MaterialTheme.typography.labelMedium,
-                                modifier = Modifier.padding(vertical = 10.dp),
-                            )
-                        },
-                        leadingIcon = {
-                            Box(
-                                modifier = Modifier
-                                    .size(18.dp)
-                                    .background(palette.swatchColor, CircleShape),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                if (selected) {
-                                    Icon(
-                                        Icons.Filled.Check,
-                                        contentDescription = null,
-                                        tint = Color.White,
-                                        modifier = Modifier.size(12.dp),
-                                    )
-                                }
-                            }
-                        },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        ),
-                    )
-                }
-            }
+            Muted(
+                tr6(
+                    "Pour que personne d'autre que vous ne voie ce que contient Lunaison, même avec votre téléphone en main.",
+                    "So that no one but you sees what Lunaison holds, even with your phone in their hands.",
+                    "Aby nikt poza tobą nie zobaczył, co zawiera Lunaison, nawet mając twój telefon w ręku.",
+                    "Щоб ніхто, крім вас, не бачив, що містить Lunaison, навіть тримаючи ваш телефон.",
+                    "Para que nadie más que tú vea lo que contiene Lunaison, aunque tenga tu teléfono en la mano.",
+                    "Damit niemand außer dir sieht, was Lunaison enthält, selbst mit deinem Telefon in der Hand.",
+                ),
+            )
             SwitchRow(
                 tr("Verrouiller l'application par code à 4 chiffres", "Lock the app with a 4-digit PIN", pl = "Zablokuj aplikację 4-cyfrowym kodem", uk = "Заблокувати застосунок 4-значним кодом", es = "Bloquear la aplicación con un código de 4 dígitos", de = "App mit 4-stelligem Code sperren"),
                 checked = settings.pinHash != null,
@@ -359,6 +311,34 @@ fun SettingsScreen(
                 }
             }
             Muted(tr("Quand le code est activé, l'aperçu de l'application est également masqué dans le sélecteur d'applications récentes.", "When the PIN is enabled, the app preview is also hidden in the recent apps switcher.", pl = "Gdy kod jest włączony, podgląd aplikacji jest też ukrywany w przełączniku ostatnich aplikacji.", uk = "Коли код увімкнено, попередній перегляд застосунку також приховується в перемикачі нещодавніх застосунків.", es = "Cuando el código está activado, la vista previa de la aplicación también se oculta en el selector de aplicaciones recientes.", de = "Ist der Code aktiviert, wird auch die Vorschau der App in der Übersicht der zuletzt verwendeten Apps ausgeblendet."))
+            Muted(tr("Sur l'écran verrouillé, les notifications n'affichent que « Lunaison ».", "On the lock screen, notifications only show \"Lunaison\".", pl = "Na ekranie blokady powiadomienia pokazują tylko „Lunaison”.", uk = "На заблокованому екрані сповіщення показують лише «Lunaison».", es = "En la pantalla de bloqueo, las notificaciones solo muestran «Lunaison».", de = "Auf dem Sperrbildschirm zeigen Benachrichtigungen nur „Lunaison“ an."))
+            SwitchRow(
+                tr6("Notifications et widget discrets", "Discreet notifications and widget", "Dyskretne powiadomienia i widżet", "Непомітні сповіщення та віджет", "Notificaciones y widget discretos", "Unauffällige Benachrichtigungen und Widget"),
+                checked = settings.discreetNotifications,
+                onChange = { on -> actions.updateSettings { it.copy(discreetNotifications = on) } },
+            )
+            Muted(
+                tr6(
+                    "Même téléphone déverrouillé, les rappels n'affichent que « Lunaison » et « Vous avez un rappel », sans bouton d'action, et le widget n'affiche plus le jour du cycle.",
+                    "Even when the phone is unlocked, reminders only show \"Lunaison\" and \"You have a reminder\", with no action button, and the widget no longer shows the cycle day.",
+                    "Nawet na odblokowanym telefonie przypomnienia pokazują tylko „Lunaison” i „Masz przypomnienie”, bez przycisku akcji, a widżet nie pokazuje już dnia cyklu.",
+                    "Навіть на розблокованому телефоні нагадування показують лише «Lunaison» і «У вас є нагадування», без кнопки дії, а віджет більше не показує день циклу.",
+                    "Incluso con el teléfono desbloqueado, los recordatorios solo muestran «Lunaison» y «Tienes un recordatorio», sin botón de acción, y el widget ya no muestra el día del ciclo.",
+                    "Auch bei entsperrtem Telefon zeigen Erinnerungen nur „Lunaison“ und „Du hast eine Erinnerung“, ohne Aktionsknopf, und das Widget zeigt den Zyklustag nicht mehr an.",
+                ),
+            )
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            LunaButton(tr("Tout effacer", "Erase everything", pl = "Usuń wszystko", uk = "Стерти все", es = "Borrar todo", de = "Alles löschen"), onClick = { confirmErase = true }, style = LunaButtonStyle.Quiet)
+            Muted(
+                tr6(
+                    "Supprime définitivement tout ce que Lunaison a enregistré sur ce téléphone.",
+                    "Permanently deletes everything Lunaison has saved on this phone.",
+                    "Trwale usuwa wszystko, co Lunaison zapisała na tym telefonie.",
+                    "Остаточно видаляє все, що Lunaison зберегла на цьому телефоні.",
+                    "Borra para siempre todo lo que Lunaison ha guardado en este teléfono.",
+                    "Löscht endgültig alles, was Lunaison auf diesem Telefon gespeichert hat.",
+                ),
+            )
         }
 
         SectionTitle(tr("Mes données", "My data", pl = "Moje dane", uk = "Мої дані", es = "Mis datos", de = "Meine Daten"))
@@ -382,61 +362,75 @@ fun SettingsScreen(
                     onChange = { backupOn = it; setCloudBackupEnabled(it) },
                 )
             } else {
-                Text(tr("Tout est enregistré sur ce téléphone, nulle part ailleurs. Lunaison n'a pas accès à Internet et ne fait pas de sauvegarde dans le nuage.", "Everything is saved on this phone, nowhere else. Lunaison has no Internet access and makes no cloud backup.", pl = "Wszystko jest zapisane na tym telefonie i nigdzie indziej. Lunaison nie ma dostępu do internetu i nie tworzy kopii zapasowych w chmurze.", uk = "Усе зберігається на цьому телефоні й ніде більше. Lunaison не має доступу до інтернету й не створює резервних копій у хмарі.", es = "Todo se guarda en este teléfono, en ningún otro sitio. Lunaison no tiene acceso a Internet y no hace copias de seguridad en la nube.", de = "Alles wird auf diesem Telefon gespeichert, nirgendwo sonst. Lunaison hat keinen Internetzugriff und erstellt keine Cloud-Sicherung."), style = MaterialTheme.typography.bodyMedium)
-            }
-            LunaButton(tr("Bilan de santé pour un soignant", "Health report for a clinician", pl = "Raport medyczny dla personelu medycznego", uk = "Медичний звіт для медичного працівника", es = "Informe médico para el profesional sanitario", de = "Arztbericht für medizinisches Fachpersonal"), onClick = onHealthReport, style = LunaButtonStyle.Outlined)
-            LunaButton(
-                tr("Exporter le journal (CSV)", "Export the log (CSV)", pl = "Eksportuj dziennik (CSV)", uk = "Експортувати щоденник (CSV)", es = "Exportar el diario (CSV)", de = "Tagebuch exportieren (CSV)"),
-                onClick = { exportCsv("lunaison.csv") },
-                style = LunaButtonStyle.Outlined,
-            )
-            if (encryptedBackupAvailable) {
-                EncryptedBackupButton(
-                    label = tr(
-                        "Sauvegarde chiffrée (.pilmil)",
-                        "Encrypted backup (.pilmil)",
-                        pl = "Zaszyfrowana kopia (.pilmil)",
-                        uk = "Зашифрована копія (.pilmil)",
-                        es = "Copia cifrada (.pilmil)",
-                        de = "Verschlüsselte Sicherung (.pilmil)",
+                Text(
+                    tr6(
+                        "Vos données restent sur ce téléphone. Lunaison n'a pas accès à Internet et n'envoie rien.",
+                        "Your data stays on this phone. Lunaison has no Internet access and sends nothing.",
+                        "Twoje dane zostają na tym telefonie. Lunaison nie ma dostępu do internetu i niczego nie wysyła.",
+                        "Ваші дані залишаються на цьому телефоні. Lunaison не має доступу до інтернету й нічого не надсилає.",
+                        "Tus datos se quedan en este teléfono. Lunaison no tiene acceso a Internet y no envía nada.",
+                        "Deine Daten bleiben auf diesem Telefon. Lunaison hat keinen Internetzugriff und sendet nichts.",
                     ),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+            if (encryptedBackupAvailable) {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                DataSubtitle(tr6("Ne rien perdre", "Don't lose anything", "Nie stracić niczego", "Нічого не втратити", "No perder nada", "Nichts verlieren"))
+                Muted(
+                    tr6(
+                        "Si vous perdez ou changez de téléphone, une sauvegarde permet de tout retrouver. C'est un fichier protégé par un mot de passe que vous choisissez : rangez-le ailleurs que sur ce téléphone (ordinateur, clé USB, messagerie).",
+                        "If you lose or change your phone, a backup lets you get everything back. It is a file protected by a password you choose: keep it somewhere other than this phone (computer, USB stick, email).",
+                        "Jeśli zgubisz lub zmienisz telefon, kopia zapasowa pozwoli odzyskać wszystko. To plik chroniony wybranym przez ciebie hasłem: przechowuj go poza tym telefonem (komputer, pendrive, poczta).",
+                        "Якщо ви загубите або зміните телефон, резервна копія дозволить усе відновити. Це файл, захищений обраним вами паролем: зберігайте його не на цьому телефоні (комп'ютер, флешка, пошта).",
+                        "Si pierdes o cambias de teléfono, una copia te permite recuperarlo todo. Es un archivo protegido con una contraseña que tú eliges: guárdalo fuera de este teléfono (ordenador, memoria USB, correo).",
+                        "Wenn du dein Telefon verlierst oder wechselst, bringt eine Sicherung alles zurück. Es ist eine Datei, geschützt durch ein Passwort deiner Wahl: Bewahre sie außerhalb dieses Telefons auf (Computer, USB-Stick, E-Mail).",
+                    ),
+                )
+                EncryptedBackupButton(
+                    label = tr6("Sauvegarder mes données", "Back up my data", "Zapisz kopię moich danych", "Зберегти мої дані", "Guardar mis datos", "Meine Daten sichern"),
                     fileName = "lunaison.pilmil",
                     onProducePayload = { actions.exportBackup() },
                     onResult = { importResultMessage = it },
                 )
                 RestoreBackupButton(
-                    label = tr(
-                        "Restaurer une sauvegarde",
-                        "Restore a backup",
-                        pl = "Przywróć kopię zapasową",
-                        uk = "Відновити резервну копію",
-                        es = "Restaurar una copia",
-                        de = "Sicherung wiederherstellen",
-                    ),
+                    label = tr6("Récupérer une sauvegarde", "Restore a backup", "Przywróć kopię zapasową", "Відновити резервну копію", "Recuperar una copia", "Sicherung wiederherstellen"),
                     onRestore = { actions.restoreBackup(it) },
                     onResult = { importResultMessage = it },
                 )
+            }
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            DataSubtitle(tr6("Préparer un rendez-vous", "Prepare an appointment", "Przygotować wizytę", "Підготуватися до прийому", "Preparar una cita", "Einen Termin vorbereiten"))
+            Muted(
+                tr6(
+                    "Une page claire avec vos derniers cycles, vos jours de douleur et les repères médicaux, à montrer ou à imprimer.",
+                    "A clear page with your recent cycles, painful days and medical benchmarks, to show or print.",
+                    "Przejrzysta strona z ostatnimi cyklami, dniami bólu i punktami odniesienia, do pokazania lub wydruku.",
+                    "Зрозуміла сторінка з останніми циклами, днями болю та медичними орієнтирами, щоб показати або надрукувати.",
+                    "Una página clara con tus últimos ciclos, tus días de dolor y las referencias médicas, para enseñar o imprimir.",
+                    "Eine übersichtliche Seite mit deinen letzten Zyklen, Schmerztagen und medizinischen Richtwerten, zum Zeigen oder Drucken.",
+                ),
+            )
+            LunaButton(
+                tr6("Voir le bilan pour un soignant", "See the report for a clinician", "Zobacz raport dla lekarza", "Переглянути звіт для лікаря", "Ver el informe para un profesional", "Bericht für Fachpersonal ansehen"),
+                onClick = onHealthReport,
+                style = LunaButtonStyle.Outlined,
+            )
+            if (importAvailable) {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                DataSubtitle(tr6("Venir d'une autre appli", "Coming from another app", "Przejście z innej aplikacji", "Перехід з іншого застосунку", "Venir de otra aplicación", "Von einer anderen App wechseln"))
                 Muted(
-                    tr(
-                        "La sauvegarde chiffrée contient tout votre journal et vos réglages, sous le mot de passe de votre choix. Le code PIN n'est pas sauvegardé.",
-                        "The encrypted backup holds your whole log and your settings, under a password you choose. The PIN code is not backed up.",
-                        pl = "Zaszyfrowana kopia zawiera cały dziennik i ustawienia, chronione wybranym przez ciebie hasłem. Kod PIN nie jest zapisywany w kopii.",
-                        uk = "Зашифрована копія містить увесь щоденник і налаштування під обраним вами паролем. PIN-код не зберігається в копії.",
-                        es = "La copia cifrada contiene todo tu diario y tus ajustes, con la contraseña que elijas. El código PIN no se incluye en la copia.",
-                        de = "Die verschlüsselte Sicherung enthält dein ganzes Tagebuch und deine Einstellungen, geschützt mit einem Passwort deiner Wahl. Der PIN-Code wird nicht gesichert.",
+                    tr6(
+                        "Reprenez votre historique de règles pour que les prévisions soient justes dès le début.",
+                        "Bring your period history over so predictions are accurate from the start.",
+                        "Przenieś historię miesiączek, aby prognozy były trafne od początku.",
+                        "Перенесіть історію менструацій, щоб прогнози були точними від початку.",
+                        "Trae tu historial de reglas para que las previsiones sean precisas desde el principio.",
+                        "Übernimm deinen Periodenverlauf, damit die Vorhersagen von Anfang an stimmen.",
                     ),
                 )
-            }
-            if (importAvailable) {
                 LunaButton(
-                    tr(
-                        "Importer un CSV ou une autre appli",
-                        "Import a CSV or another app",
-                        pl = "Importuj CSV lub inną aplikację",
-                        uk = "Імпортувати CSV або інший застосунок",
-                        es = "Importar un CSV u otra aplicación",
-                        de = "CSV oder andere App importieren",
-                    ),
+                    tr6("Importer mon historique", "Import my history", "Importuj moją historię", "Імпортувати мою історію", "Importar mi historial", "Meinen Verlauf importieren"),
                     onClick = { showImportSourceDialog = true },
                     style = LunaButtonStyle.Outlined,
                 )
@@ -444,7 +438,80 @@ fun SettingsScreen(
             importResultMessage?.let { msg ->
                 Muted(msg)
             }
-            LunaButton(tr("Tout effacer", "Erase everything", pl = "Usuń wszystko", uk = "Стерти все", es = "Borrar todo", de = "Alles löschen"), onClick = { confirmErase = true }, style = LunaButtonStyle.Quiet, icon = Icons.Filled.Delete)
+            var moreDataOptions by rememberSaveable { mutableStateOf(false) }
+            TextButton(onClick = { moreDataOptions = !moreDataOptions }) {
+                Text(
+                    if (moreDataOptions) {
+                        tr6("Moins d'options", "Fewer options", "Mniej opcji", "Менше параметрів", "Menos opciones", "Weniger Optionen")
+                    } else {
+                        tr6("Plus d'options", "More options", "Więcej opcji", "Більше параметрів", "Más opciones", "Weitere Optionen")
+                    },
+                )
+            }
+            if (moreDataOptions) {
+                LunaButton(
+                    tr6("Exporter un tableau (CSV)", "Export a spreadsheet (CSV)", "Eksportuj arkusz (CSV)", "Експортувати таблицю (CSV)", "Exportar una tabla (CSV)", "Tabelle exportieren (CSV)"),
+                    onClick = { exportCsv("lunaison.csv") },
+                    style = LunaButtonStyle.Outlined,
+                )
+                Muted(
+                    tr6(
+                        "Toutes vos journées dans un tableau, à ouvrir avec un tableur. Ce fichier n'est pas protégé par un mot de passe : ne le partagez qu'en connaissance de cause.",
+                        "All your days in a table, to open with a spreadsheet. This file has no password: only share it knowingly.",
+                        "Wszystkie dni w tabeli do otwarcia w arkuszu kalkulacyjnym. Ten plik nie ma hasła: udostępniaj go świadomie.",
+                        "Усі ваші дні в таблиці, яку можна відкрити в табличному редакторі. Цей файл не має пароля: діліться ним свідомо.",
+                        "Todos tus días en una tabla, para abrir con una hoja de cálculo. Este archivo no tiene contraseña: compártelo solo sabiendo lo que haces.",
+                        "Alle deine Tage in einer Tabelle, zum Öffnen mit einer Tabellenkalkulation. Diese Datei hat kein Passwort: Teile sie nur bewusst.",
+                    ),
+                )
+            }
+        }
+
+        SectionTitle(tr6("Apparence", "Appearance", "Wygląd", "Вигляд", "Apariencia", "Erscheinungsbild"))
+        LunaCard {
+            Text(tr("Palette de couleurs", "Color palette", pl = "Paleta kolorów", uk = "Колірна палітра", es = "Paleta de colores", de = "Farbpalette"), style = MaterialTheme.typography.titleSmall)
+            @OptIn(ExperimentalLayoutApi::class)
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                ThemePalette.entries.forEach { palette ->
+                    val selected = palette == settings.themePalette
+                    FilterChip(
+                        selected = selected,
+                        onClick = { actions.updateSettings { it.copy(themePalette = palette) } },
+                        label = {
+                            Text(
+                                palette.label,
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier.padding(vertical = 10.dp),
+                            )
+                        },
+                        leadingIcon = {
+                            Box(
+                                modifier = Modifier
+                                    .size(18.dp)
+                                    .background(palette.swatchColor, CircleShape),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                if (selected) {
+                                    Icon(
+                                        Icons.Filled.Check,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(12.dp),
+                                    )
+                                }
+                            }
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        ),
+                    )
+                }
+            }
         }
 
         SectionTitle(
@@ -621,6 +688,12 @@ fun SettingsScreen(
             dismissButton = { TextButton(onClick = { confirmErase = false }) { Text(tr("Annuler", "Cancel", pl = "Anuluj", uk = "Скасувати", es = "Cancelar", de = "Abbrechen")) } },
         )
     }
+}
+
+/** Intertitre d'une carte de réglages : nomme ce que la personne veut faire, pas un format de fichier. */
+@Composable
+private fun DataSubtitle(text: String) {
+    Text(text, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
 }
 
 @Composable
