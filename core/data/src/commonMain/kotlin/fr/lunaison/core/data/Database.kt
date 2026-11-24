@@ -72,6 +72,8 @@ data class SettingsEntity(
     val biometricUnlock: Boolean = false,
     /** Notifications sans aucun mot sur le cycle, même téléphone déverrouillé. */
     val discreetNotifications: Boolean = false,
+    /** Pays des fiches de droits : vide pour suivre le téléphone, « OTHER » pour aucun, sinon un code ISO. */
+    val country: String = "",
 )
 
 @Dao
@@ -113,14 +115,14 @@ interface LunaisonDao {
     }
 }
 
-@Database(entities = [DayLogEntity::class, SettingsEntity::class], version = 10, exportSchema = true)
+@Database(entities = [DayLogEntity::class, SettingsEntity::class], version = 11, exportSchema = true)
 @ConstructedBy(LunaisonDatabaseConstructor::class)
 abstract class LunaisonDatabase : RoomDatabase() {
     abstract fun dao(): LunaisonDao
 
     companion object {
         /**
-         * Toutes les migrations, de la version 1 à la version 10, sous forme de requêtes SQL.
+         * Toutes les migrations, de la version 1 à la version 11, sous forme de requêtes SQL.
          * Chaque étape se contente d'ajouter des colonnes : aucune donnée existante n'est touchée.
          */
         internal val MIGRATIONS: List<SqlMigration> = listOf(
@@ -186,6 +188,8 @@ abstract class LunaisonDatabase : RoomDatabase() {
                 "ALTER TABLE settings ADD COLUMN biometricUnlock INTEGER NOT NULL DEFAULT 0",
                 "ALTER TABLE settings ADD COLUMN discreetNotifications INTEGER NOT NULL DEFAULT 0",
             ),
+            // Version 11 : pays des fiches de droits (vide = celui du téléphone).
+            SqlMigration(10, 11, "ALTER TABLE settings ADD COLUMN country TEXT NOT NULL DEFAULT ''"),
         )
     }
 }

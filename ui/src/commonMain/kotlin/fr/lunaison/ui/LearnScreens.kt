@@ -1,9 +1,9 @@
 package fr.lunaison.ui
 
-import kotlin.math.PI
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -46,11 +45,11 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
@@ -60,9 +59,10 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlin.math.roundToInt
 import fr.lunaison.core.content.Article
 import fr.lunaison.core.content.Articles
+import fr.lunaison.core.content.RightsSheet
+import fr.lunaison.core.content.RightsSheets
 import fr.lunaison.core.content.Source
 import fr.lunaison.core.content.Sources
 import fr.lunaison.core.cycle.CycleState
@@ -70,8 +70,11 @@ import fr.lunaison.core.cycle.Phase
 import fr.lunaison.core.designsystem.LunaCard
 import fr.lunaison.core.designsystem.SectionTitle
 import fr.lunaison.core.model.AgeGroup
+import fr.lunaison.core.model.Country
 import fr.lunaison.core.model.Pain
 import fr.lunaison.core.model.tr
+import kotlin.math.PI
+import kotlin.math.roundToInt
 
 private enum class LearnCategory {
     ALL,
@@ -287,6 +290,11 @@ fun LearnScreen(
             }
         }
 
+        // Droits et aides : propres à un pays, distincts de la langue.
+        if (selectedCategory == LearnCategory.ALL || selectedCategory == LearnCategory.LIFE) {
+            RightsSection(state, onArticle)
+        }
+
         Muted(tr("Ces fiches informent et ne remplacent pas l'avis d'un professionnel de santé.", "These guides inform you and do not replace the advice of a health professional.", pl = "Te artykuły informują i nie zastępują porady osoby z personelu medycznego.", uk = "Ці статті інформують і не замінюють консультацію медичного працівника.", es = "Estas fichas informan y no sustituyen la opinión de un profesional sanitario.", de = "Diese Artikel informieren und ersetzen nicht die Einschätzung von medizinischem Fachpersonal."))
     }
 }
@@ -315,6 +323,64 @@ private fun LearnEntryCard(id: String, onArticle: (String) -> Unit) {
         }
     }
 }
+/** Fiches de droits du pays choisi (ou de la région du téléphone), ou une phrase honnête s'il n'y en a pas. */
+@Composable
+private fun RightsSection(state: AppState?, onArticle: (String) -> Unit) {
+    val country = Country.resolve(state?.settings?.country ?: Country.AUTO)
+    val sheets = RightsSheets.forCountry(country)
+    if (sheets.isNotEmpty() && country != null) {
+        val name = Country.displayName(country)
+        SectionTitle(tr("Vos droits ($name)", "Your rights ($name)", pl = "Twoje prawa ($name)", uk = "Ваші права ($name)", es = "Tus derechos ($name)", de = "Deine Rechte ($name)"))
+        sheets.forEach { ArticleCard(it.article, onArticle) }
+    } else {
+        SectionTitle(tr("Vos droits", "Your rights", pl = "Twoje prawa", uk = "Ваші права", es = "Tus derechos", de = "Deine Rechte"))
+        Muted(
+            tr(
+                "Les remboursements et l'accès gratuit à la contraception dépendent du pays. Renseignez-vous auprès de votre système de santé, d'une pharmacie ou d'un centre de santé sexuelle. Vous pouvez choisir un pays dans les réglages.",
+                "Reimbursements and free access to contraception depend on the country. Ask your health system, a pharmacy or a sexual health centre. You can choose a country in the settings.",
+                pl = "Refundacje i bezpłatny dostęp do antykoncepcji zależą od kraju. Zapytaj w swoim systemie opieki zdrowotnej, w aptece lub w ośrodku zdrowia seksualnego. Kraj możesz wybrać w ustawieniach.",
+                uk = "Відшкодування та безкоштовний доступ до контрацепції залежать від країни. Дізнайтеся у своїй системі охорони здоров'я, в аптеці чи центрі сексуального здоров'я. Країну можна обрати в налаштуваннях.",
+                es = "Los reembolsos y el acceso gratuito a la anticoncepción dependen del país. Infórmate en tu sistema de salud, en una farmacia o en un centro de salud sexual. Puedes elegir un país en los ajustes.",
+                de = "Erstattungen und kostenloser Zugang zu Verhütung hängen vom Land ab. Frag bei deinem Gesundheitssystem, in einer Apotheke oder einem Zentrum für sexuelle Gesundheit nach. Ein Land kannst du in den Einstellungen wählen.",
+            ),
+        )
+    }
+}
+
+/** Fiche de droits : comme une fiche, avec le pays, la date de vérification et les sources en liens directs. */
+@Composable
+private fun RightsSheetScreen(sheet: RightsSheet, onBack: () -> Unit) {
+    val context = rememberPlatformContext()
+    val article = sheet.article
+    Page {
+        PageTitle(article.title, onBack = onBack)
+        Text(article.summary, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        val name = Country.displayName(sheet.country)
+        val date = "${Format.dayMonth(sheet.verifiedOn)} ${sheet.verifiedOn.year}"
+        Muted(tr("Valable en $name. Vérifié le $date.", "Applies in $name. Checked on $date.", pl = "Dotyczy: $name. Sprawdzono $date.", uk = "Діє: $name. Перевірено $date.", es = "Válido en $name. Comprobado el $date.", de = "Gilt in $name. Geprüft am $date."))
+        article.sections.forEach { section ->
+            SectionTitle(section.heading)
+            section.paragraphs.forEach { Text(it, style = MaterialTheme.typography.bodyLarge) }
+        }
+        SectionTitle(tr("Sources", "Sources", pl = "Źródła", uk = "Джерела", es = "Fuentes", de = "Quellen"))
+        article.sources.forEach { source ->
+            TextButton(onClick = { openLink(context, source.url) }) {
+                Text(source.label, style = MaterialTheme.typography.bodySmall, textDecoration = TextDecoration.Underline)
+            }
+        }
+        Muted(
+            tr(
+                "Les droits évoluent. En cas de doute, vérifiez sur les sites officiels ou demandez en pharmacie.",
+                "Rights change. If in doubt, check the official websites or ask a pharmacist.",
+                pl = "Przepisy się zmieniają. W razie wątpliwości sprawdź oficjalne strony lub zapytaj w aptece.",
+                uk = "Права змінюються. Якщо маєте сумніви, перевірте на офіційних сайтах або запитайте в аптеці.",
+                es = "Los derechos cambian. Si tienes dudas, consulta las webs oficiales o pregunta en la farmacia.",
+                de = "Rechte ändern sich. Im Zweifel auf den offiziellen Seiten nachsehen oder in der Apotheke fragen.",
+            ),
+        )
+    }
+}
+
 @Composable
 private fun ArticleCard(article: Article, onArticle: (String) -> Unit) {
     LunaCard(modifier = Modifier.clickable(role = Role.Button) { onArticle(article.id) }) {
@@ -324,6 +390,10 @@ private fun ArticleCard(article: Article, onArticle: (String) -> Unit) {
 }
 @Composable
 fun ArticleScreen(id: String, onBack: () -> Unit) {
+    RightsSheets.byId(id)?.let { sheet ->
+        RightsSheetScreen(sheet, onBack)
+        return
+    }
     if (id == "contraception") {
         ContraceptionGuideScreen(onBack = onBack)
         return

@@ -91,6 +91,8 @@ data class AppSettings(
     val biometricUnlock: Boolean = false,
     /** Notifications neutres (« Lunaison », « Vous avez un rappel ») même téléphone déverrouillé. */
     val discreetNotifications: Boolean = false,
+    /** Pays des fiches de droits ([fr.lunaison.core.model.Country]) : vide pour suivre le téléphone. */
+    val country: String = "",
 ) {
     val isAdult: Boolean get() = baseline.ageGroup == AgeGroup.ADULT
 
@@ -472,6 +474,7 @@ internal fun SettingsEntity.toModel() = AppSettings(
     decoyPinHash = decoyPinHash,
     biometricUnlock = biometricUnlock,
     discreetNotifications = discreetNotifications,
+    country = country,
 )
 
 internal fun AppSettings.toEntity() = SettingsEntity(
@@ -505,6 +508,7 @@ internal fun AppSettings.toEntity() = SettingsEntity(
     decoyPinHash = decoyPinHash,
     biometricUnlock = biometricUnlock,
     discreetNotifications = discreetNotifications,
+    country = country,
 )
 
 /** Identifiant de l'énumération, sinon libellé dans l'une des six langues (sans tenir compte de la casse). */
