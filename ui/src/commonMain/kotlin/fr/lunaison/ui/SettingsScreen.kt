@@ -89,6 +89,7 @@ fun SettingsScreen(
     var importResultMessage by rememberSaveable { mutableStateOf<String?>(null) }
 
     val notifications = rememberNotificationAccess()
+    val exactAlarms = rememberExactAlarmAccess()
     fun ensureNotifications() {
         if (!notifications.allowed) notifications.request()
     }
@@ -185,6 +186,19 @@ fun SettingsScreen(
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                     )
+                    if (exactAlarms != null && !exactAlarms.allowed) {
+                        Muted(tr(
+                            "Pour que le rappel arrive à l'heure exacte, autorisez « Alarmes et rappels » pour Lunaison. Sans cela, Android peut le décaler de quelques minutes.",
+                            "For the reminder to arrive at the exact time, allow \"Alarms & reminders\" for Lunaison. Otherwise, Android may delay it by a few minutes.",
+                            pl = "Aby przypomnienie przychodziło dokładnie o czasie, zezwól Lunaison na „Alarmy i przypomnienia”. W przeciwnym razie Android może je opóźnić o kilka minut.",
+                            uk = "Щоб нагадування надходило точно вчасно, дозвольте Lunaison «Будильники й нагадування». Інакше Android може затримати його на кілька хвилин.",
+                            es = "Para que el recordatorio llegue a la hora exacta, permite «Alarmas y recordatorios» para Lunaison. Si no, Android puede retrasarlo unos minutos.",
+                            de = "Damit die Erinnerung pünktlich kommt, erlaube Lunaison „Wecker und Erinnerungen“. Sonst kann Android sie um einige Minuten verschieben.",
+                        ))
+                        TextButton(onClick = exactAlarms.openSettings) {
+                            Text(tr("Autoriser l'heure exacte", "Allow exact time", pl = "Zezwól na dokładny czas", uk = "Дозволити точний час", es = "Permitir la hora exacta", de = "Genaue Uhrzeit erlauben"))
+                        }
+                    }
                 }
             }
             TextButton(onClick = { onArticle("contraception") }) {
