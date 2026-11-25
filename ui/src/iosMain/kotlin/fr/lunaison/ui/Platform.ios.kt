@@ -167,6 +167,10 @@ private fun ByteArray.toNSData(): NSData =
 
 actual fun showToast(context: PlatformContext, message: String) = onMain { presentAlert(message) }
 
+/** Les notifications locales d'iOS arrivent à l'heure prévue sans autorisation supplémentaire. */
+@Composable
+actual fun rememberExactAlarmAccess(): ExactAlarmAccess? = null
+
 @Composable
 actual fun rememberNotificationAccess(onAnswered: (granted: Boolean) -> Unit): NotificationAccess {
     var allowed by remember { mutableStateOf(false) }

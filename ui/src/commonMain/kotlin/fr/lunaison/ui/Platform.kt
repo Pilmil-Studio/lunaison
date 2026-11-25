@@ -54,6 +54,20 @@ class NotificationAccess(
 expect fun rememberNotificationAccess(onAnswered: (granted: Boolean) -> Unit = {}): NotificationAccess
 
 /**
+ * Autorisation d'envoyer les rappels à l'heure exacte (Android 12 et plus : « Alarmes et rappels »).
+ * `null` quand la plateforme n'a pas besoin d'une autorisation à part (iOS, Android 11 et moins).
+ */
+class ExactAlarmAccess(
+    /** Autorisé maintenant ; revérifié au retour dans l'appli. */
+    val allowed: Boolean,
+    /** Ouvre la page du système où la personne accorde l'autorisation. */
+    val openSettings: () -> Unit,
+)
+
+@Composable
+expect fun rememberExactAlarmAccess(): ExactAlarmAccess?
+
+/**
  * Enregistre un texte dans un fichier choisi par la personne (Android : sélecteur de document ; iOS : feuille de partage).
  * Le contenu n'est produit qu'une fois le fichier choisi.
  */

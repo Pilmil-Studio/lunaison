@@ -2,9 +2,11 @@ package fr.lunaison.reminders
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.AlarmManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -13,18 +15,17 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.work.CoroutineWorker
-import androidx.work.ExistingWorkPolicy
-import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import androidx.work.workDataOf
 import fr.lunaison.R
 import fr.lunaison.core.cycle.CycleAnalyzer
 import fr.lunaison.core.cycle.CycleState
 import fr.lunaison.core.cycle.ReminderPlanner
 import fr.lunaison.core.data.LunaisonRepository
 import fr.lunaison.core.data.LunaisonRepositoryProvider
-import java.time.Duration
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -36,48 +37,136 @@ import fr.lunaison.core.model.toLocalDate
 enum class ReminderKind { PERIOD, LOG, MEDICATION }
 
 /**
- * Rappels locaux, planifiés avec WorkManager : chaque rappel est une tâche unique,
- * replanifiée après chaque envoi et à chaque changement des données ou des réglages.
+ * Rappels locaux, planifiés avec AlarmManager : une alarme par type de rappel,
+ * replanifiée après chaque envoi, à chaque changement des données ou des réglages,
+ * au redémarrage du téléphone et quand l'heure ou le fuseau changent.
+ *
+ * WorkManager servait auparavant, mais Android diffère ses tâches selon l'usage de l'appli
+ * (veille, compartiments d'inactivité) : un rappel de pilule réglé à 9 h pouvait arriver l'après-midi.
+ * Avec l'autorisation « Alarmes et rappels », l'heure est exacte ; sans elle, l'alarme reste
+ * autorisée en veille mais Android peut la décaler de quelques minutes.
  */
 object ReminderScheduler {
 
-    private fun workName(kind: ReminderKind) = "rappel-${kind.name.lowercase()}"
+    /** Anciens noms des tâches WorkManager, annulées pour ne pas doubler les rappels. */
+    private fun legacyWorkName(kind: ReminderKind) = "rappel-${kind.name.lowercase()}"
+
+    /** Les alarmes à l'heure exacte sont permises (toujours vrai avant Android 12). */
+    fun canScheduleExact(context: Context): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return true
+        val alarms = context.getSystemService(AlarmManager::class.java) ?: return false
+        return alarms.canScheduleExactAlarms()
+    }
 
     suspend fun reschedule(context: Context, repository: LunaisonRepository) {
         val settings = repository.settingsOnce()
         val now = LocalDateTime.now()
+        val workManager = WorkManager.getInstance(context)
+        ReminderKind.entries.forEach { workManager.cancelUniqueWork(legacyWorkName(it)) }
         if (!settings.onboarded) {
-            ReminderKind.entries.forEach { WorkManager.getInstance(context).cancelUniqueWork(workName(it)) }
+            ReminderKind.entries.forEach { cancel(context, it) }
             return
         }
         val state = CycleAnalyzer.analyze(repository.logsOnce(), settings.baseline, now.toLocalDate())
         val periodAt = if (settings.pausePredictions) null else ReminderPlanner.nextPeriodReminder(state, settings.reminders, now)
-        plan(context, ReminderKind.PERIOD, periodAt, now)
-        plan(context, ReminderKind.LOG, ReminderPlanner.nextLogReminder(settings.reminders, now), now)
-        plan(context, ReminderKind.MEDICATION, ReminderPlanner.nextMedicationReminder(settings.reminders, now), now)
+        plan(context, ReminderKind.PERIOD, periodAt)
+        plan(context, ReminderKind.LOG, ReminderPlanner.nextLogReminder(settings.reminders, now))
+        plan(context, ReminderKind.MEDICATION, ReminderPlanner.nextMedicationReminder(settings.reminders, now))
     }
 
-    private fun plan(context: Context, kind: ReminderKind, at: LocalDateTime?, now: LocalDateTime) {
-        val manager = WorkManager.getInstance(context)
+    private fun pendingIntent(context: Context, kind: ReminderKind): PendingIntent {
+        val intent = Intent(context, ReminderAlarmReceiver::class.java)
+            .setAction(ReminderAlarmReceiver.ACTION_FIRE)
+            .putExtra(ReminderWorker.KIND, kind.name)
+        return PendingIntent.getBroadcast(context, kind.ordinal, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+    }
+
+    private fun cancel(context: Context, kind: ReminderKind) {
+        context.getSystemService(AlarmManager::class.java)?.cancel(pendingIntent(context, kind))
+    }
+
+    // L'autorisation des alarmes exactes est vérifiée juste avant ; une SecurityException reste rattrapée.
+    @SuppressLint("MissingPermission", "ScheduleExactAlarm")
+    private fun plan(context: Context, kind: ReminderKind, at: LocalDateTime?) {
+        val alarms = context.getSystemService(AlarmManager::class.java) ?: return
+        val pending = pendingIntent(context, kind)
         if (at == null) {
-            manager.cancelUniqueWork(workName(kind))
+            alarms.cancel(pending)
             return
         }
-        val zone = TimeZone.currentSystemDefault()
-        val delayMs = (at.toInstant(zone).toEpochMilliseconds() - now.toInstant(zone).toEpochMilliseconds()).coerceAtLeast(0L)
-        val request = OneTimeWorkRequestBuilder<ReminderWorker>()
-            .setInitialDelay(Duration.ofMillis(delayMs))
-            .setInputData(workDataOf(ReminderWorker.KIND to kind.name))
-            .build()
-        manager.enqueueUniqueWork(workName(kind), ExistingWorkPolicy.REPLACE, request)
+        // Heure murale convertie dans le fuseau courant : un changement de fuseau replanifie (voir ReminderRescheduleReceiver).
+        val triggerAt = at.toInstant(TimeZone.currentSystemDefault()).toEpochMilliseconds()
+        val exact = canScheduleExact(context) && runCatching {
+            alarms.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pending)
+        }.isSuccess
+        if (!exact) alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pending)
+    }
+}
+
+/** Déclenché par AlarmManager : envoie le rappel puis replanifie le suivant. */
+class ReminderAlarmReceiver : BroadcastReceiver() {
+
+    override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action != ACTION_FIRE) return
+        val kind = intent.getStringExtra(ReminderWorker.KIND)
+            ?.let { name -> ReminderKind.entries.firstOrNull { it.name == name } } ?: return
+        val repository = (context.applicationContext as? LunaisonRepositoryProvider)?.repository ?: return
+        val pending = goAsync()
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                ReminderNotifier.deliver(context.applicationContext, repository, kind)
+            } finally {
+                pending.finish()
+            }
+        }
+    }
+
+    companion object {
+        const val ACTION_FIRE = "fr.lunaison.action.REMINDER"
+    }
+}
+
+/** Les alarmes ne survivent pas à un redémarrage, et l'heure murale bouge avec le fuseau : on replanifie. */
+class ReminderRescheduleReceiver : BroadcastReceiver() {
+
+    override fun onReceive(context: Context, intent: Intent) {
+        val repository = (context.applicationContext as? LunaisonRepositoryProvider)?.repository ?: return
+        val pending = goAsync()
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                ReminderScheduler.reschedule(context.applicationContext, repository)
+            } finally {
+                pending.finish()
+            }
+        }
     }
 }
 
 class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
 
+    /** Conservé pour les tâches planifiées par une ancienne version : elles sont annulées à la première replanification. */
     override suspend fun doWork(): Result {
         val repository = (applicationContext as? LunaisonRepositoryProvider)?.repository ?: return Result.failure()
         val kind = inputData.getString(KIND)?.let { name -> ReminderKind.entries.firstOrNull { it.name == name } } ?: return Result.failure()
+        ReminderNotifier.deliver(applicationContext, repository, kind)
+        return Result.success()
+    }
+
+    companion object {
+        const val KIND = "kind"
+        const val EXTRA_OPEN = "fr.lunaison.OPEN"
+        const val OPEN_LOG = "log"
+
+        fun notificationId(kind: ReminderKind) = kind.ordinal + 1
+
+        fun ensureChannel(context: Context) = ReminderNotifier.ensureChannel(context)
+    }
+}
+
+object ReminderNotifier {
+
+    /** Envoie le rappel s'il est encore utile, puis planifie le suivant. */
+    suspend fun deliver(context: Context, repository: LunaisonRepository, kind: ReminderKind) {
         val settings = repository.settingsOnce()
         val logs = repository.logsOnce()
         val today = LocalDate.now()
@@ -91,12 +180,12 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
                     days == 1 -> tr("Vos règles devraient arriver demain.", "Your period should arrive tomorrow.", pl = "Miesiączka powinna pojawić się jutro.", uk = "Місячні мають початися завтра.", es = "Tu regla debería llegar mañana.", de = "Deine Periode sollte morgen kommen.")
                     else -> tr("Vos règles devraient arriver dans $days jours environ.", "Your period should arrive in about $days days.", pl = "Miesiączka powinna pojawić się za około $days dni.", uk = "Місячні мають початися приблизно через $days днів.", es = "Tu regla debería llegar en unos $days días.", de = "Deine Periode sollte in etwa $days Tagen kommen.")
                 }
-                notify(kind, settings.pinHash != null, tr("Bientôt vos règles", "Period coming soon", pl = "Wkrótce miesiączka", uk = "Скоро місячні", es = "Pronto tu regla", de = "Periode bald"), text)
+                notify(context, kind, settings.pinHash != null, tr("Bientôt vos règles", "Period coming soon", pl = "Wkrótce miesiączka", uk = "Скоро місячні", es = "Pronto tu regla", de = "Periode bald"), text)
             }
             ReminderKind.LOG -> {
                 val logged = logs.any { it.date == today }
                 if (ReminderPlanner.shouldRemindToLog(state, settings.reminders, today, logged)) {
-                    notify(kind, settings.pinHash != null, tr("Un petit point sur votre journée ?", "A quick check-in on your day?", pl = "Krótko o Twoim dniu?", uk = "Коротко про ваш день?", es = "¿Un momento para tu día?", de = "Kurz zu deinem Tag?"), tr("Quelques secondes pour noter comment vous allez.", "A few seconds to note how you are doing.", pl = "Kilka sekund, by zanotować, jak się czujesz.", uk = "Кілька секунд, щоб записати, як ви почуваєтеся.", es = "Unos segundos para anotar cómo estás.", de = "Ein paar Sekunden, um festzuhalten, wie es dir geht."))
+                    notify(context, kind, settings.pinHash != null, tr("Un petit point sur votre journée ?", "A quick check-in on your day?", pl = "Krótko o Twoim dniu?", uk = "Коротко про ваш день?", es = "¿Un momento para tu día?", de = "Kurz zu deinem Tag?"), tr("Quelques secondes pour noter comment vous allez.", "A few seconds to note how you are doing.", pl = "Kilka sekund, by zanotować, jak się czujesz.", uk = "Кілька секунд, щоб записати, як ви почуваєтеся.", es = "Unos segundos para anotar cómo estás.", de = "Ein paar Sekunden, um festzuhalten, wie es dir geht."))
                 }
             }
             ReminderKind.MEDICATION -> {
@@ -105,18 +194,16 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
                     val label = settings.reminders.medicationLabel.trim()
                     val title = if (label.isNotEmpty()) tr("Rappel : $label", "Reminder: $label", pl = "Przypomnienie: $label", uk = "Нагадування: $label", es = "Recordatorio: $label", de = "Erinnerung: $label") else tr("Rappel quotidien", "Daily reminder", pl = "Codzienne przypomnienie", uk = "Щоденне нагадування", es = "Recordatorio diario", de = "Tägliche Erinnerung")
                     val text = tr("Pensez à votre prise du jour et à la noter dans Lunaison.", "Remember your daily dose and log it in Lunaison.", pl = "Pamiętaj o dzisiejszej dawce i zanotuj ją w Lunaison.", uk = "Не забудьте про сьогоднішню дозу й запишіть її в Lunaison.", es = "Recuerda tu toma de hoy y anótala en Lunaison.", de = "Denk an deine heutige Einnahme und trag sie in Lunaison ein.")
-                    notify(kind, settings.pinHash != null, title, text)
+                    notify(context, kind, settings.pinHash != null, title, text)
                 }
             }
         }
-        ReminderScheduler.reschedule(applicationContext, repository)
-        return Result.success()
+        ReminderScheduler.reschedule(context, repository)
     }
 
     // L'autorisation est vérifiée au début de la fonction.
     @SuppressLint("MissingPermission")
-    private fun notify(kind: ReminderKind, locked: Boolean, title: String, text: String) {
-        val context = applicationContext
+    private fun notify(context: Context, kind: ReminderKind, locked: Boolean, title: String, text: String) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         ) {
@@ -126,7 +213,7 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
         // Le rappel de saisie ouvre directement la journée ; le code PIN reste demandé à l'ouverture.
         val launch = context.packageManager.getLaunchIntentForPackage(context.packageName)
             ?.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            ?.apply { if (kind == ReminderKind.LOG) putExtra(EXTRA_OPEN, OPEN_LOG) }
+            ?.apply { if (kind == ReminderKind.LOG) putExtra(ReminderWorker.EXTRA_OPEN, ReminderWorker.OPEN_LOG) }
         val pending = launch?.let {
             PendingIntent.getActivity(context, kind.ordinal, it, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         }
@@ -161,35 +248,27 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
                 builder.addAction(0, label, actionPending)
             }
         }
-        NotificationManagerCompat.from(context).notify(notificationId(kind), builder.build())
+        NotificationManagerCompat.from(context).notify(ReminderWorker.notificationId(kind), builder.build())
     }
 
-    companion object {
-        const val KIND = "kind"
-        const val EXTRA_OPEN = "fr.lunaison.OPEN"
-        const val OPEN_LOG = "log"
+    /** Ancien canal unique : remplacé par un canal par type, pour couper un rappel sans les autres. */
+    private const val LEGACY_CHANNEL_ID = "rappels"
 
-        /** Ancien canal unique : remplacé par un canal par type, pour couper un rappel sans les autres. */
-        private const val LEGACY_CHANNEL_ID = "rappels"
+    private fun channelFor(kind: ReminderKind) = "rappel-${kind.name.lowercase()}"
 
-        fun notificationId(kind: ReminderKind) = kind.ordinal + 1
-
-        private fun channelFor(kind: ReminderKind) = "rappel-${kind.name.lowercase()}"
-
-        fun ensureChannel(context: Context) {
-            val manager = context.getSystemService(NotificationManager::class.java) ?: return
-            manager.deleteNotificationChannel(LEGACY_CHANNEL_ID)
-            val names = mapOf(
-                ReminderKind.PERIOD to tr("Annonce des règles", "Period coming", pl = "Zapowiedź miesiączki", uk = "Попередження про місячні", es = "Aviso de la regla", de = "Periodenankündigung"),
-                ReminderKind.LOG to tr("Noter ma journée", "Log my day", pl = "Zanotuj mój dzień", uk = "Записати мій день", es = "Anotar mi día", de = "Meinen Tag eintragen"),
-                ReminderKind.MEDICATION to tr("Prise quotidienne", "Daily dose", pl = "Codzienna dawka", uk = "Щоденна доза", es = "Toma diaria", de = "Tägliche Einnahme"),
-            )
-            names.forEach { (kind, name) ->
-                val channel = NotificationChannel(channelFor(kind), name, NotificationManager.IMPORTANCE_DEFAULT)
-                channel.description = context.getString(R.string.reminders_channel_description)
-                channel.lockscreenVisibility = android.app.Notification.VISIBILITY_PRIVATE
-                manager.createNotificationChannel(channel)
-            }
+    fun ensureChannel(context: Context) {
+        val manager = context.getSystemService(NotificationManager::class.java) ?: return
+        manager.deleteNotificationChannel(LEGACY_CHANNEL_ID)
+        val names = mapOf(
+            ReminderKind.PERIOD to tr("Annonce des règles", "Period coming", pl = "Zapowiedź miesiączki", uk = "Попередження про місячні", es = "Aviso de la regla", de = "Periodenankündigung"),
+            ReminderKind.LOG to tr("Noter ma journée", "Log my day", pl = "Zanotuj mój dzień", uk = "Записати мій день", es = "Anotar mi día", de = "Meinen Tag eintragen"),
+            ReminderKind.MEDICATION to tr("Prise quotidienne", "Daily dose", pl = "Codzienna dawka", uk = "Щоденна доза", es = "Toma diaria", de = "Tägliche Einnahme"),
+        )
+        names.forEach { (kind, name) ->
+            val channel = NotificationChannel(channelFor(kind), name, NotificationManager.IMPORTANCE_DEFAULT)
+            channel.description = context.getString(R.string.reminders_channel_description)
+            channel.lockscreenVisibility = android.app.Notification.VISIBILITY_PRIVATE
+            manager.createNotificationChannel(channel)
         }
     }
 }

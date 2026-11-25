@@ -6,8 +6,13 @@
         Autorisations facultatives :
         - notifications, demandée quand la personne active un rappel ;
         - caméra, demandée uniquement si la personne ouvre le lecteur de QR Code partenaire ;
+        - alarmes et rappels (Android 12 et plus), pour que le rappel de pilule arrive à l'heure exacte ;
+          sans elle, les rappels restent envoyés, avec quelques minutes de décalage possibles.
+        Le démarrage du téléphone sert seulement à replanifier les rappels, effacés par Android au redémarrage.
     -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
@@ -59,6 +64,24 @@
         <receiver
             android:name=".reminders.ReminderActionReceiver"
             android:exported="false" />
+
+        <!-- Rappels planifiés par AlarmManager : interne à l'appli. -->
+        <receiver
+            android:name=".reminders.ReminderAlarmReceiver"
+            android:exported="false" />
+
+        <!-- Replanification des rappels : redémarrage, mise à jour, changement d'heure ou de fuseau, autorisation des alarmes exactes. -->
+        <receiver
+            android:name=".reminders.ReminderRescheduleReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
 
         <receiver
             android:name=".widget.LunaisonWidget"

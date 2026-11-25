@@ -1,6 +1,7 @@
 package fr.lunaison.ui
 
 import android.Manifest
+import android.app.AlarmManager
 import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.Context
@@ -115,6 +116,32 @@ actual fun rememberNotificationAccess(onAnswered: (granted: Boolean) -> Unit): N
         openSettings = {
             val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
                 .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            runCatching { context.startActivity(intent) }
+        },
+    )
+}
+
+private fun exactAlarmsAllowed(context: Context): Boolean {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return true
+    val alarms = context.getSystemService(AlarmManager::class.java) ?: return false
+    return alarms.canScheduleExactAlarms()
+}
+
+@Composable
+actual fun rememberExactAlarmAccess(): ExactAlarmAccess? {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return null
+    val context = LocalContext.current
+    var allowed by remember { mutableStateOf(exactAlarmsAllowed(context)) }
+    // Au retour de la page « Alarmes et rappels », l'autorisation peut avoir changé.
+    LifecycleResumeEffect(Unit) {
+        allowed = exactAlarmsAllowed(context)
+        onPauseOrDispose { }
+    }
+    return ExactAlarmAccess(
+        allowed = allowed,
+        openSettings = {
+            val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:${context.packageName}"))
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             runCatching { context.startActivity(intent) }
         },
